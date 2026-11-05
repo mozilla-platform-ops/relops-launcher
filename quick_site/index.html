@@ -36,7 +36,7 @@
         </p>
         <p class="prose" style="margin-top: var(--space-6)">Download below, then paste this to verify and install.</p>
         <div class="cmd" style="margin-top: var(--space-3); max-width: 40rem; min-width: 0">
-          <code id="ex">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '__RELOPS_SHA_DARWIN_ARM64__' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code>
+          <code id="ex">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '{{RELOPS_SHA_DARWIN_ARM64}}' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code>
           <button type="button" data-copy="#ex">copy</button>
         </div>
         <div class="hero__cta">
@@ -83,12 +83,12 @@
           <option value="linux-amd64">Linux · amd64</option>
         </select>
         <p class="prose">Paste this into your terminal from any directory. It checks the download before installing, adds relops to this terminal's PATH, and prints <code>relops {{RELOPS_VERSION}}</code>.</p>
-        <div class="cmd cmd--wrap"><code id="c1">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '__RELOPS_SHA_DARWIN_ARM64__' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code><button type="button" data-copy="#c1">copy</button></div>
+        <div class="cmd cmd--wrap"><code id="c1">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '{{RELOPS_SHA_DARWIN_ARM64}}' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code><button type="button" data-copy="#c1">copy</button></div>
         <noscript><p class="prose">These commands install the Apple silicon build. For Linux amd64, substitute its filename and checksum from SHA256SUMS and use <code>sha256sum</code> instead of <code>shasum -a 256</code>.</p></noscript>
         <details class="stack">
           <summary>Individual steps and PATH setup</summary>
           <p class="prose">Verify the download first. Continue only if the checksum reports <code>OK</code>.</p>
-          <div class="cmd cmd--wrap"><code id="verify">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '__RELOPS_SHA_DARWIN_ARM64__' 'relops-darwin-arm64' | shasum -a 256 -c -)</code><button type="button" data-copy="#verify">copy</button></div>
+          <div class="cmd cmd--wrap"><code id="verify">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '{{RELOPS_SHA_DARWIN_ARM64}}' 'relops-darwin-arm64' | shasum -a 256 -c -)</code><button type="button" data-copy="#verify">copy</button></div>
           <p class="prose">Install the verified file:</p>
           <div class="cmd cmd--wrap"><code id="manual-install">mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 "$HOME/Downloads/relops-darwin-arm64" "$HOME/.local/bin/relops"</code><button type="button" data-copy="#manual-install">copy</button></div>
           <p class="prose">For future terminals, add this line once to your shell's startup file: <code>~/.zshrc</code> for zsh (the macOS default), or <code>~/.bashrc</code> for bash. Then open a new terminal.</p>

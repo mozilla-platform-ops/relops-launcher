@@ -145,7 +145,7 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 	page := strings.NewReplacer(
 		"{{RELOPS_VERSION}}", cfg.Version,
 		"{{RELOPS_RELEASE_JSON}}", string(manifest),
-		"__RELOPS_SHA_DARWIN_ARM64__", release.Artifacts[0].SHA256,
+		"{{RELOPS_SHA_DARWIN_ARM64}}", release.Artifacts[0].SHA256,
 		"{{RELOPS_MACOS_STATUS}}", macOSStatus,
 	).Replace(string(index))
 	if strings.Contains(page, "{{RELOPS_") {
