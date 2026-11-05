@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/mozilla-platform-ops/relops-launcher/internal/macosrelease"
 )
 
 func fixture(t *testing.T) (Config, func(string) (metadata, error)) {
@@ -178,5 +180,50 @@ func TestRejectUnsafeInputs(t *testing.T) {
 	}
 	if _, err := inspectBinary(filepath.Join(cfg.Binaries, "relops-darwin-arm64")); err == nil {
 		t.Fatal("accepted a non-Go binary as a launcher artifact")
+	}
+}
+
+func TestSignedSiteRequiresApprovalForExactArtifacts(t *testing.T) {
+	cfg, inspect := fixture(t)
+	cfg.RequireNotarized = true
+	if _, err := build(cfg, inspect); err == nil {
+		t.Fatal("signed site accepted missing notarization receipt")
+	}
+	receipt := macosrelease.Receipt{SchemaVersion: 1, Version: cfg.Version, TeamID: "W5BHZ9R8A3", Status: "Accepted", SubmissionID: "12345678-1234-1234-1234-123456789abc", SHA256: make(map[string]string)}
+	for _, name := range []string{"relops-darwin-arm64", "relops-darwin-amd64"} {
+		data, err := os.ReadFile(filepath.Join(cfg.Binaries, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		digest := sha256.Sum256(data)
+		receipt.SHA256[name] = hex.EncodeToString(digest[:])
+	}
+	data, err := json.Marshal(receipt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(cfg.Binaries, "macos-notarization.json"), data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	output, err := build(cfg, inspect)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err = os.ReadFile(filepath.Join(output, "releases.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var release Release
+	if err := json.Unmarshal(data, &release); err != nil {
+		t.Fatal(err)
+	}
+	if release.MacOSNotarization == nil || release.MacOSNotarization.Status != "Accepted" || release.BuildCommand != "just version=0.1.0 signed-site" {
+		t.Fatalf("missing signed release metadata: %+v", release)
+	}
+	if err := os.WriteFile(filepath.Join(cfg.Binaries, "relops-darwin-arm64"), []byte("rebuilt unsigned bytes"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := build(cfg, inspect); err == nil {
+		t.Fatal("stale notarization receipt survived rebuilding the binary")
 	}
 }

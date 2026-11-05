@@ -2,6 +2,10 @@ set shell := ["sh", "-eu", "-c"]
 
 version := trim(read("VERSION"))
 go := env("GO", "go")
+sign_identity := env("RELOPS_SIGN_IDENTITY", "Developer ID Application: Andrew Erickson (W5BHZ9R8A3)")
+team_id := env("RELOPS_TEAM_ID", "W5BHZ9R8A3")
+notary_profile := env("RELOPS_NOTARY_PROFILE", "relops-notary")
+quick_account := env("RELOPS_QUICK_ACCOUNT", "aerickson@mozilla.com")
 
 # List available recipes.
 default:
@@ -46,3 +50,25 @@ site: release
 site-check: site
     node --check dist/site/js/main.js
     node --test quick_site/tests/downloads.test.cjs
+
+# Store notarization credentials in Keychain using secure interactive prompts.
+notary-setup:
+    xcrun notarytool store-credentials {{ quote(notary_profile) }} --team-id {{ quote(team_id) }}
+
+# Sign the macOS binaries only; notarization is still required for distribution.
+sign-macos: release
+    {{ quote(go) }} run ./cmd/relops-macos --version {{ quote(version) }} --identity {{ quote(sign_identity) }} --team-id {{ quote(team_id) }} --profile {{ quote(notary_profile) }} --sign-only
+
+# Sign, submit, wait for Apple acceptance, and verify online notarization tickets.
+notarize-macos: release
+    {{ quote(go) }} run ./cmd/relops-macos --version {{ quote(version) }} --identity {{ quote(sign_identity) }} --team-id {{ quote(team_id) }} --profile {{ quote(notary_profile) }}
+
+# Prepare the production download site without rebuilding away its signatures.
+signed-site: notarize-macos
+    {{ quote(go) }} run ./cmd/relops-site --version {{ quote(version) }} --require-notarized
+    node --check dist/site/js/main.js
+    node --test quick_site/tests/downloads.test.cjs
+
+# Sign, notarize, test the bundle, then publish it using the Mozilla account.
+publish: signed-site
+    CLOUDSDK_CORE_ACCOUNT={{ quote(quick_account) }} quick deploy dist/site relops-launcher

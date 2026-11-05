@@ -1,6 +1,6 @@
 # relops site
 
-Single-page download site for the `relops` launcher. The tracked HTML is a template; `just site` renders the release version and checksums and assembles real downloads. Binaries and generated output are ignored by Git.
+Single-page download site for the `relops` launcher. The tracked HTML is a template; `just site` renders an unsigned preview, while `just signed-site` prepares Developer ID signed and notarized macOS downloads. Binaries and generated output are ignored by Git.
 
 From `scripts/relops-launcher`:
 
@@ -20,7 +20,7 @@ dist/site/
   releases.json               version, source commit/dirty flag, Go version,
                               build command, platform paths/sizes/checksums
   index.json                  inventory of every file in this bundle
-  downloads/v0.1.0/
+  downloads/v0.1.1/
     relops-darwin-arm64
     relops-darwin-amd64
     relops-linux-arm64
@@ -32,21 +32,70 @@ dist/site/
 
 `releases.json` records the actual embedded binary metadata, including whether the source checkout was dirty. Commit release source and rebuild before publishing so the source commit is reproducible and `source_dirty` is false. Release versions should identify fixed artifacts: bump `VERSION` for a changed published binary. Checksums detect corruption; they are not signatures. Quick's shared-write model still applies to the hosted files.
 
-## Publishing
+## macOS signing and notarization
 
-Publish the generated folder, not this source folder or the whole project:
+Use a Mac with Xcode command-line tools and an available Developer ID Application identity. The configured publisher is `Developer ID Application: Andrew Erickson (W5BHZ9R8A3)`; private keys remain in Keychain. Ordinary builds and CI do not access signing credentials.
+
+One-time setup:
+
+1. In your Apple Developer Apple Account, generate an app-specific password at <https://account.apple.com/> under Sign-In and Security → App-Specific Passwords. Two-factor authentication must be enabled.
+2. Run `just notary-setup` in your terminal. Enter your Apple ID and the app-specific password at the secure prompts. Credentials are saved under the `relops-notary` Keychain profile; never paste them into chat, files, or command arguments.
+
+Equivalent direct setup command:
 
 ```sh
-quick deploy dist/site relops-launcher
+xcrun notarytool store-credentials relops-notary --team-id W5BHZ9R8A3
 ```
 
-This command is documented for the later publishing step; neither build target deploys. Review the bundle first. Browser downloads use the staff member's Mozilla SSO session; this flow does not promise unauthenticated `curl` installation or launcher self-update. Quick publishers need its CLI/credentials; people downloading `relops` do not.
+For each release, update `VERSION`, commit source, then run:
+
+```sh
+just signed-site
+```
+
+This builds the four binaries, signs the two macOS binaries with Developer ID, hardened runtime, and a secure timestamp, and submits a ZIP of those binaries to Apple. It records the submission ID before waiting, requires Apple's `Accepted` result, retrieves the log, and checks online notarization tickets for both binaries. Then it exports the signed bytes, regenerates SHA-256 checksums, and assembles/tests `dist/site` with `--require-notarized`. That flag refuses missing, stale, rejected, or mismatched receipts. Linux binaries are unchanged by signing.
+
+Submission state, signed bytes, and logs stay under ignored `dist/macos/`. A wait timeout or ticket propagation delay can be retried with the same `just signed-site` command. Identical inputs reuse the stored submission and signed artifacts. Changed inputs create a new signing cache. Rejected submissions fail and leave their log for diagnosis. Do not delete the cache during a pending submission. `just sign-macos` signs only and does not make a notarized release; `just notarize-macos` performs signing/notarization without assembling the website.
+
+If Apple returns HTTP 403 saying a required agreement is missing or expired, the developer team must review pending agreements directly at <https://developer.apple.com/account/>. Credential storage can succeed and an upload can be accepted before this status-check error appears. After resolving the account agreement, rerun `just signed-site`; the saved submission ID is reused. The release recipe does not accept legal agreements on the account holder's behalf.
+
+Standalone binaries cannot have a notarization ticket stapled to them. The ZIP is only for submission; the site still distributes individual binaries, and Gatekeeper retrieves their tickets online. First verification therefore needs internet access. An installer or disk image would be needed for a distribution with a stapled ticket. See [Apple's custom notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow).
+
+Signing adds secure timestamps, so a fresh signed build need not be byte-identical to a previous signed build. The receipt records the exact approved SHA-256 digests, and the cache retains those bytes for retries. Preserve published artifacts per version and use a new version for changed published bytes. `0.1.1` is the first release prepared through this workflow; previously published `0.1.0` artifacts are retained.
+
+Publisher overrides use environment variables, not credentials in source:
+
+```sh
+RELOPS_SIGN_IDENTITY='Developer ID Application: Your Name (TEAMID)' \
+RELOPS_TEAM_ID=YOURTEAMID \
+RELOPS_NOTARY_PROFILE=your-keychain-profile \
+  just signed-site
+```
+
+The public release manifest includes the signing identity, Team ID, submission ID, and approved hashes. The Keychain profile's credentials, submission ZIP, and private keys are not included in the website.
+
+## Publishing
+
+The site is published at <https://relops-launcher.quick.mozilla.cloud/>. From `scripts/relops-launcher`, sign, notarize, test, and publish with:
+
+```sh
+just publish
+```
+
+That recipe uses `aerickson@mozilla.com` for Quick; other publishers can override `RELOPS_QUICK_ACCOUNT`. To deploy an already-prepared signed bundle directly, publish the generated folder, not this source folder or the whole project:
+
+```sh
+CLOUDSDK_CORE_ACCOUNT=aerickson@mozilla.com \
+  quick deploy dist/site relops-launcher
+```
+
+This invocation was used successfully to publish the site. `CLOUDSDK_CORE_ACCOUNT` selects the publishing account for this command without changing the default gcloud account. Other publishers should substitute their own authenticated Mozilla account. Only `just publish` deploys automatically; build and signing recipes do not. Browser downloads use the staff member's Mozilla SSO session; this flow does not promise unauthenticated `curl` installation or launcher self-update. Quick publishers need its CLI/credentials; people downloading `relops` do not.
 
 Use normal deployment without `--mirror` to retain older versioned downloads already on Quick. The local bundle and `index.json` describe the current release only. Do not republish different bytes under a previously shared version. If CI later owns deployment, use that workflow consistently rather than alternating manual and CI publishers.
 
 After publishing, verify in an authenticated browser that each platform link downloads the correct filename, verify its checksum, install the native binary, and check `relops --version`. Verify macOS's first-download approval flow and trial the fork example with a coworker. These are still live-environment release checks; a local build cannot prove Quick authentication or download headers.
 
-The repository workflow `.github/workflows/relops-launcher.yml` runs tests on Linux/macOS and saves the generated site as a GitHub Actions artifact. It does not publish to Quick or commit binary files. Its CI runs will be verified after these changes are pushed.
+The repository workflow `.github/workflows/relops-launcher.yml` runs tests on Linux/macOS and saves an explicitly named unsigned preview site artifact. It does not access signing credentials, submit to Apple, publish to Quick, or commit binary files. Its CI runs will be verified after these changes are pushed.
 
 ## Source files
 

@@ -27,7 +27,7 @@ mkdir -p ~/.local/bin
 install -m 755 bin/relops ~/.local/bin/relops
 ```
 
-Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary do not need Go. Copy the appropriate artifact to that directory using the same `install` command, then check `relops --version`. A Quick download site can now be generated with `just site`; it has not been published by this work. Live download verification, minimum OS versions, and real coworker installation trials remain release checks.
+Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary do not need Go. The download site is published at <https://relops-launcher.quick.mozilla.cloud/> behind Mozilla SSO. Copy the appropriate artifact to that directory using the same `install` command, then check `relops --version`. Generate the site with `just site`; see the [publishing instructions](quick_site/README.md#publishing) for the account-specific Quick deployment command. Live download verification, minimum OS versions, and real coworker installation trials remain release checks.
 
 ## Use
 
@@ -113,12 +113,17 @@ Run recipes from this directory; `just` lists them. CI uses just 1.59.0. People 
 ```sh
 just test
 just check                 # formatting, vet, race-enabled integration tests
-just release               # four binaries and dist/SHA256SUMS
-just site                  # release binaries + deployable dist/site folder
+just release               # unsigned release binaries and dist/SHA256SUMS
+just site                  # unsigned preview site under dist/site
 just site-check            # also test the site's download/copy behavior (Node)
+just notary-setup          # one-time, interactive Apple credentials → Keychain
+just signed-site           # sign, notarize, verify, and assemble the sharing bundle
+just publish               # signed-site, then Quick deploy with the Mozilla account
 ```
 
-`just build` and `just release` read the version from `VERSION` (currently `0.1.0`) and embed it in the executable; `relops --version` prints it. Override with `just version=... release` when needed. Direct `go build`/`go run` without the justfile report `dev`. These commands build artifacts but do not publish them. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
+Build recipes read the version from `VERSION` (currently `0.1.1`) and embed it in the executable; `relops --version` prints it. Override with `just version=... signed-site` when needed. Direct `go build`/`go run` without the justfile report `dev`. Only `just publish` deploys; other recipes prepare artifacts locally. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
+
+For shared macOS downloads, use `just signed-site` or `just publish`, on a Mac with Xcode tools and a Developer ID Application identity. `just site` is for unsigned previews and rebuilds ordinary binaries; do not run it after signing and then publish that preview. See the [macOS release workflow](quick_site/README.md#macos-signing-and-notarization) for credential setup, retries, and publisher overrides. `0.1.1` introduces this workflow; the already-published `0.1.0` files are left unchanged.
 
 All build outputs stay in ignored `bin/` and `dist/` directories; no binaries need committing. The [site README](quick_site/README.md) describes the bundle, source/toolchain metadata, local preview, and later Quick publication. CI tests the launcher on Linux and macOS and uploads a generated site artifact without deploying it.
 
@@ -135,3 +140,5 @@ RELOPS_TEST_TERMINAL=1 /tmp/relops-terminal-test -test.run '^TestInteractiveTerm
 Before releasing, select and document three real organization tools (shell, Python with known prerequisites, and caller-relative file input), trial installation and SSH access with a coworker, and verify runtime behavior on macOS and Linux. Aliases, a Git-backed registry, Quick integration, and self-update are deferred.
 
 Initial local validation: integration tests, `go vet`, and race checks passed on macOS arm64; the interactive terminal check passed for input, Ctrl-C (status 130), and foreground restoration. All four target binaries cross-compiled. Linux execution and coworker installation have not yet been verified.
+
+The `0.1.1` macOS release completed Developer ID signing and Apple notarization. Both architectures passed signature and online notarization-ticket checks, and the generated signed site passed its download-selector tests. Browser installation of the published signed release remains a separate verification step.

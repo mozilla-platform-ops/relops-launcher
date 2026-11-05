@@ -1,2 +1,7 @@
 /bin/
 /dist/
+/relops
+/relops-darwin-arm64
+/relops-darwin-amd64
+/relops-linux-arm64
+/relops-linux-amd64

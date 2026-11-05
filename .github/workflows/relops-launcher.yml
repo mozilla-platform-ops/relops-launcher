@@ -61,6 +61,6 @@ jobs:
           test "$("$RUNNER_TEMP/relops" --version)" = "relops $release_version"
       - uses: actions/upload-artifact@v7
         with:
-          name: relops-site-${{ github.sha }}
+          name: relops-site-preview-${{ github.sha }}
           path: scripts/relops-launcher/dist/site/
           if-no-files-found: error

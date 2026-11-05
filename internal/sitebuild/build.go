@@ -15,10 +15,13 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/mozilla-platform-ops/relops-launcher/internal/macosrelease"
 )
 
 type Config struct {
 	Source, Binaries, Version string
+	RequireNotarized          bool
 }
 
 type Artifact struct {
@@ -30,13 +33,14 @@ type Artifact struct {
 }
 
 type Release struct {
-	SchemaVersion int        `json:"schema_version"`
-	Version       string     `json:"version"`
-	SourceCommit  string     `json:"source_commit"`
-	SourceDirty   bool       `json:"source_dirty"`
-	GoVersion     string     `json:"go_version"`
-	BuildCommand  string     `json:"build_command"`
-	Artifacts     []Artifact `json:"artifacts"`
+	SchemaVersion     int                   `json:"schema_version"`
+	Version           string                `json:"version"`
+	SourceCommit      string                `json:"source_commit"`
+	SourceDirty       bool                  `json:"source_dirty"`
+	GoVersion         string                `json:"go_version"`
+	BuildCommand      string                `json:"build_command"`
+	Artifacts         []Artifact            `json:"artifacts"`
+	MacOSNotarization *macosrelease.Receipt `json:"macos_notarization,omitempty"`
 }
 
 type metadata struct {
@@ -67,6 +71,10 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 		return "", err
 	}
 	output := filepath.Join(binaries, "site")
+	approval, approvalErr := macosrelease.ValidateReceipt(filepath.Join(binaries, "macos-notarization.json"), cfg.Version, binaries)
+	if cfg.RequireNotarized && approvalErr != nil {
+		return "", fmt.Errorf("refusing to assemble a signed site: %w; run just signed-site", approvalErr)
+	}
 	if rel, err := filepath.Rel(source, output); err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return "", errors.New("generated output must be outside the site source")
 	}
@@ -82,6 +90,12 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 		}
 	}
 	release := Release{SchemaVersion: 1, Version: cfg.Version, BuildCommand: "just version=" + cfg.Version + " site"}
+	macOSStatus := "Preview build: macOS downloads are not notarized."
+	if approvalErr == nil {
+		release.MacOSNotarization = approval
+		release.BuildCommand = "just version=" + cfg.Version + " signed-site"
+		macOSStatus = "macOS downloads are Developer ID signed and notarized. Internet access is needed for their first Gatekeeper verification."
+	}
 	downloadPath := "downloads/v" + cfg.Version
 	var checksums strings.Builder
 	for i, platform := range platforms {
@@ -105,6 +119,9 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 		}
 		digest := sha256.Sum256(data)
 		artifact := Artifact{OS: platform.os, Arch: platform.arch, Path: downloadPath + "/" + name, Size: len(data), SHA256: hex.EncodeToString(digest[:])}
+		if approvalErr == nil && platform.os == "darwin" && approval.SHA256[name] != artifact.SHA256 {
+			return "", fmt.Errorf("%s changed after notarization receipt validation", name)
+		}
 		release.Artifacts = append(release.Artifacts, artifact)
 		if err := writeFile(stage, artifact.Path, data); err != nil {
 			return "", err
@@ -129,6 +146,7 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 		"{{RELOPS_VERSION}}", cfg.Version,
 		"__RELOPS_RELEASE_JSON__", string(manifest),
 		"__RELOPS_SHA_DARWIN_ARM64__", release.Artifacts[0].SHA256,
+		"__RELOPS_MACOS_STATUS__", macOSStatus,
 	).Replace(string(index))
 	if strings.Contains(page, "__RELOPS_") || strings.Contains(page, "{{RELOPS_VERSION}}") {
 		return "", errors.New("unresolved site template placeholder")
