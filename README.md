@@ -6,13 +6,13 @@ Give a coworker one command to run a tool from your pushed branch:
 relops --ref my-feature relops-infra/path/to/check.sh --verbose
 ```
 
-`relops` fetches the repository from `mozilla-platform-ops`, resolves the revision to a commit, and runs the script in its own temporary checkout. Online runs fetch every time. Git objects are cached; separate invocations never share a writable checkout. The repository and script above are illustrative.
+`relops` fetches the repository from `mozilla-platform-ops` by default, resolves the revision to a commit, and runs the script in its own temporary checkout. Use `--owner USER_OR_ORG` for a fork or another GitHub organization. Online runs fetch every time. Git objects are cached per owner/repository; separate invocations never share a writable checkout. The repository and script above are illustrative.
 
 The initial implementation supports macOS and Linux on arm64/amd64. It has no Go package dependencies. See [design v1.1](design-v1.1.md) for the contract and release roadmap, or the [original design](../../product-specs/relops-launcher-design.md) for background.
 
 ## Install
 
-Prerequisites: Git with working GitHub SSH access, plus whatever interpreter and dependencies the tool needs. Verify access to the actual repository:
+Prerequisites: Git with working GitHub SSH access, plus the tool's interpreter. Automatic Python project execution also requires an installed `pipenv` when a `Pipfile` is found. Verify access to the actual owner/repository:
 
 ```sh
 git ls-remote git@github.com:mozilla-platform-ops/REPOSITORY.git HEAD
@@ -38,16 +38,22 @@ relops repo/path/to/tool.sh --help
 # Branch names can include slashes
 relops --ref feature/my-change repo/path/to/tool.sh arg1
 
+# Use a branch pushed to a personal fork
+relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py
+
 # Exact commit (full 40-character SHA); tags work too
 relops --ref FULL_COMMIT_SHA repo/path/to/tool.sh
 relops --ref refs/tags/v1.0 repo/path/to/tool.sh
 
-# Explicit interpreter for a non-executable script
+# Override automatic detection and manage the Python environment yourself
 relops --runner python3 repo/path/to/tool.py
 relops --runner bash repo/path/to/tool.sh
 
-# Read a file relative to the directory you invoked relops from
-relops --cwd caller repo/path/to/tool.sh ./hosts.csv
+# Relative files resolve from the caller's directory by default
+relops repo/path/to/tool.sh ./hosts.csv
+
+# Opt into running from the temporary repository root
+relops --cwd repo repo/path/to/tool.sh
 
 # Deliberately run the cached revision without fetching
 relops --offline --ref feature/my-change repo/path/to/tool.sh
@@ -55,9 +61,28 @@ relops --offline --ref feature/my-change repo/path/to/tool.sh
 
 Launcher options must precede `repo/path`. Every argument after it belongs to the tool, including `--help`, `--ref`, and `--`. `relops --help` lists launcher options.
 
-By default, scripts must be executable and have a shebang. There is no interpreter guessing by filename. Explicit runners are `python3`, `bash`, and `sh`; missing runtimes or dependencies must be installed separately. There are no automatic setup hooks, submodule initialization, or Git LFS downloads.
+The default runner is `auto`. It honors shebangs, including for non-executable files, and falls back to `python3` for `.py` scripts without a shebang. A `.sh` extension alone does not identify a shell. Explicit runners are `python3`, `bash`, and `sh`; they override detection and bypass Pipenv setup. There are no repository setup hooks, submodule initialization, or Git LFS downloads.
 
-The tool starts at the repository root unless you pass `--cwd caller`. Relative arguments are not rewritten. `RELOPS_CALLER_CWD` always contains the original absolute directory. Save outputs outside the temporary checkout: the entire checkout, including generated files and local virtual environments, is removed when the tool exits.
+The tool starts in the caller's directory unless you pass `--cwd repo`. Relative arguments are not rewritten. `RELOPS_CALLER_CWD` always contains the original absolute directory. Save outputs outside the temporary checkout: the entire checkout, including generated files, is removed when the tool exits.
+
+### Automatic Pipenv environments
+
+For Python scripts, `auto` searches upward from the script for the nearest `Pipfile`, stopping at the checkout root. It uses the installed Pipenv to verify the committed `Pipfile.lock` and sync runtime dependencies into a managed environment. You do not need an outer `pipenv run`, and detection does not depend on which directory you invoke `relops` from.
+
+The environment is cached per owner, repository, commit, and project path. Subsequent runs at that commit reuse it. Initialization is locked so concurrent invocations cannot install into the same environment simultaneously; each tool still has its own writable checkout. Preparation output goes to stderr. Pipenv itself and the required Python version must already be installed; missing Pipenv produces an actionable error. Dev dependencies are not installed. Editable runtime dependencies are unsupported because their source checkout would be removed after execution. Use an explicit runner with your own environment for those projects.
+
+Automatic setup does not load a project `.env` file; supply runtime configuration through your existing environment. `--offline` requires the managed environment to have been prepared already and never invokes Pipenv installation. A new commit gets a new environment even if its lockfile is unchanged. Environments persist until manually removed; automated pruning is deferred.
+
+For the replay tool, the full command is now:
+
+```sh
+/Users/aerickson/git/df/scripts/relops-launcher/bin/relops \
+  --owner aerickson \
+  --ref 022526-tool_tweaks \
+  android-tools/worker_health/replay_tc_pool.py
+```
+
+Run it from whichever directory should hold relative inputs and outputs. No `pipenv run`, `--runner`, or `--cwd` is needed.
 
 The source, requested ref, and full commit SHA appear on stderr before execution; stdout belongs to the tool. Tools inherit your environment, input, output, and permissions. Git child processes ignore inherited Git repository-selection variables so launching from inside another checkout works. Normal user Git configuration, including transport rewrites, remains in effect; checkout hooks are disabled. This is trusted-code execution, not sandboxing.
 
@@ -67,16 +92,16 @@ Tool exit statuses pass through; signal termination returns `128 + signal`. Laun
 
 ## Cache and recovery
 
-Cache location is the platform's user cache directory plus `relops`: normally `~/Library/Caches/relops` on macOS and `$XDG_CACHE_HOME/relops` (or `~/.cache/relops`) on Linux. It contains shared bare repositories in `repos/`, lock files in `locks/`, and per-invocation directories in `runs/`. Cache directories have mode 0700.
+Cache location is the platform's user cache directory plus `relops`: normally `~/Library/Caches/relops` on macOS and `$XDG_CACHE_HOME/relops` (or `~/.cache/relops`) on Linux. It contains shared bare repositories in `repos/OWNER/REPO.git`, repository locks in `locks/OWNER/REPO.lock`, per-invocation directories in `runs/`, and managed environments in `envs/OWNER/REPO/COMMIT/PROJECT/`. Cache directories have mode 0700. Older flat repository caches are left untouched and are no longer used; run online once to populate the owner-specific cache before using offline mode.
 
 `--verbose` prints the run's checkout path. Cleanup errors report the retained path. A force kill or machine crash can leave an orphan without an error message; inspect `runs/` when recovering. Only remove an orphan after verifying that no invocation is using it:
 
 ```sh
 # Substitute actual absolute paths from your cache.
 # Disable hooks consistently with the launcher.
-git -c core.hooksPath=/dev/null --git-dir=/CACHE/relops/repos/REPO.git worktree list
-git -c core.hooksPath=/dev/null --git-dir=/CACHE/relops/repos/REPO.git worktree remove --force --force /CACHE/relops/runs/REPO-ID/checkout
-rmdir /CACHE/relops/runs/REPO-ID
+git -c core.hooksPath=/dev/null --git-dir=/CACHE/relops/repos/OWNER/REPO.git worktree list
+git -c core.hooksPath=/dev/null --git-dir=/CACHE/relops/repos/OWNER/REPO.git worktree remove --force --force /CACHE/relops/runs/OWNER-REPO-ID/checkout
+rmdir /CACHE/relops/runs/OWNER-REPO-ID
 ```
 
 Lock files persist intentionally; the OS releases their locks when the process exits. Do not delete a lock file to unblock a running invocation. A lock wait times out after 30 seconds with a retry diagnostic. Cache inspection/pruning commands are deferred.
@@ -91,7 +116,7 @@ make release VERSION=0.1.0 # four binaries and dist/SHA256SUMS
 
 The release label above is illustrative. These commands build artifacts but do not publish them. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
 
-Integration tests use local Git repositories and temporary caches without accessing GitHub. They exercise ref changes, offline failures, ambiguous refs, concurrent runs, cwd/arguments/IO, runners, path containment, disabled checkout hooks, and process cleanup. The Python runner check skips if `python3` is unavailable.
+Integration tests use local Git repositories and temporary caches without accessing GitHub. They exercise owner isolation, ref changes, offline failures, ambiguous refs, concurrent runs, cwd/arguments/IO, runner detection, Pipenv setup/reuse/failure, path containment, disabled checkout hooks, and process cleanup. Python runner checks skip if `python3` is unavailable. Normal tests use a fake Pipenv process without accessing a package index; an opt-in `RELOPS_TEST_REAL_PIPENV=1 go test ./internal/launcher -run '^TestRealPipenv$'` checks the installed Pipenv using an empty dependency set.
 
 Check terminal input, Ctrl-C, and foreground restoration interactively on each supported OS:
 

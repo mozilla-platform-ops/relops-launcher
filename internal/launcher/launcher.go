@@ -19,7 +19,7 @@ type app struct {
 	in            io.Reader
 	out, errOut   io.Writer
 	// Only tests substitute a local remote; production always constructs SSH URLs.
-	remote      func(string) string
+	remote      func(string, string) string
 	lockTimeout time.Duration
 }
 
@@ -49,7 +49,7 @@ func Main(args []string, version string) int {
 	a := app{
 		cache: filepath.Join(cache, "relops"), caller: caller,
 		in: os.Stdin, out: os.Stdout, errOut: os.Stderr,
-		remote:      func(repo string) string { return "git@github.com:mozilla-platform-ops/" + repo + ".git" },
+		remote:      githubRemote,
 		lockTimeout: 30 * time.Second,
 	}
 	ctx, cancel := context.WithCancelCause(context.Background())
@@ -92,26 +92,39 @@ func (a *app) run(ctx context.Context, o options) (int, error) {
 	if err != nil {
 		return 1, err
 	}
-	command, err := toolCommand(script, o.runner, o.args)
+	fmt.Fprintf(a.errOut, "relops: %s/%s ref=%s commit=%s (%s)\n", o.owner, o.repo, checkout.ref, checkout.sha, resolutionMode(o.offline))
+	command, virtualenv, err := a.command(ctx, o, checkout, script)
 	if err != nil {
 		return 1, err
 	}
-	command.Dir = checkout.dir
-	if o.cwd == "caller" {
-		command.Dir = a.caller
+	command.Dir = a.caller
+	if o.cwd == "repo" {
+		command.Dir = checkout.dir
 	}
 	command.Env = replaceEnv(os.Environ(), "RELOPS_CALLER_CWD", a.caller)
 	command.Env = replaceEnv(command.Env, "PWD", command.Dir)
-	command.Stdin, command.Stdout, command.Stderr = a.in, a.out, a.errOut
-	mode := "fetched"
-	if o.offline {
-		mode = "offline cached"
+	if virtualenv != "" {
+		command.Env = replaceEnv(command.Env, "VIRTUAL_ENV", virtualenv)
+		command.Env = replaceEnv(command.Env, "PATH", filepath.Join(virtualenv, "bin")+string(os.PathListSeparator)+os.Getenv("PATH"))
+		command.Env = withoutEnv(command.Env, "PYTHONHOME")
+		command.Env = withoutEnv(command.Env, "__PYVENV_LAUNCHER__")
 	}
-	fmt.Fprintf(a.errOut, "relops: mozilla-platform-ops/%s ref=%s commit=%s (%s)\n", o.repo, checkout.ref, checkout.sha, mode)
+	command.Stdin, command.Stdout, command.Stderr = a.in, a.out, a.errOut
 	if o.verbose {
 		fmt.Fprintf(a.errOut, "relops: worktree=%s cwd=%s runner=%s\n", checkout.dir, command.Dir, o.runner)
 	}
 	return runTool(ctx, command)
+}
+
+func githubRemote(owner, repo string) string {
+	return "git@github.com:" + owner + "/" + repo + ".git"
+}
+
+func resolutionMode(offline bool) string {
+	if offline {
+		return "offline cached"
+	}
+	return "fetched"
 }
 
 func resolveScript(root, path string) (string, error) {
@@ -154,17 +167,26 @@ func toolCommand(script, runner string, args []string) (*exec.Cmd, error) {
 	if err != nil {
 		return nil, err
 	}
-	f, err := os.Open(script)
+	interpreter, optional, err := shebang(script)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
-	var prefix [2]byte
-	n, _ := io.ReadFull(f, prefix[:])
-	if info.Mode()&0111 == 0 || n != 2 || string(prefix[:]) != "#!" {
-		return nil, errors.New("auto runner requires an executable script with a shebang; set its executable bit or select --runner python3, bash, or sh")
+	if interpreter != "" {
+		if info.Mode()&0111 != 0 {
+			return exec.Command(script, args...), nil
+		}
+		argv := []string{}
+		if optional != "" {
+			// A shebang has a single optional argument; env -S can split it.
+			argv = append(argv, optional)
+		}
+		argv = append(argv, script)
+		return exec.Command(interpreter, append(argv, args...)...), nil
 	}
-	return exec.Command(script, args...), nil
+	if strings.EqualFold(filepath.Ext(script), ".py") {
+		return toolCommand(script, "python3", args)
+	}
+	return nil, errors.New("cannot detect a runner: add a shebang or select --runner python3, bash, or sh; .sh alone does not identify a shell")
 }
 
 func replaceEnv(env []string, key, value string) []string {

@@ -24,15 +24,16 @@ Examples use illustrative repository and script names.
 
 ## V1 scope
 
-- Execute an explicit `repo/path` in `mozilla-platform-ops`.
+- Execute an explicit `repo/path` in `mozilla-platform-ops`, or select another GitHub owner with `--owner`.
 - Resolve the repository's actual default branch, or an explicit branch, tag, or commit.
 - Cache Git objects while giving each invocation a separate writable checkout.
 - Preserve tool arguments, interactive input, output, exit status, and interruption behavior.
 - Provide explicit working-directory and runner choices.
+- Default to the caller's directory and automatically detect shebang/Python runners and Pipenv projects.
 - Support intentional offline execution and report the executed commit.
 - Ship a single launcher binary for macOS and Linux, with documented installation.
 
-V1 does not include aliases, registry editing, Quick integration, automatic launcher updates, dependency installation by the launcher, arbitrary organizations, Windows, or execution of repository setup hooks. It is not a sandbox. A tool or explicitly selected runner can still install dependencies or change external state.
+V1 does not include aliases, registry editing, Quick integration, automatic launcher updates, a general dependency manager, Windows, or execution of repository setup hooks. It is not a sandbox. Automatic Pipenv setup installs locked runtime dependencies through an already-installed Pipenv; tools can change external state.
 
 ## Command contract
 
@@ -43,14 +44,17 @@ relops relops-infra/path/to/check.sh --verbose
 # Share a pushed branch; launcher flags precede the target
 relops --ref my-feature relops-infra/path/to/check.sh --verbose
 
+# Share a branch from a personal fork; auto detects Python and Pipenv
+relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py
+
 # Share an exact revision for reproducibility
 relops --ref <full-commit-sha> relops-infra/path/to/check.sh
 
 # Select an interpreter for a script without an executable shebang
 relops --runner python3 --ref my-feature relops-infra/path/to/check.py
 
-# Preserve caller-relative file arguments
-relops --cwd caller --ref my-feature relops-infra/path/to/check.sh ./hosts.csv
+# Caller-relative file arguments work by default
+relops --ref my-feature relops-infra/path/to/check.sh ./hosts.csv
 
 # Reuse cached refs and objects without attempting network access
 relops --offline --ref my-feature relops-infra/path/to/check.sh
@@ -64,15 +68,16 @@ Initial options:
 
 | Option | Meaning |
 | --- | --- |
+| `--owner VALUE` | GitHub user or organization; default `mozilla-platform-ops` |
 | `--ref VALUE` | Branch, tag, or commit; omitted means remote default branch |
 | `--runner auto\|python3\|bash\|sh` | Execution rule; default `auto` |
-| `--cwd repo\|caller` | Tool working directory; default `repo` |
+| `--cwd repo\|caller` | Tool working directory; default `caller` |
 | `--offline` | Make no network requests; require cached resolution and objects |
 | `--verbose` | Additional cache and resolution diagnostics on stderr |
 | `--version` | Launcher version |
 | `--help` | Launcher usage |
 
-No implicit extension-to-interpreter mapping and no shell command strings. More runners can be added when a real tool requires them. In particular, `uv` integration needs an explicit environment/project contract before inclusion.
+Automatic detection honors shebangs, then falls back to Python for `.py` files. It never guesses a shell from `.sh`. Explicit runners override detection, including Pipenv environment selection. No shell command strings. More runners can be added when a real tool requires them; `uv` integration remains deferred.
 
 ## Revision resolution and updates
 
@@ -92,17 +97,18 @@ V1 never automatically updates the launcher itself. Later registered operational
 
 ## Git access and cache
 
-Use the installed `git` executable and the user's existing Git authentication. V1 uses `git@github.com:mozilla-platform-ops/<repo>.git` and therefore requires working SSH access. Do not add a second GitHub token store or invoke interactive authentication setup. Document how to verify repository access and report clone/fetch errors with the relevant repository URL.
+Use the installed `git` executable and the user's existing Git authentication. V1 uses `git@github.com:<owner>/<repo>.git`, with `mozilla-platform-ops` as the default owner, and therefore requires working SSH access. Do not add a second GitHub token store or invoke interactive authentication setup. Document how to verify repository access and report clone/fetch errors with the relevant repository URL.
 
-Validate the repository as a single GitHub repository name. Construct the remote URL internally; reject user-supplied URLs, alternate organizations, and option-like repository names. Invoke Git using argument arrays and explicit option boundaries, never shell interpolation.
+Validate the repository as a single GitHub repository name and owner as a user/organization name; normalize both to lowercase. Construct the remote URL internally; reject user-supplied URLs, owner path components, and option-like names. Invoke Git using argument arrays and explicit option boundaries, never shell interpolation.
 
 Suggested layout, using the platform's user cache directory:
 
 ```text
 relops/
-  repos/<repo>.git/          # shared bare object store and fetched refs
-  locks/<repo>.lock          # repository mutation lock
+  repos/<owner>/<repo>.git/  # shared bare object store and fetched refs
+  locks/<owner>/<repo>.lock  # repository mutation lock
   runs/<unique-run-id>/      # detached worktree for one invocation
+  envs/<owner>/<repo>/<commit>/<project-hash>/  # managed Pipenv environments
 ```
 
 Keep private cache directories accessible only to the current user. Lock clone/fetch/ref metadata/worktree bookkeeping mutations per repository, releasing the lock before running the tool. A partially initialized clone must never be reused as a healthy cache entry. Use bounded lock waiting and an actionable timeout error.
@@ -119,11 +125,13 @@ Resolve the script within the run's checkout. Reject absolute paths, `..` compon
 
 Runner behavior:
 
-- `auto`: require an executable file with a shebang and invoke it directly. Let the operating system honor the shebang; report missing interpreters and execution failures clearly.
-- `python3`, `bash`, `sh`: look up that executable on the caller's `PATH`, then pass the absolute script path followed by the untouched tool arguments.
-- Do not infer Bash compatibility from `.sh`, run setup hooks, or install missing interpreters/dependencies.
+- `auto`: honor a shebang, invoking executable scripts directly or invoking the declared interpreter for non-executable scripts. Fall back to `python3` for `.py` without a shebang. For Python scripts, detect the nearest Pipfile within the checkout and use the managed Pipenv environment described below.
+- `python3`, `bash`, `sh`: override detection, including Pipenv; look up that executable on the caller's `PATH`, then pass the absolute script path followed by the untouched tool arguments.
+- Do not infer Bash compatibility from `.sh`, run repository setup hooks, or install missing interpreters/Pipenv.
 
-Default `--cwd repo` starts the tool at the checkout root. `--cwd caller` preserves the directory from which the user invoked `relops`. Export `RELOPS_CALLER_CWD` with that original absolute directory in both cases. Relative tool arguments are passed unchanged: with the default working directory, `./hosts.csv` refers to a file in the checkout. The launcher cannot reliably identify or rewrite path arguments; use `--cwd caller` or an absolute path when the file belongs to the caller.
+Default `--cwd caller` preserves the directory from which the user invoked `relops`. `--cwd repo` starts the tool at the checkout root. Export `RELOPS_CALLER_CWD` with the original absolute directory in both cases. Relative tool arguments are passed unchanged: with the default working directory, `./hosts.csv` refers to a file in the caller's directory. The launcher never rewrites path arguments.
+
+For automatic Pipenv execution, require an installed Pipenv and a committed, current `Pipfile.lock`. Verify the lockfile and sync runtime dependencies into an environment keyed by owner, repository, commit, and project path. Cache successful initialization and serialize setup with an environment-specific lock, released before running the tool. The environment persists independently of temporary checkouts. Do not install dev dependencies; reject editable runtime dependencies that would retain a link to a removed checkout. Offline mode requires an already-prepared environment and never performs setup. Missing Pipenv, missing/outdated lockfiles, or setup failures produce actionable errors before executing the tool. Explicit runners bypass this behavior. Automatic setup does not load project `.env` files. Environment pruning is deferred.
 
 Inherit the environment and stdin/stdout/stderr. Do not capture or reformat tool output. Preserve terminal interaction and forward interruption/termination to the tool's process group, wait for it to exit, then clean up the worktree. Terminal foreground-process-group behavior must be verified with an interactive tool before declaring this complete.
 
@@ -150,10 +158,10 @@ These carry forward the review of the original design. Proposed resolutions are 
 | --- | --- | --- |
 | Canonical registry and competing publishers | Store the registry in Git alongside launcher source. CI builds the catalog and publishes artifacts. Git review/history/reverts supply change review and rollback. Drop download–modify–redeploy editing. A future `registry` command can prepare a Git change. | Before registry implementation; no registry in v1 |
 | Authentication for Quick runtime assets | Prototype unattended authenticated reads before choosing Quick for registry downloads or self-update. Quick may serve only a human-facing catalog if that is simpler. Do not assume browser authentication works for a CLI. | Before selecting those later-release backends; v1 artifact download must still be verified |
-| Automatic updates to operational tools | Online v1 fetches each run; offline reuse is explicit. Always report SHA. Share a full SHA when the intended review is of exact code. Later registry entries must make moving versus pinned revisions visible. | Accept policy before v1 implementation |
+| Automatic updates to operational tools | Online v1 fetches each run; offline reuse is explicit. Always report SHA. Share a full SHA when the intended review is of exact code. Later registry entries must make moving versus pinned revisions visible. | Implemented in v1 |
 | Writable state in commit-specific checkouts | One worktree per invocation; object storage is shared. Explain remaining external shared state and temporary output cleanup. | Implement in v1 |
-| Working directory and relative arguments | Default repo root; explicit caller mode; preserve original directory in `RELOPS_CALLER_CWD`. Never rewrite tool arguments. | Accept contract before v1 implementation |
-| Interpreter guessing | Executable shebangs or explicit supported runner; no extension guessing. Registered runners come with the registry later. | Implement in v1 |
+| Working directory and relative arguments | Default caller directory; explicit repo mode; preserve original directory in `RELOPS_CALLER_CWD`. Never rewrite tool arguments. | Updated contract implemented in v1 |
+| Interpreter guessing | Honor shebangs; `.py` fallback to Python; nearest Pipfile uses installed Pipenv. No shell guessing from `.sh`. Explicit runners override all detection. | Updated contract implemented in v1 |
 
 Additional implementation gates:
 

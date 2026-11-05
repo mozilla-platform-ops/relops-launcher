@@ -75,7 +75,7 @@ func (f *fixture) commit() string {
 
 func (f *fixture) app(out, errOut *bytes.Buffer) *app {
 	return &app{cache: f.cache, caller: f.caller, in: strings.NewReader(""), out: out, errOut: errOut,
-		remote: func(string) string { return f.source }, lockTimeout: 5 * time.Second}
+		remote: func(string, string) string { return f.source }, lockTimeout: 5 * time.Second}
 }
 
 func (f *fixture) run(args ...string) (int, string, string) {
@@ -98,7 +98,7 @@ func (f *fixture) assertClean() {
 	if err != nil || len(entries) != 0 {
 		f.t.Fatalf("run directories not cleaned: %v %v", entries, err)
 	}
-	repo := filepath.Join(f.cache, "repos", "example.git")
+	repo := filepath.Join(f.cache, "repos", defaultOwner, "example.git")
 	var out, errOut bytes.Buffer
 	listing, err := f.app(&out, &errOut).git(context.Background(), repo, "worktree", "list", "--porcelain")
 	if err != nil || strings.Contains(listing, "detached") {
@@ -234,7 +234,7 @@ func TestPartialInitializationIsNotReused(t *testing.T) {
 	if code != 1 || !strings.Contains(log, "verify access") {
 		t.Fatalf("initial fetch failure: %d %s", code, log)
 	}
-	entries, err := os.ReadDir(filepath.Join(f.cache, "repos"))
+	entries, err := os.ReadDir(filepath.Join(f.cache, "repos", defaultOwner))
 	if err != nil || len(entries) != 0 {
 		t.Fatalf("partial initialization retained: %v %v", entries, err)
 	}
@@ -281,7 +281,7 @@ func TestWorkingDirectoriesAndRunners(t *testing.T) {
 		}
 	}
 	code, _, log := f.run("example/read.sh")
-	if code != 1 || !strings.Contains(log, "executable script with a shebang") {
+	if code != 1 || !strings.Contains(log, "cannot detect a runner") {
 		t.Fatalf("no extension guessing: %d %s", code, log)
 	}
 	f.write("bad.sh", "#!/nonexistent/relops-test-interpreter\n", 0755)
@@ -339,7 +339,7 @@ cat local-marker
 		go func(name string) {
 			defer wg.Done()
 			var out, log bytes.Buffer
-			o, _, err := parse([]string{"example/tool.sh", name}, &out, "test")
+			o, _, err := parse([]string{"--cwd", "repo", "example/tool.sh", name}, &out, "test")
 			if err != nil {
 				t.Error(err)
 				return

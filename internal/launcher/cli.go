@@ -12,13 +12,14 @@ import (
 
 const usage = `Usage: relops [options] <repo>/<path> [tool-arguments...]
 
-Run a tool from a mozilla-platform-ops repository using existing Git SSH access.
+Run a tool from a GitHub repository using existing Git SSH access.
 Launcher options must precede the target. All following arguments go to the tool.
 
 Options:
+  --owner VALUE     GitHub user or organization (default: mozilla-platform-ops)
   --ref VALUE       Pushed branch, tag, or full commit SHA (default: default branch)
   --runner VALUE    auto, python3, bash, or sh (default: auto)
-  --cwd VALUE       repo or caller (default: repo)
+  --cwd VALUE       repo or caller (default: caller)
   --offline         Use cached refs and objects; do not access the network
   --verbose         Show cache and worktree diagnostics on stderr
   --version         Print launcher version
@@ -30,25 +31,31 @@ Examples:
 
 Online runs fetch before executing. Each run uses a temporary checkout that is
 removed on exit. Save outputs outside that checkout. Tools run with your normal
-permissions; relops is not a sandbox and does not install dependencies.
+permissions; relops is not a sandbox. Auto detects shebangs and Python scripts;
+Python projects with a Pipfile use installed Pipenv to sync locked dependencies.
+An explicit --runner bypasses project-environment detection.
 `
 
+const defaultOwner = "mozilla-platform-ops"
+
 type options struct {
-	ref, runner, cwd, repo, path string
-	args                         []string
-	offline, verbose             bool
+	owner, ref, runner, cwd, repo, path string
+	args                                []string
+	offline, verbose                    bool
 }
 
 var repoName = regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9._-]*$`)
+var ownerName = regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9-]{0,37}[A-Za-z0-9])?$`)
 var commitID = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 
 func parse(args []string, out io.Writer, version string) (options, bool, error) {
 	o := options{}
 	fs := flag.NewFlagSet("relops", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
+	fs.StringVar(&o.owner, "owner", defaultOwner, "GitHub owner")
 	fs.StringVar(&o.ref, "ref", "", "revision")
 	fs.StringVar(&o.runner, "runner", "auto", "runner")
-	fs.StringVar(&o.cwd, "cwd", "repo", "working directory")
+	fs.StringVar(&o.cwd, "cwd", "caller", "working directory")
 	fs.BoolVar(&o.offline, "offline", false, "offline")
 	fs.BoolVar(&o.verbose, "verbose", false, "verbose")
 	showVersion := fs.Bool("version", false, "version")
@@ -67,8 +74,12 @@ func parse(args []string, out io.Writer, version string) (options, bool, error) 
 		return o, false, errors.New("expected <repo>/<path>; use relops --help")
 	}
 	o.repo, o.path, _ = strings.Cut(fs.Arg(0), "/")
+	if !ownerName.MatchString(o.owner) {
+		return o, false, errors.New("--owner must be a GitHub user or organization name (letters, digits, and internal hyphens; up to 39 characters)")
+	}
+	o.owner = strings.ToLower(o.owner)
 	if !repoName.MatchString(o.repo) || o.path == "" {
-		return o, false, errors.New("target must be <repo>/<path> within mozilla-platform-ops")
+		return o, false, errors.New("target must be <repo>/<path>; select a GitHub user or organization with --owner")
 	}
 	o.repo = strings.ToLower(o.repo)
 	if path.IsAbs(o.path) || strings.ContainsAny(o.path, "\\\x00") {

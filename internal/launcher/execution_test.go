@@ -50,7 +50,7 @@ func TestGitContextAndCheckoutHooks(t *testing.T) {
 	}
 	var out, errOut bytes.Buffer
 	a := f.app(&out, &errOut)
-	if _, err := a.git(context.Background(), filepath.Join(f.cache, "repos", "example.git"), "config", "core.hooksPath", hooks); err != nil {
+	if _, err := a.git(context.Background(), filepath.Join(f.cache, "repos", defaultOwner, "example.git"), "config", "core.hooksPath", hooks); err != nil {
 		t.Fatal(err)
 	}
 	code, _, log = f.run("example/tool.sh")
@@ -72,7 +72,7 @@ func TestGitTransportRewritePreservesCacheValidation(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		var out, log bytes.Buffer
 		a := f.app(&out, &log)
-		a.remote = func(string) string { return alias }
+		a.remote = func(string, string) string { return alias }
 		o, _, err := parse([]string{"example/tool.sh"}, &out, "test")
 		if err != nil {
 			t.Fatal(err)
@@ -89,7 +89,7 @@ func TestToolCanUseItsOwnGitWorktree(t *testing.T) {
 	f := newFixture(t)
 	f.write("tool.sh", "#!/bin/sh\ngit rev-parse --is-inside-work-tree\n", 0755)
 	f.commit()
-	code, out, log := f.run("example/tool.sh")
+	code, out, log := f.run("--cwd", "repo", "example/tool.sh")
 	if code != 0 || out != "true\n" {
 		t.Fatalf("tool Git operations: %d %q %s", code, out, log)
 	}

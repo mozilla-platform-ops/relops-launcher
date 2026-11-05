@@ -14,7 +14,7 @@ import (
 )
 
 type checkout struct {
-	repo, parent, dir, sha, ref string
+	repo, parent, dir, sha, ref, lockPath string
 }
 
 func (a *app) git(ctx context.Context, dir string, args ...string) (string, error) {
@@ -56,7 +56,7 @@ func withoutEnv(env []string, key string) []string {
 
 func (a *app) prepare(ctx context.Context, o options) (checkout, error) {
 	c := checkout{}
-	for _, part := range []string{"", "repos", "locks", "runs"} {
+	for _, part := range []string{"", "repos", "locks", "runs", filepath.Join("repos", o.owner), filepath.Join("locks", o.owner)} {
 		dir := filepath.Join(a.cache, part)
 		if err := os.MkdirAll(dir, 0700); err != nil {
 			return c, err
@@ -66,18 +66,19 @@ func (a *app) prepare(ctx context.Context, o options) (checkout, error) {
 		}
 	}
 	key := strings.ToLower(o.repo)
-	unlock, err := lock(ctx, filepath.Join(a.cache, "locks", key+".lock"), a.lockTimeout)
+	c.lockPath = filepath.Join(a.cache, "locks", o.owner, key+".lock")
+	unlock, err := lock(ctx, c.lockPath, a.lockTimeout)
 	if err != nil {
 		return c, err
 	}
 	defer unlock()
-	c.repo = filepath.Join(a.cache, "repos", key+".git")
+	c.repo = filepath.Join(a.cache, "repos", o.owner, key+".git")
 	_, err = os.Stat(c.repo)
 	if errors.Is(err, os.ErrNotExist) {
 		if o.offline {
-			return c, fmt.Errorf("no cached repository for %s; run once online first", o.repo)
+			return c, fmt.Errorf("no cached repository for %s/%s; run once online first", o.owner, o.repo)
 		}
-		if err := a.initialize(ctx, c.repo, o.repo); err != nil {
+		if err := a.initialize(ctx, c.repo, a.remote(o.owner, o.repo)); err != nil {
 			return c, err
 		}
 	} else if err != nil {
@@ -89,20 +90,20 @@ func (a *app) prepare(ctx context.Context, o options) (checkout, error) {
 		}
 		// Read the stored URL rather than get-url's expanded insteadOf rewrite.
 		remote, err := a.git(ctx, c.repo, "config", "--get", "remote.origin.url")
-		if err != nil || remote != a.remote(o.repo) {
+		if err != nil || remote != a.remote(o.owner, o.repo) {
 			return c, fmt.Errorf("unexpected cache remote at %s; move it aside and retry", c.repo)
 		}
 		if !o.offline {
 			if err := a.refresh(ctx, c.repo); err != nil {
-				return c, fmt.Errorf("refresh %s: %w; use --offline explicitly to run cached code", a.remote(o.repo), err)
+				return c, fmt.Errorf("refresh %s: %w; use --offline explicitly to run cached code", a.remote(o.owner, o.repo), err)
 			}
 		}
 	}
 	c.sha, c.ref, err = a.resolve(ctx, c.repo, o)
 	if err != nil {
-		return c, err
+		return c, fmt.Errorf("resolve %s/%s: %w", o.owner, o.repo, err)
 	}
-	c.parent, err = os.MkdirTemp(filepath.Join(a.cache, "runs"), key+"-")
+	c.parent, err = os.MkdirTemp(filepath.Join(a.cache, "runs"), o.owner+"-"+key+"-")
 	if err != nil {
 		return c, err
 	}
@@ -118,8 +119,8 @@ func (a *app) prepare(ctx context.Context, o options) (checkout, error) {
 	return c, nil
 }
 
-func (a *app) initialize(ctx context.Context, repoPath, name string) error {
-	tmp, err := os.MkdirTemp(filepath.Join(a.cache, "repos"), ".initializing-")
+func (a *app) initialize(ctx context.Context, repoPath, remote string) error {
+	tmp, err := os.MkdirTemp(filepath.Dir(repoPath), ".initializing-")
 	if err != nil {
 		return err
 	}
@@ -127,11 +128,11 @@ func (a *app) initialize(ctx context.Context, repoPath, name string) error {
 	if _, err := a.git(ctx, tmp, "init", "--bare", "."); err != nil {
 		return err
 	}
-	if _, err := a.git(ctx, tmp, "remote", "add", "origin", a.remote(name)); err != nil {
+	if _, err := a.git(ctx, tmp, "remote", "add", "origin", remote); err != nil {
 		return err
 	}
 	if err := a.refresh(ctx, tmp); err != nil {
-		return fmt.Errorf("fetch %s: %w; verify access with git ls-remote %s", a.remote(name), err, a.remote(name))
+		return fmt.Errorf("fetch %s: %w; verify access with git ls-remote %s", remote, err, remote)
 	}
 	return os.Rename(tmp, repoPath)
 }
@@ -231,8 +232,7 @@ func offlineSuffix(offline bool) string {
 func (a *app) cleanup(c checkout) error {
 	ctx, cancel := context.WithTimeout(context.Background(), a.lockTimeout+10*time.Second)
 	defer cancel()
-	key := strings.TrimSuffix(filepath.Base(c.repo), ".git")
-	unlock, err := lock(ctx, filepath.Join(a.cache, "locks", key+".lock"), a.lockTimeout)
+	unlock, err := lock(ctx, c.lockPath, a.lockTimeout)
 	if err != nil {
 		return err
 	}
