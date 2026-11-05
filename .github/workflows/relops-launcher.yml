@@ -1,0 +1,66 @@
+name: RelOps launcher
+
+on:
+  push:
+    paths:
+      - scripts/relops-launcher/**
+      - .github/workflows/relops-launcher.yml
+  pull_request:
+    paths:
+      - scripts/relops-launcher/**
+      - .github/workflows/relops-launcher.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: scripts/relops-launcher
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: scripts/relops-launcher/.go-version
+          cache: false
+      - uses: extractions/setup-just@v4
+        with:
+          just-version: '1.59.0'
+      - run: just check build
+      - run: bin/relops --version
+
+  bundle:
+    needs: verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scripts/relops-launcher
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: scripts/relops-launcher/.go-version
+          cache: false
+      - uses: extractions/setup-just@v4
+        with:
+          just-version: '1.59.0'
+      - run: just site-check
+      - name: Verify packaged Linux binary
+        run: |
+          release_version=$(cat VERSION)
+          cd "dist/site/downloads/v$release_version"
+          shasum -a 256 -c SHA256SUMS
+          install -m 755 relops-linux-amd64 "$RUNNER_TEMP/relops"
+          test "$("$RUNNER_TEMP/relops" --version)" = "relops $release_version"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: relops-site-${{ github.sha }}
+          path: scripts/relops-launcher/dist/site/
+          if-no-files-found: error

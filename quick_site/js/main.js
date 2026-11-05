@@ -119,6 +119,24 @@
   });
 
   /* ---- Platform detection for the download button --------------------- */
+  // Architecture stays explicit: browser platform strings cannot reliably
+  // distinguish Apple silicon from Intel, or Linux arm64 from amd64.
+  const platformPicker = $("#install-platform");
+  let release = null;
+  try { release = JSON.parse($("#release-data")?.textContent || "null"); } catch { /* source template */ }
+  function selectPlatform(platform) {
+    const artifact = release?.artifacts?.find((a) => `${a.os}-${a.arch}` === platform);
+    if (!artifact || !platformPicker) return;
+    platformPicker.value = platform;
+    const filename = artifact.path.split("/").pop();
+    const checksum = artifact.os === "linux" ? "sha256sum -c -" : "shasum -a 256 -c -";
+    $("#verify").textContent = `printf '%s  %s\\n' '${artifact.sha256}' '${filename}' | ${checksum}`;
+    $("#c1").textContent = `mkdir -p "$HOME/.local/bin" && install -m 755 ${filename} "$HOME/.local/bin/relops"`;
+  }
+  platformPicker?.addEventListener("change", () => selectPlatform(platformPicker.value));
+  $$("[data-platform]").forEach((a) => a.addEventListener("click", () => selectPlatform(a.dataset.platform)));
+  if (platformPicker) selectPlatform(platformPicker.value);
+
   const ua = navigator.userAgent || "";
   const isLinux = /Linux/.test(ua) && !/Android/.test(ua);
   const isMac = /Mac/.test(navigator.platform || ua);

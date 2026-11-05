@@ -150,6 +150,8 @@ Suggested modules:
 
 Initial binaries: macOS arm64/amd64 and Linux arm64/amd64. Select and document a minimum supported OS version during the build spike. First distribution can use manually downloaded release artifacts with published SHA-256 checksums. Choose and verify an accessible artifact host before the coworker trial; Quick is not a prerequisite for the execution implementation.
 
+The initial release is `0.1.0`, recorded in `VERSION`. `just site` builds all four binaries and generates an ignored `dist/site/` bundle for Quick browser downloads. It contains versioned download paths, checksums, source/toolchain metadata in `releases.json`, and an artifact inventory in `index.json`. The source site is a template; binary files are generated rather than committed. A separate CI workflow tests on Linux/macOS and uploads the bundle without deploying it. Live Quick authentication, download headers, and coworker installation remain release checks; see the [site README](quick_site/README.md).
+
 ## Points to resolve before implementation
 
 These carry forward the review of the original design. Proposed resolutions are explicit so they can be accepted or changed before coding.

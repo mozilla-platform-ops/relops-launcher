@@ -4,13 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>relops — run a tool from a branch</title>
-  <meta name="description" content="relops is a small CLI that runs scripts from mozilla-platform-ops repos at any ref, without cloning anything. Install instructions.">
+  <meta name="description" content="Run a tool from a GitHub branch without managing checkouts. Download relops for macOS or Linux, including personal-fork support and automatic Pipenv setup.">
   <meta name="color-scheme" content="dark light">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='11' y='7' width='10' height='18' fill='%23c8ff2e'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/blob.css">
   <script defer src="js/main.js"></script>
+  <script id="release-data" type="application/json">__RELOPS_RELEASE_JSON__</script>
 </head>
 <body>
 
@@ -18,6 +19,7 @@
   <div class="wrap">
     <button class="brand" data-brand type="button" title="poke me">relops<span class="cursor"></span></button>
     <span class="spacer"></span>
+    <a class="link" href="#usage">Usage</a>
     <a class="link" href="#install">Install</a>
   </div>
 </header>
@@ -26,14 +28,14 @@
   <section class="hero hero--split">
     <div class="wrap">
       <div>
-        <p class="label"><b>v1</b>proposed · macOS + linux</p>
+        <p class="label"><b>v{{RELOPS_VERSION}}</b>early release · macOS + linux</p>
         <h1 class="h-hero" style="margin-top: var(--space-4)">Run a tool<br>from a <span class="accent mark">branch.</span></h1>
         <p class="lead">
-          <code>relops</code> runs scripts from <strong>mozilla-platform-ops</strong> repos at any ref.
-          No cloning, no checkouts. Push a branch, send a coworker one command.
+          <code>relops</code> runs scripts from <strong>mozilla-platform-ops</strong> repositories and personal forks.
+          No manual clones or branch switching. Push a branch, send a coworker one command.
         </p>
         <div class="cmd" style="margin-top: var(--space-6); max-width: 40rem">
-          <code id="ex">relops --ref my-feature relops-infra/path/to/check.sh</code>
+          <code id="ex">relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py --help</code>
           <button type="button" data-copy="#ex">copy</button>
         </div>
         <div class="hero__cta">
@@ -59,8 +61,9 @@
       <p class="label"><b>01</b>install</p>
       <h2 class="h-section">Install in four steps.</h2>
       <p class="prose" style="margin-bottom: var(--space-6)">
-        You need <code>git</code>, SSH access to GitHub's <code>mozilla-platform-ops</code> org,
-        and whatever runtime the tool you're running expects.
+        You need <code>git</code>, SSH access to the repository, and the tool's interpreter.
+        Python projects with a <code>Pipfile</code> also need <code>pipenv</code> on your PATH.
+        You do not need Go. Downloads on this Quick site require Mozilla SSO in your browser.
       </p>
 
       <div class="grid grid--2">
@@ -70,36 +73,61 @@
             <table>
               <thead><tr><th>Platform</th><th>Download</th></tr></thead>
               <tbody>
-                <!-- TODO: point at the real artifact host once chosen (design v1.1, gate 4). -->
-                <tr><td>macOS · Apple silicon</td><td><a data-os="macos" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-darwin-arm64">relops-darwin-arm64</a></td></tr>
-                <tr><td>macOS · Intel</td><td><a data-os="macos" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-darwin-amd64">relops-darwin-amd64</a></td></tr>
-                <tr><td>Linux · arm64</td><td><a data-os="linux" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-linux-arm64">relops-linux-arm64</a></td></tr>
-                <tr><td>Linux · amd64</td><td><a data-os="linux" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-linux-amd64">relops-linux-amd64</a></td></tr>
+                <tr><td>macOS · Apple silicon</td><td><a data-os="macos" data-platform="darwin-arm64" download="relops-darwin-arm64" href="downloads/v{{RELOPS_VERSION}}/relops-darwin-arm64">relops-darwin-arm64</a></td></tr>
+                <tr><td>macOS · Intel</td><td><a data-os="macos" data-platform="darwin-amd64" download="relops-darwin-amd64" href="downloads/v{{RELOPS_VERSION}}/relops-darwin-amd64">relops-darwin-amd64</a></td></tr>
+                <tr><td>Linux · arm64</td><td><a data-os="linux" data-platform="linux-arm64" download="relops-linux-arm64" href="downloads/v{{RELOPS_VERSION}}/relops-linux-arm64">relops-linux-arm64</a></td></tr>
+                <tr><td>Linux · amd64</td><td><a data-os="linux" data-platform="linux-amd64" download="relops-linux-amd64" href="downloads/v{{RELOPS_VERSION}}/relops-linux-amd64">relops-linux-amd64</a></td></tr>
               </tbody>
             </table>
           </div>
           <p class="prose" style="font-size: var(--text-sm)">
-            Compare the file against the SHA-256 checksums published with the release.
-            <span id="unsupported" hidden class="warn">Windows isn't supported in v1.</span>
+            Choose your CPU architecture explicitly.
+            <a href="downloads/v{{RELOPS_VERSION}}/SHA256SUMS" download="SHA256SUMS">SHA-256 checksums</a>
+            are published with every build.
+            <span id="unsupported" hidden class="warn">Windows isn't supported.</span>
           </p>
         </div>
 
         <div class="stack">
-          <p class="label"><b>2</b>make it executable and put it on your PATH</p>
-          <div class="cmd"><code id="c1">chmod +x relops-* &amp;&amp; mv relops-* ~/.local/bin/relops</code><button type="button" data-copy="#c1">copy</button></div>
+          <p class="label"><b>2</b>verify and install the file you downloaded</p>
+          <label for="install-platform">Platform for the commands below</label>
+          <select id="install-platform" class="platform-select">
+            <option value="darwin-arm64">macOS · Apple silicon</option>
+            <option value="darwin-amd64">macOS · Intel</option>
+            <option value="linux-arm64">Linux · arm64</option>
+            <option value="linux-amd64">Linux · amd64</option>
+          </select>
+          <p class="prose" style="font-size: var(--text-sm)">Run these in the directory where you saved the download. The checksum command must report <code>OK</code> before installing.</p>
+          <div class="cmd"><code id="verify">printf '%s  %s\n' '__RELOPS_SHA_DARWIN_ARM64__' 'relops-darwin-arm64' | shasum -a 256 -c -</code><button type="button" data-copy="#verify">copy</button></div>
+          <div class="cmd"><code id="c1">mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops"</code><button type="button" data-copy="#c1">copy</button></div>
+          <noscript><p class="prose">These commands show the Apple silicon build. For another platform, use its exact filename and checksum from SHA256SUMS.</p></noscript>
           <p class="faint" style="font-size: var(--text-xs)">Make sure <code>~/.local/bin</code> is in your <code>PATH</code>. On macOS you may need to allow the binary in System Settings → Privacy &amp; Security the first time.</p>
-          <p class="label"><b>3</b>check GitHub SSH access</p>
-          <div class="cmd"><code id="c2">ssh -T git@github.com</code><button type="button" data-copy="#c2">copy</button></div>
+          <p class="label"><b>3</b>check repository access</p>
+          <div class="cmd"><code id="c2">git ls-remote git@github.com:aerickson/android-tools.git HEAD</code><button type="button" data-copy="#c2">copy</button></div>
+          <p class="prose" style="font-size: var(--text-sm)">This checks access for the example above. Use your tool's owner and repository when running something else.</p>
           <p class="label"><b>4</b>confirm it works</p>
           <div class="cmd"><code id="c3">relops --version</code><button type="button" data-copy="#c3">copy</button></div>
+          <p class="prose" style="font-size: var(--text-sm)">Expected: <code>relops {{RELOPS_VERSION}}</code>. Then try the example command above; it prints the replay tool's help.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="section" id="usage">
+    <div class="wrap stack">
+      <p class="label"><b>02</b>usage</p>
+      <h2 class="h-section">Your branch. One command.</h2>
+      <p class="prose">Use <code>--owner</code> for a personal fork; the default is <code>mozilla-platform-ops</code>. Launcher options go before <code>repo/path</code>. Everything after it goes to the tool.</p>
+      <p class="prose">The tool starts in your current directory, so relative inputs and outputs behave like local commands. Use <code>--cwd repo</code> if it needs its repository root.</p>
+      <p class="prose">The default runner honors shebangs and detects Python scripts. For Python projects with a committed <code>Pipfile.lock</code>, installed Pipenv prepares and caches runtime dependencies automatically. No outer <code>pipenv run</code> is needed. An explicit <code>--runner python3</code>, <code>bash</code>, or <code>sh</code> overrides detection.</p>
+      <p class="prose">Online runs fetch the latest branch or tag. Every run reports the exact commit on stderr and uses its own temporary checkout. Push your changes first; use a full commit SHA with <code>--ref</code> for an exact revision. <code>--offline</code> requires cached code and an already-prepared environment.</p>
+      <p class="prose">Tools run with your normal permissions. Dev dependencies, submodules, and Git LFS downloads are not installed automatically. Files written into the temporary checkout are removed at exit; files in your current directory stay there.</p>
     </div>
   </section>
 </main>
 
 <footer class="footer">
-  <div class="wrap">~*~ relops · mozilla platform ops ~*~</div>
+  <div class="wrap">~*~ relops · mozilla platform ops ~*~ · <a href="releases.json">Release metadata</a> · <a href="index.json">Artifact inventory</a></div>
 </footer>
 </body>
 </html>

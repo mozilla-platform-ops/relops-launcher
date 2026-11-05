@@ -18,16 +18,16 @@ Prerequisites: Git with working GitHub SSH access, plus the tool's interpreter. 
 git ls-remote git@github.com:mozilla-platform-ops/REPOSITORY.git HEAD
 ```
 
-Until binary hosting is selected, build locally using Go 1.23 or newer:
+For a local source install, install `just` and Go 1.23 or newer (release builds use the version pinned in `.go-version`):
 
 ```sh
 cd scripts/relops-launcher
-make build
+just build
 mkdir -p ~/.local/bin
 install -m 755 bin/relops ~/.local/bin/relops
 ```
 
-Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary do not need Go. Copy the appropriate artifact to that directory using the same `install` command, then check `relops --version`. Artifact hosting, minimum OS versions, and real coworker installation trials remain release checks; this is not yet a published release.
+Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary do not need Go. Copy the appropriate artifact to that directory using the same `install` command, then check `relops --version`. A Quick download site can now be generated with `just site`; it has not been published by this work. Live download verification, minimum OS versions, and real coworker installation trials remain release checks.
 
 ## Use
 
@@ -108,13 +108,19 @@ Lock files persist intentionally; the OS releases their locks when the process e
 
 ## Development and validation
 
+Run recipes from this directory; `just` lists them. CI uses just 1.59.0. People installing a prebuilt launcher do not need just.
+
 ```sh
-make test
-make check                 # formatting, vet, race-enabled integration tests
-make release               # four binaries and dist/SHA256SUMS
+just test
+just check                 # formatting, vet, race-enabled integration tests
+just release               # four binaries and dist/SHA256SUMS
+just site                  # release binaries + deployable dist/site folder
+just site-check            # also test the site's download/copy behavior (Node)
 ```
 
-`make build` and `make release` read the version from `VERSION` (currently `0.1.0`) and embed it in the executable; `relops --version` prints it. Override with `make release VERSION=...` when needed. Direct `go build`/`go run` without the Makefile report `dev`. These commands build artifacts but do not publish them. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
+`just build` and `just release` read the version from `VERSION` (currently `0.1.0`) and embed it in the executable; `relops --version` prints it. Override with `just version=... release` when needed. Direct `go build`/`go run` without the justfile report `dev`. These commands build artifacts but do not publish them. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
+
+All build outputs stay in ignored `bin/` and `dist/` directories; no binaries need committing. The [site README](quick_site/README.md) describes the bundle, source/toolchain metadata, local preview, and later Quick publication. CI tests the launcher on Linux and macOS and uploads a generated site artifact without deploying it.
 
 Integration tests use local Git repositories and temporary caches without accessing GitHub. They exercise owner isolation, ref changes, offline failures, ambiguous refs, concurrent runs, cwd/arguments/IO, runner detection, Pipenv setup/reuse/failure, path containment, disabled checkout hooks, and process cleanup. Python runner checks skip if `python3` is unavailable. Normal tests use a fake Pipenv process without accessing a package index; an opt-in `RELOPS_TEST_REAL_PIPENV=1 go test ./internal/launcher -run '^TestRealPipenv$'` checks the installed Pipenv using an empty dependency set.
 
