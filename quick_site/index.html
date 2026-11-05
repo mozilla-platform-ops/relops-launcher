@@ -39,8 +39,13 @@
           <code id="ex">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '{{RELOPS_SHA_DARWIN_ARM64}}' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code>
           <button type="button" data-copy="#ex">copy</button>
         </div>
+        <p class="prose" style="margin-top: var(--space-5)"><span class="accent mark">Run a brand new tool in development.</span></p>
+        <div class="cmd" style="margin-top: var(--space-3); max-width: 40rem; min-width: 0">
+          <code id="hero-tool">relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py -h</code>
+          <button type="button" data-copy="#hero-tool">copy</button>
+        </div>
         <div class="hero__cta">
-          <a class="btn btn--primary" id="download-primary" href="#install">Install relops ↓</a>
+          <a class="btn" href="#usage">See what you can run ↓</a>
         </div>
       </div>
       <div class="hero__art">

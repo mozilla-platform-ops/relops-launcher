@@ -147,8 +147,6 @@
   const downloads = $$("[data-os]");
   const want = isLinux ? "linux" : isMac ? "macos" : null;
   downloads.forEach((a) => a.toggleAttribute("data-detected", a.dataset.os === want));
-  const primary = $("#download-primary");
-  if (primary && want) primary.textContent = `Download for ${want === "macos" ? "macOS" : "Linux"} ↓`;
   const unsupported = $("#unsupported");
   if (unsupported) unsupported.hidden = !!want;
 
