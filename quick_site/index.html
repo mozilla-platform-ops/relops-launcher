@@ -19,8 +19,8 @@
   <div class="wrap">
     <button class="brand" data-brand type="button" title="poke me">relops<span class="cursor"></span></button>
     <span class="spacer"></span>
-    <a class="link" href="#usage">Usage</a>
     <a class="link" href="#install">Install</a>
+    <a class="link" href="#usage">Usage</a>
   </div>
 </header>
 
@@ -35,7 +35,7 @@
           No manual clones or branch switching. Push a branch, send a coworker one command.
         </p>
         <p class="prose" style="margin-top: var(--space-6)">Download below, then paste this to verify and install.</p>
-        <div class="cmd cmd--wrap" style="margin-top: var(--space-3); max-width: 40rem">
+        <div class="cmd" style="margin-top: var(--space-3); max-width: 40rem; min-width: 0">
           <code id="ex">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '__RELOPS_SHA_DARWIN_ARM64__' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code>
           <button type="button" data-copy="#ex">copy</button>
         </div>
