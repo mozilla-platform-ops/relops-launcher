@@ -145,6 +145,51 @@
     items.forEach((el) => el.classList.add("is-in"));
   }
 
+  /* ---- Blob: organic, never-repeating silhouette ------------------------ */
+  // The outline is a closed curve whose radius is a sum of slowly drifting sine
+  // harmonics (each with its own speed/phase), drawn as a clip-path polygon.
+  // Because the speeds are unrelated, the shape never loops. Falls back to the
+  // CSS border-radius morph under reduced motion or without JS.
+  const blob = $(".blob");
+  const blobBody = blob && $(".blob__body", blob);
+  if (blobBody && !reduceMotion) {
+    const POINTS = 160;
+    // [harmonic, amplitude, speed rad/s, phase]
+    const H = [
+      [2, 0.075, 0.31, 0.4], [3, 0.045, 0.43, 2.1], [4, 0.02, 0.57, 4.3],
+      [5, 0.01, 0.71, 1.2], [1, 0.03, 0.23, 3.3],
+    ];
+    const cos = new Float32Array(POINTS), sin = new Float32Array(POINTS);
+    for (let i = 0; i < POINTS; i++) { const a = (i / POINTS) * Math.PI * 2; cos[i] = Math.cos(a); sin[i] = Math.sin(a); }
+    const r = new Float32Array(POINTS);
+    let visible = true, raf = 0, t0 = performance.now();
+
+    const frame = (now) => {
+      const t = (now - t0) / 1000;
+      let max = 0;
+      for (let i = 0; i < POINTS; i++) {
+        const a = (i / POINTS) * Math.PI * 2;
+        let v = 1;
+        for (const [k, amp, w, ph] of H) v += amp * Math.sin(k * a + ph + w * t);
+        r[i] = v; if (v > max) max = v;
+      }
+      const breathe = 0.955 + 0.045 * Math.sin(t * 0.37);
+      const s = (50 / max) * breathe;
+      let d = "";
+      for (let i = 0; i < POINTS; i++) {
+        d += `${(50 + cos[i] * r[i] * s).toFixed(2)}% ${(50 + sin[i] * r[i] * s).toFixed(2)}%${i < POINTS - 1 ? "," : ""}`;
+      }
+      blobBody.style.clipPath = `polygon(${d})`;
+      if (visible) raf = requestAnimationFrame(frame);
+    };
+    blob.classList.add("blob--live");
+    new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      if (visible) { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+    }).observe(blob);
+    raf = requestAnimationFrame(frame);
+  }
+
   /* ---- Moiré: pointer nudges the second grating ----------------------- */
   const moire = $(".moire");
   if (moire && !reduceMotion) {

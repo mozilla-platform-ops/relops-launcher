@@ -1,21 +1,36 @@
 /* ==========================================================================
    RELOPS DESIGN SYSTEM — CHROME BLOB
-   Decorative hero object: liquid chrome tinted with the accent's COMPLEMENT
-   (--comp-h, derived in tokens.css). Color points drift independently, like
-   a mesh gradient. Pure CSS; uses @property so positions animate smoothly
-   (browsers without it show a static, still-good blob).
+   Decorative hero object: a glossy mesh gradient in the accent's COMPLEMENT
+   (--comp-h, derived in tokens.css). Six color points wander on their own
+   irregular paths, each with its own size and (coprime) loop length, and
+   blend with `screen`, so the pattern effectively never repeats.
+   Round balls only: no conic or striped geometry (it reads as a star).
+   Pure CSS; uses @property so positions animate smoothly (browsers without
+   it show a static, still-good blob).
    Wrap in .blob; it is aria-hidden and never carries content.
    ========================================================================== */
 
-@property --cx { syntax: "<percentage>"; inherits: true; initial-value: 32%; }
-@property --cy { syntax: "<percentage>"; inherits: true; initial-value: 64%; }
-@property --ang { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
-@property --p1x { syntax: "<percentage>"; inherits: true; initial-value: 25%; }
-@property --p1y { syntax: "<percentage>"; inherits: true; initial-value: 30%; }
-@property --p2x { syntax: "<percentage>"; inherits: true; initial-value: 75%; }
-@property --p2y { syntax: "<percentage>"; inherits: true; initial-value: 40%; }
-@property --p3x { syntax: "<percentage>"; inherits: true; initial-value: 55%; }
-@property --p3y { syntax: "<percentage>"; inherits: true; initial-value: 80%; }
+@property --p1x { syntax: "<percentage>"; inherits: true; initial-value: 51%; }
+@property --p1y { syntax: "<percentage>"; inherits: true; initial-value: 29%; }
+@property --p1r { syntax: "<percentage>"; inherits: true; initial-value: 45%; }
+@property --p2x { syntax: "<percentage>"; inherits: true; initial-value: 60%; }
+@property --p2y { syntax: "<percentage>"; inherits: true; initial-value: 16%; }
+@property --p2r { syntax: "<percentage>"; inherits: true; initial-value: 45%; }
+@property --p3x { syntax: "<percentage>"; inherits: true; initial-value: 19%; }
+@property --p3y { syntax: "<percentage>"; inherits: true; initial-value: 78%; }
+@property --p3r { syntax: "<percentage>"; inherits: true; initial-value: 45%; }
+@property --p4x { syntax: "<percentage>"; inherits: true; initial-value: 22%; }
+@property --p4y { syntax: "<percentage>"; inherits: true; initial-value: 56%; }
+@property --p4r { syntax: "<percentage>"; inherits: true; initial-value: 45%; }
+@property --p5x { syntax: "<percentage>"; inherits: true; initial-value: 84%; }
+@property --p5y { syntax: "<percentage>"; inherits: true; initial-value: 17%; }
+@property --p5r { syntax: "<percentage>"; inherits: true; initial-value: 45%; }
+@property --p6x { syntax: "<percentage>"; inherits: true; initial-value: 74%; }
+@property --p6y { syntax: "<percentage>"; inherits: true; initial-value: 37%; }
+@property --p6r { syntax: "<percentage>"; inherits: true; initial-value: 45%; }
+@property --hx { syntax: "<percentage>"; inherits: true; initial-value: 30%; }
+@property --hy { syntax: "<percentage>"; inherits: true; initial-value: 24%; }
+@property --hr { syntax: "<percentage>"; inherits: true; initial-value: 26%; }
 
 .blob {
   --blob-size: min(78vw, 32rem);
@@ -23,87 +38,134 @@
   width: var(--blob-size);
   aspect-ratio: 1;
   pointer-events: none;
-  animation: blob-drift 18s ease-in-out infinite;
+  animation: blob-drift 34s ease-in-out infinite;
   filter: drop-shadow(0 2rem 3rem hsl(var(--comp-h) 100% 55% / 0.22));
 }
 
-/* Silhouette: morphs and clips everything inside. */
+/* Silhouette: clips everything inside. With JS the outline is driven live
+   (see main.js, .blob--live); this border-radius morph is the fallback. */
 .blob__body {
   position: absolute; inset: 0;
   overflow: hidden;
   border-radius: 58% 42% 55% 45% / 48% 56% 44% 52%;
-  animation: blob-morph 11s ease-in-out infinite;
-  background: #0a0c12;
+  animation: blob-morph 23s ease-in-out infinite;
+  background: hsl(var(--comp-h) 55% 24%);
 }
 
-/* Chrome: hard-banded conic gradient (cool neutrals). Its pinch point wanders
-   and its start angle turns, so the reflections slide across the surface. */
+/* Depth: soft white highlight balls and dark shadow balls that ride on the
+   same moving points (mirrored/offset so they never sit on the color). No
+   conic/stripe geometry anywhere: everything is a round, blurred ball. */
 .blob__env {
-  position: absolute; inset: -30%;
-  background: conic-gradient(
-    from var(--ang) at var(--cx) var(--cy),
-    #05070b 0%, #eef2fa 8%, #384050 15%, #ffffff 22%,
-    #9aa4ba 29%, #12151c 38%, #c3cadb 46%,
-    #030407 54%, #f6f8fd 62%, #465066 70%,
-    #b4bdd0 77%, #10131a 86%, #dde2ee 94%, #05070b 100%
-  );
-  filter: blur(26px) contrast(1.2);
-  animation:
-    blob-center 17s ease-in-out infinite,
-    blob-angle 26s linear infinite;
+  position: absolute; inset: -10%;
+  background-image:
+    radial-gradient(circle at var(--p4x) var(--p4y), rgb(255 255 255 / 0.8) 0, transparent calc(var(--p4r) * 0.45)),
+    radial-gradient(circle at calc(100% - var(--p2x)) var(--p5y), rgb(255 255 255 / 0.55) 0, transparent calc(var(--p2r) * 0.4)),
+    radial-gradient(circle at calc(100% - var(--p1x)) calc(100% - var(--p1y)), hsl(var(--comp-h) 70% 12% / 0.4) 0, transparent calc(var(--p1r) * 0.8)),
+    radial-gradient(circle at var(--p6x) calc(100% - var(--p6y)), hsl(var(--comp-h) 70% 12% / 0.3) 0, transparent calc(var(--p6r) * 0.7));
+  filter: blur(16px);
+  mix-blend-mode: overlay;
 }
 
-/* Complementary color points. Three radial blobs, each on its own orbit.
-   `color` blend keeps the chrome's light/dark bands and swaps in the hue. */
+/* Color points. Screen-blended onto black so overlaps mix into new colors. */
 .blob__mesh {
   position: absolute; inset: 0;
-  background:
-    radial-gradient(circle at var(--p1x) var(--p1y), hsl(var(--comp-h) 100% 58%) 0, transparent 52%),
-    radial-gradient(circle at var(--p2x) var(--p2y), hsl(calc(var(--comp-h) + 45) 95% 60%) 0, transparent 48%),
-    radial-gradient(circle at var(--p3x) var(--p3y), hsl(calc(var(--comp-h) - 45) 95% 56%) 0, transparent 50%);
-  mix-blend-mode: color;
-  opacity: 0.95;
+  z-index: 0;
+  background-color: hsl(var(--comp-h) 55% 20%);
+  background-image:
+    radial-gradient(circle at var(--p1x) var(--p1y), hsl(calc(var(--comp-h) + 0) 100% 58% / 0.92) 0, transparent var(--p1r)),
+    radial-gradient(circle at var(--p2x) var(--p2y), hsl(calc(var(--comp-h) + 42) 95% 60% / 0.92) 0, transparent var(--p2r)),
+    radial-gradient(circle at var(--p3x) var(--p3y), hsl(calc(var(--comp-h) + -42) 100% 54% / 0.92) 0, transparent var(--p3r)),
+    radial-gradient(circle at var(--p4x) var(--p4y), hsl(calc(var(--comp-h) + 72) 90% 62% / 0.92) 0, transparent var(--p4r)),
+    radial-gradient(circle at var(--p5x) var(--p5y), hsl(calc(var(--comp-h) + -72) 95% 56% / 0.92) 0, transparent var(--p5r)),
+    radial-gradient(circle at var(--p6x) var(--p6y), hsl(calc(var(--comp-h) + 18) 100% 64% / 0.92) 0, transparent var(--p6r));
+  background-blend-mode: screen;
   animation:
-    blob-p1 13s ease-in-out infinite,
-    blob-p2 17s ease-in-out infinite,
-    blob-p3 21s ease-in-out infinite;
+    blob-p1 29s ease-in-out infinite -7s,
+    blob-p2 37s ease-in-out infinite -14s,
+    blob-p3 43s ease-in-out infinite -21s,
+    blob-p4 53s ease-in-out infinite -28s,
+    blob-p5 59s ease-in-out infinite -35s,
+    blob-p6 71s ease-in-out infinite -42s;
 }
 
-/* Soft secondary glow so tinted areas feel lit, not flat. */
+/* Soft glow so tinted areas feel lit, not flat. Reuses the same moving points. */
 .blob__glow {
   position: absolute; inset: 0;
-  background:
-    radial-gradient(circle at var(--p2x) var(--p2y), hsl(var(--comp-h) 100% 65% / 0.55), transparent 40%),
-    radial-gradient(circle at var(--p3x) var(--p3y), hsl(calc(var(--comp-h) - 45) 100% 60% / 0.4), transparent 38%);
+  background-image:
+    radial-gradient(circle at var(--p2x) var(--p2y), hsl(calc(var(--comp-h) + 42) 100% 68% / 0.5), transparent calc(var(--p2r) * 0.7)),
+    radial-gradient(circle at var(--p4x) var(--p4y), hsl(calc(var(--comp-h) + 72) 100% 68% / 0.5), transparent calc(var(--p4r) * 0.7)),
+    radial-gradient(circle at var(--p6x) var(--p6y), hsl(calc(var(--comp-h) + 18) 100% 68% / 0.5), transparent calc(var(--p6r) * 0.7)),
+    radial-gradient(circle at var(--p1x) var(--p1y), hsl(calc(var(--comp-h) + 0) 100% 68% / 0.5), transparent calc(var(--p1r) * 0.7));
   mix-blend-mode: soft-light;
 }
 
-/* Specular highlight + edge falloff for volume. */
+/* The highlight: one bright specular spot that roams the surface on its own
+   slow path (47s loop, coprime with the color points). */
+.blob__hi {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at var(--hx) var(--hy), rgb(255 255 255 / 0.95) 0, rgb(255 255 255 / 0.35) calc(var(--hr) * 0.35), transparent var(--hr));
+  mix-blend-mode: screen;
+  filter: blur(6px);
+  animation: blob-hi 47s ease-in-out infinite;
+}
+
+/* Edge falloff for volume. */
 .blob__gloss {
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse 38% 26% at 30% 22%, rgb(255 255 255 / 0.8), transparent 70%),
-    radial-gradient(circle at 50% 50%, transparent 55%, rgb(0 0 0 / 0.55) 100%);
+    radial-gradient(circle at 50% 50%, transparent 60%, hsl(var(--comp-h) 70% 14% / 0.3) 100%);
   mix-blend-mode: soft-light;
 }
 
-@keyframes blob-center {
-  0%, 100% { --cx: 32%; --cy: 64%; }
-  33%      { --cx: 62%; --cy: 38%; }
-  66%      { --cx: 40%; --cy: 30%; }
-}
-@keyframes blob-angle { to { --ang: 360deg; } }
 @keyframes blob-p1 {
-  0%, 100% { --p1x: 22%; --p1y: 28%; }
-  50%      { --p1x: 58%; --p1y: 62%; }
+  0%  { --p1x: 9%; --p1y: 16%; --p1r: 57%; }
+  24% { --p1x: 58%; --p1y: 13%; --p1r: 45%; }
+  47% { --p1x: 16%; --p1y: 75%; --p1r: 57%; }
+  73% { --p1x: 12%; --p1y: 77%; --p1r: 37%; }
+  100%{ --p1x: 9%; --p1y: 16%; --p1r: 57%; }
 }
 @keyframes blob-p2 {
-  0%, 100% { --p2x: 78%; --p2y: 36%; }
-  50%      { --p2x: 36%; --p2y: 74%; }
+  0%  { --p2x: 33%; --p2y: 85%; --p2r: 70%; }
+  24% { --p2x: 79%; --p2y: 12%; --p2r: 66%; }
+  47% { --p2x: 79%; --p2y: 55%; --p2r: 33%; }
+  73% { --p2x: 33%; --p2y: 10%; --p2r: 65%; }
+  100%{ --p2x: 33%; --p2y: 85%; --p2r: 70%; }
 }
 @keyframes blob-p3 {
-  0%, 100% { --p3x: 52%; --p3y: 84%; }
-  50%      { --p3x: 82%; --p3y: 22%; }
+  0%  { --p3x: 22%; --p3y: 42%; --p3r: 56%; }
+  24% { --p3x: 23%; --p3y: 74%; --p3r: 37%; }
+  47% { --p3x: 78%; --p3y: 44%; --p3r: 65%; }
+  73% { --p3x: 92%; --p3y: 28%; --p3r: 36%; }
+  100%{ --p3x: 22%; --p3y: 42%; --p3r: 56%; }
+}
+@keyframes blob-p4 {
+  0%  { --p4x: 79%; --p4y: 78%; --p4r: 70%; }
+  24% { --p4x: 29%; --p4y: 52%; --p4r: 36%; }
+  47% { --p4x: 75%; --p4y: 13%; --p4r: 66%; }
+  73% { --p4x: 12%; --p4y: 84%; --p4r: 43%; }
+  100%{ --p4x: 79%; --p4y: 78%; --p4r: 70%; }
+}
+@keyframes blob-p5 {
+  0%  { --p5x: 68%; --p5y: 92%; --p5r: 64%; }
+  24% { --p5x: 59%; --p5y: 45%; --p5r: 59%; }
+  47% { --p5x: 79%; --p5y: 63%; --p5r: 53%; }
+  73% { --p5x: 43%; --p5y: 36%; --p5r: 41%; }
+  100%{ --p5x: 68%; --p5y: 92%; --p5r: 64%; }
+}
+@keyframes blob-p6 {
+  0%  { --p6x: 94%; --p6y: 36%; --p6r: 35%; }
+  24% { --p6x: 78%; --p6y: 43%; --p6r: 63%; }
+  47% { --p6x: 68%; --p6y: 48%; --p6r: 58%; }
+  73% { --p6x: 41%; --p6y: 82%; --p6r: 34%; }
+  100%{ --p6x: 94%; --p6y: 36%; --p6r: 35%; }
+}
+@keyframes blob-hi {
+  0%  { --hx: 28%; --hy: 40%; --hr: 31%; }
+  22% { --hx: 44%; --hy: 54%; --hr: 24%; }
+  48% { --hx: 48%; --hy: 67%; --hr: 23%; }
+  75% { --hx: 68%; --hy: 44%; --hr: 32%; }
+  100%{ --hx: 28%; --hy: 40%; --hr: 31%; }
 }
 @keyframes blob-morph {
   0%, 100% { border-radius: 58% 42% 55% 45% / 48% 56% 44% 52%; }
@@ -116,6 +178,8 @@
   50%      { transform: translate3d(0, -1.25rem, 0) rotate(6deg); }
 }
 
+.blob--live .blob__body { animation: none; border-radius: 0; }
+
 @media (prefers-reduced-motion: reduce) {
-  .blob, .blob__body, .blob__env, .blob__mesh { animation: none; }
+  .blob, .blob__body, .blob__mesh, .blob__hi { animation: none; }
 }
