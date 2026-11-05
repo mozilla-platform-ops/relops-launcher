@@ -111,10 +111,10 @@ Lock files persist intentionally; the OS releases their locks when the process e
 ```sh
 make test
 make check                 # formatting, vet, race-enabled integration tests
-make release VERSION=0.1.0 # four binaries and dist/SHA256SUMS
+make release               # four binaries and dist/SHA256SUMS
 ```
 
-The release label above is illustrative. These commands build artifacts but do not publish them. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
+`make build` and `make release` read the version from `VERSION` (currently `0.1.0`) and embed it in the executable; `relops --version` prints it. Override with `make release VERSION=...` when needed. Direct `go build`/`go run` without the Makefile report `dev`. These commands build artifacts but do not publish them. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
 
 Integration tests use local Git repositories and temporary caches without accessing GitHub. They exercise owner isolation, ref changes, offline failures, ambiguous refs, concurrent runs, cwd/arguments/IO, runner detection, Pipenv setup/reuse/failure, path containment, disabled checkout hooks, and process cleanup. Python runner checks skip if `python3` is unavailable. Normal tests use a fake Pipenv process without accessing a package index; an opt-in `RELOPS_TEST_REAL_PIPENV=1 go test ./internal/launcher -run '^TestRealPipenv$'` checks the installed Pipenv using an empty dependency set.
 

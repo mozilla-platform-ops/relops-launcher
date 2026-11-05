@@ -1,4 +1,4 @@
-VERSION ?= dev
+VERSION ?= $(shell cat VERSION)
 GO ?= go
 
 .PHONY: build test check release
