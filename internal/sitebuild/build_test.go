@@ -79,7 +79,7 @@ func TestBundleDownloadsInventoryAndLinks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(string(page), "__RELOPS_") || strings.Contains(string(page), "releases/latest/download") || !strings.Contains(string(page), "v0.1.0") {
+	if strings.Contains(string(page), "{{RELOPS_") || strings.Contains(string(page), "releases/latest/download") || !strings.Contains(string(page), "v0.1.0") {
 		t.Fatal("unrendered or stale release information")
 	}
 	// Download/asset links must all resolve within the assembled site. Hash links

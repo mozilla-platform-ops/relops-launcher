@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/blob.css">
   <script defer src="js/main.js"></script>
-  <script id="release-data" type="application/json">__RELOPS_RELEASE_JSON__</script>
+  <script id="release-data" type="application/json">{{RELOPS_RELEASE_JSON}}</script>
 </head>
 <body>
 
@@ -74,7 +74,7 @@
           </table>
         </div>
         <p class="prose">Save the file in <code>~/Downloads</code> with the filename shown above. If your browser uses another folder, change <code>$HOME/Downloads</code> in the commands below.</p>
-        <p class="prose" style="font-size: var(--text-sm)">__RELOPS_MACOS_STATUS__</p>
+        <p class="prose" style="font-size: var(--text-sm)">{{RELOPS_MACOS_STATUS}}</p>
         <p id="unsupported" hidden class="warn">Downloads are available for macOS Apple silicon and Linux amd64 only.</p>
         <p class="label"><b>2</b>verify and install</p>
         <label for="install-platform">Platform for the install commands</label>

@@ -144,11 +144,11 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 	}
 	page := strings.NewReplacer(
 		"{{RELOPS_VERSION}}", cfg.Version,
-		"__RELOPS_RELEASE_JSON__", string(manifest),
+		"{{RELOPS_RELEASE_JSON}}", string(manifest),
 		"__RELOPS_SHA_DARWIN_ARM64__", release.Artifacts[0].SHA256,
-		"__RELOPS_MACOS_STATUS__", macOSStatus,
+		"{{RELOPS_MACOS_STATUS}}", macOSStatus,
 	).Replace(string(index))
-	if strings.Contains(page, "__RELOPS_") || strings.Contains(page, "{{RELOPS_VERSION}}") {
+	if strings.Contains(page, "{{RELOPS_") {
 		return "", errors.New("unresolved site template placeholder")
 	}
 	if err := writeFile(stage, "index.html", []byte(page)); err != nil {
