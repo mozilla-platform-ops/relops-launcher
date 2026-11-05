@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>relops — run a tool from a branch</title>
+  <meta name="description" content="relops is a small CLI that runs scripts from mozilla-platform-ops repos at any ref, without cloning anything. Install instructions.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='11' y='7' width='10' height='18' fill='%23ff5b1f'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/moire.css">
+  <script defer src="js/main.js"></script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <button class="brand" data-brand type="button" title="poke me">relops<span class="cursor"></span></button>
+    <span class="spacer"></span>
+    <a class="link" href="#install">Install</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero hero--split">
+    <div class="wrap">
+      <div>
+        <p class="label"><b>v1</b>proposed · macOS + linux</p>
+        <h1 class="h-hero" style="margin-top: var(--space-4)">Run a tool<br>from a <span class="accent">branch.</span></h1>
+        <p class="lead">
+          <code>relops</code> runs scripts from <strong>mozilla-platform-ops</strong> repos at any ref.
+          No cloning, no checkouts. Push a branch, send a coworker one command.
+        </p>
+        <div class="cmd" style="margin-top: var(--space-6); max-width: 40rem">
+          <code id="ex">relops --ref my-feature relops-infra/path/to/check.sh</code>
+          <button type="button" data-copy="#ex">copy</button>
+        </div>
+        <div class="hero__cta">
+          <a class="btn btn--primary" id="download-primary" href="#install">Install relops ↓</a>
+        </div>
+      </div>
+      <div class="hero__art">
+        <div class="moire" aria-hidden="true">
+          <div class="moire__layer moire__a"></div>
+          <div class="moire__b-pos"><div class="moire__layer moire__b"></div></div>
+          <div class="moire__layer moire__c"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="install">
+    <div class="wrap">
+      <p class="label"><b>01</b>install</p>
+      <h2 class="h-section">Install in four steps.</h2>
+      <p class="prose" style="margin-bottom: var(--space-6)">
+        You need <code>git</code>, SSH access to GitHub's <code>mozilla-platform-ops</code> org,
+        and whatever runtime the tool you're running expects.
+      </p>
+
+      <div class="grid grid--2">
+        <div class="stack">
+          <p class="label"><b>1</b>download for your platform</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Platform</th><th>Download</th></tr></thead>
+              <tbody>
+                <!-- TODO: point at the real artifact host once chosen (design v1.1, gate 4). -->
+                <tr><td>macOS · Apple silicon</td><td><a data-os="macos" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-darwin-arm64">relops-darwin-arm64</a></td></tr>
+                <tr><td>macOS · Intel</td><td><a data-os="macos" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-darwin-amd64">relops-darwin-amd64</a></td></tr>
+                <tr><td>Linux · arm64</td><td><a data-os="linux" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-linux-arm64">relops-linux-arm64</a></td></tr>
+                <tr><td>Linux · amd64</td><td><a data-os="linux" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-linux-amd64">relops-linux-amd64</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="prose" style="font-size: var(--text-sm)">
+            Compare the file against the SHA-256 checksums published with the release.
+            <span id="unsupported" hidden class="warn">Windows isn't supported in v1.</span>
+          </p>
+        </div>
+
+        <div class="stack">
+          <p class="label"><b>2</b>make it executable and put it on your PATH</p>
+          <div class="cmd"><code id="c1">chmod +x relops-* &amp;&amp; mv relops-* ~/.local/bin/relops</code><button type="button" data-copy="#c1">copy</button></div>
+          <p class="faint" style="font-size: var(--text-xs)">Make sure <code>~/.local/bin</code> is in your <code>PATH</code>. On macOS you may need to allow the binary in System Settings → Privacy &amp; Security the first time.</p>
+          <p class="label"><b>3</b>check GitHub SSH access</p>
+          <div class="cmd"><code id="c2">ssh -T git@github.com</code><button type="button" data-copy="#c2">copy</button></div>
+          <p class="label"><b>4</b>confirm it works</p>
+          <div class="cmd"><code id="c3">relops --version</code><button type="button" data-copy="#c3">copy</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">~*~ relops · mozilla platform ops · <a href="future.html">the future →</a> ~*~</div>
+</footer>
+</body>
+</html>

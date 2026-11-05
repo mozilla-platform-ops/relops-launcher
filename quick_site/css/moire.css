@@ -1,0 +1,72 @@
+/* ==========================================================================
+   RELOPS DESIGN SYSTEM — MOIRÉ
+   Decorative hero object. Three hairline gratings (rings, rings, spokes)
+   that drift against each other; their interference is the artwork.
+   Pure CSS. Wrap in .moire (aria-hidden). Pointer nudges layer B via JS.
+   Colors come from tokens: lines use --fg, one layer uses --accent.
+   ========================================================================== */
+
+.moire {
+  --moire-size: min(84vw, 34rem);
+  --moire-pitch: 7px;
+  position: relative;
+  width: var(--moire-size);
+  aspect-ratio: 1;
+  pointer-events: none;
+  /* fade the pattern into the page instead of ending in a hard edge */
+  -webkit-mask-image: radial-gradient(circle, #000 38%, transparent 71%);
+          mask-image: radial-gradient(circle, #000 38%, transparent 71%);
+}
+
+.moire__layer { position: absolute; inset: -12%; will-change: transform; }
+
+/* A: concentric rings, fixed anchor, slow breathing. */
+.moire__a {
+  background: repeating-radial-gradient(circle at 50% 50%,
+    var(--fg) 0 1px, transparent 1px var(--moire-pitch));
+  opacity: 0.85;
+  animation: moire-breathe 14s ease-in-out infinite;
+}
+
+/* B: same rings, different center. Pointer offset wrapper + orbiting inner. */
+.moire__b-pos {
+  position: absolute; inset: -12%;
+  transform: translate(calc(var(--mx, 0) * 28px), calc(var(--my, 0) * 28px));
+  transition: transform 700ms var(--ease);
+}
+.moire__b {
+  position: absolute; inset: 0;
+  background: repeating-radial-gradient(circle at 50% 50%,
+    var(--fg) 0 1px, transparent 1px calc(var(--moire-pitch) * 1.07));
+  opacity: 0.85;
+  animation: moire-orbit 19s linear infinite;
+}
+
+/* C: radial spokes in the accent color, counter-rotating. */
+.moire__c {
+  background: repeating-conic-gradient(from 0deg at 50% 50%,
+    var(--accent) 0 0.35deg, transparent 0.35deg 3deg);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  animation: moire-spin 70s linear infinite reverse;
+}
+:root[data-theme="light"] .moire__c { mix-blend-mode: multiply; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .moire__c { mix-blend-mode: multiply; }
+}
+
+@keyframes moire-orbit {
+  from { transform: translate(-11%, 0) rotate(0deg)   translate(11%, 0) rotate(0deg); }
+  to   { transform: translate(-11%, 0) rotate(360deg) translate(11%, 0) rotate(-360deg); }
+}
+@keyframes moire-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+@keyframes moire-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .moire__layer, .moire__b { animation: none; }
+  .moire__b-pos { transition: none; }
+  .moire__b { transform: translate(4%, 2%); }
+}

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>relops — the future (concept)</title>
+  <meta name="description" content="relops is a tiny CLI launcher. Push a branch, hand a coworker one command, and they run your tool without cloning anything.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='11' y='7' width='10' height='18' fill='%23ff5b1f'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script defer src="js/main.js"></script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <button class="brand" data-brand type="button" title="poke me">relops<span class="cursor"></span></button>
+    <span class="spacer"></span>
+    <a class="link hide-sm" href="#how">How</a>
+    <a class="link hide-sm" href="#contract">Contract</a>
+    <a class="link hide-sm" href="#limits">Limits</a>
+    <a class="link hide-sm" href="#system">System</a>
+    <a class="link" href="#install">Install</a>
+  </div>
+</header>
+
+<main>
+  <!-- HERO ================================================================ -->
+  <section class="hero">
+    <div class="wrap">
+      <p class="label"><b>v1</b>proposed · design 1.1 · macOS + linux</p>
+      <h1 class="h-hero" style="margin-top: var(--space-4)">Try my tool<br>on <span class="accent">my branch.</span></h1>
+      <p class="lead">
+        <code>relops</code> runs a script from any <strong>mozilla-platform-ops</strong> repo
+        at any ref. No clone, no checkout, no “which branch was it again?”
+        Push, paste one command, done.
+      </p>
+      <div class="hero__cta">
+        <a class="btn btn--primary" id="download-primary" href="#install">Get relops ↓</a>
+        <a class="btn" href="#how">How it works</a>
+      </div>
+
+      <div class="hero__grid">
+        <div class="term reveal" role="img" aria-label="Animated terminal demo of running relops against a branch">
+          <div class="term__bar"><span>~/anywhere</span><span class="spacer"></span><span>illustrative output</span></div>
+          <pre class="term__body" id="term-body"><span class="term__prompt">$ </span>relops --ref my-feature relops-infra/path/to/check.sh --verbose</pre>
+          <div class="term__tabs" id="term-tabs"><span class="label" style="margin-right: var(--space-2)">try:</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW ================================================================= -->
+  <section class="section" id="how">
+    <div class="wrap">
+      <p class="label"><b>01</b>how it works</p>
+      <h2 class="h-section">Four steps. You never see three of them.</h2>
+      <div class="grid grid--4">
+        <div class="step reveal">
+          <div class="step__n">1</div>
+          <h3>Fetch</h3>
+          <p>Every online run fetches first, using your own <code>git</code> and SSH. Objects are cached, so it is never a fresh clone.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step__n">2</div>
+          <h3>Resolve</h3>
+          <p>Branch, tag, or full SHA becomes one exact commit. Missing or ambiguous refs fail loudly. Stale code never runs quietly.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step__n">3</div>
+          <h3>Isolate</h3>
+          <p>A fresh detached worktree per invocation. Two people running the same SHA never see each other's files.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step__n">4</div>
+          <h3>Exec</h3>
+          <p>Your args, stdin, stdout, exit code and <kbd>Ctrl-C</kbd> pass straight through. Then the worktree is deleted.</p>
+        </div>
+      </div>
+      <p class="prose" style="margin-top: var(--space-6)">
+        Every run prints one provenance line to <strong>stderr</strong>: repo, requested ref, full SHA, online or cached.
+        Stdout belongs to the tool. Your captured logs always say exactly which code ran.
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTRACT ============================================================ -->
+  <section class="section" id="contract">
+    <div class="wrap">
+      <p class="label"><b>02</b>the contract</p>
+      <h2 class="h-section">Small surface. Boring on purpose.</h2>
+      <div class="cmd reveal" style="margin-bottom: var(--space-5)">
+        <code id="syntax">relops [launcher-options] &lt;repo&gt;/&lt;path&gt; [tool-arguments...]</code>
+        <button type="button" data-copy="#syntax">copy</button>
+      </div>
+      <p class="prose" style="margin-bottom: var(--space-5)">
+        The first positional argument ends launcher parsing. Everything after it, including <code>--help</code>
+        and <code>--ref</code>, goes to your tool untouched.
+      </p>
+      <div class="table-wrap reveal">
+        <table>
+          <thead><tr><th>Option</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>--ref VALUE</td><td>Branch, tag, or full commit SHA. Omit for the remote's real default branch.</td></tr>
+            <tr><td>--runner auto|python3|bash|sh</td><td>How to execute. <code>auto</code> needs an executable shebang. No extension guessing.</td></tr>
+            <tr><td>--cwd repo|caller</td><td>Where the tool starts. <code>RELOPS_CALLER_CWD</code> is always exported.</td></tr>
+            <tr><td>--offline</td><td>No network. Cached refs and objects only, labeled as cached.</td></tr>
+            <tr><td>--verbose</td><td>Cache and resolution diagnostics on stderr.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose" style="margin-top: var(--space-5)">
+        Exit codes: <code>1</code> launcher error · <code>2</code> usage error · otherwise the tool's own status
+        (<code>128 + signal</code> if it was killed).
+      </p>
+    </div>
+  </section>
+
+  <!-- LIMITS ============================================================== -->
+  <section class="section" id="limits">
+    <div class="wrap">
+      <p class="label"><b>03</b>honest limits</p>
+      <h2 class="h-section">What relops is not.</h2>
+      <div class="callout reveal" data-title="not a sandbox">
+        <ul>
+          <li>Worktrees isolate repo-local writes only. Home-dir caches, credentials and external services are shared.</li>
+          <li>Pushed commits only. Your uncommitted local changes are not shared.</li>
+          <li>It does not install dependencies, run setup hooks, or init submodules and LFS.</li>
+          <li>A branch can move. A full SHA cannot. Share a SHA when the review is of exact code.</li>
+          <li>v1 is SSH-only, <code>mozilla-platform-ops</code> only, macOS and Linux only.</li>
+        </ul>
+      </div>
+      <p class="prose" style="margin-top: var(--space-5)">
+        Files you want to keep must be written outside the temporary checkout. It is deleted when the tool exits.
+      </p>
+    </div>
+  </section>
+
+  <!-- INSTALL ============================================================= -->
+  <section class="section" id="install">
+    <div class="wrap">
+      <p class="label"><b>04</b>install</p>
+      <h2 class="h-section">One binary. Four builds.</h2>
+
+      <div class="grid grid--2">
+        <div class="stack">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Platform</th><th>Download</th></tr></thead>
+              <tbody>
+                <!-- TODO: point at the real artifact host once chosen (design v1.1, gate 4). -->
+                <tr><td>macOS · Apple silicon</td><td><a data-os="macos" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-darwin-arm64">relops-darwin-arm64</a></td></tr>
+                <tr><td>macOS · Intel</td><td><a data-os="macos" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-darwin-amd64">relops-darwin-amd64</a></td></tr>
+                <tr><td>Linux · arm64</td><td><a data-os="linux" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-linux-arm64">relops-linux-arm64</a></td></tr>
+                <tr><td>Linux · amd64</td><td><a data-os="linux" href="https://github.com/mozilla-platform-ops/relops-launcher/releases/latest/download/relops-linux-amd64">relops-linux-amd64</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="prose" style="font-size: var(--text-sm)">
+            Each release publishes SHA-256 checksums. <span id="unsupported" hidden class="warn">Windows isn't supported in v1.</span>
+          </p>
+        </div>
+
+        <div class="stack">
+          <p class="label">after downloading</p>
+          <div class="cmd"><code id="c1">chmod +x relops-* &amp;&amp; mv relops-* ~/.local/bin/relops</code><button type="button" data-copy="#c1">copy</button></div>
+          <p class="label">verify git access</p>
+          <div class="cmd"><code id="c2">ssh -T git@github.com</code><button type="button" data-copy="#c2">copy</button></div>
+          <p class="label">take it for a spin</p>
+          <div class="cmd"><code id="c3">relops --version</code><button type="button" data-copy="#c3">copy</button></div>
+          <p class="faint" style="font-size: var(--text-xs)">Tip: press <kbd>/</kbd> anywhere to jump here.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP ============================================================= -->
+  <section class="section" id="roadmap">
+    <div class="wrap">
+      <p class="label"><b>05</b>roadmap</p>
+      <h2 class="h-section">Placeholders, not promises.</h2>
+      <ol class="timeline">
+        <li class="is-now"><span class="when">v1</span>“Try this tool on my branch.” <span class="what">Explicit repo/path, refs, shared cache, per-run checkout, offline mode, provenance.</span></li>
+        <li><span class="when">v1.1</span>“Find and run our usual tools.” <span class="what">Git-backed registry, aliases, list / info, visible revision policy.</span></li>
+        <li><span class="when">v1.2</span>“Install and update easily.” <span class="what">Verified hosting, release manifest, safe self-update.</span></li>
+        <li><span class="when">v1.3</span>“Keep everyday use convenient.” <span class="what">Cache pruning, shell completion, optional TTL.</span></li>
+        <li><span class="when">later</span>“Add a shared tool with less ceremony.” <span class="what">Registry edits that prepare reviewed Git changes.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- DESIGN SYSTEM ======================================================= -->
+  <section class="section" id="system">
+    <div class="wrap">
+      <p class="label"><b>06</b>design system · v0.1</p>
+      <h2 class="h-section">The system, living on this page.</h2>
+      <p class="prose">
+        Everything above is built from <code>css/tokens.css</code> (variables) and <code>css/components.css</code>
+        (parts). Change a token, the whole product follows. Rules: monospace only, square corners,
+        borders instead of shadows, one accent, plain words.
+      </p>
+
+      <h3 class="label" style="margin: var(--space-7) 0 var(--space-4)">Accent &amp; theme</h3>
+      <div style="display: flex; gap: var(--space-2); flex-wrap: wrap">
+        <button class="chip" type="button" data-set-accent="orange">orange</button>
+        <button class="chip" type="button" data-set-accent="lime">lime</button>
+        <button class="chip" type="button" data-set-accent="cyan">cyan</button>
+        <button class="chip" type="button" data-set-accent="violet">violet</button>
+        <button class="chip" type="button" data-set-accent="pink">pink</button>
+        <span class="faint">|</span>
+        <button class="chip" type="button" data-set-theme="auto">auto</button>
+        <button class="chip" type="button" data-set-theme="dark">dark</button>
+        <button class="chip" type="button" data-set-theme="light">light</button>
+      </div>
+
+      <h3 class="label" style="margin: var(--space-7) 0 var(--space-4)">Color</h3>
+      <div class="grid grid--4">
+        <div class="swatch"><i style="background: var(--bg)"></i><span><b>--bg</b>canvas</span></div>
+        <div class="swatch"><i style="background: var(--bg-raised)"></i><span><b>--bg-raised</b>cards</span></div>
+        <div class="swatch"><i style="background: var(--bg-sunk)"></i><span><b>--bg-sunk</b>terminals</span></div>
+        <div class="swatch"><i style="background: var(--line-strong)"></i><span><b>--line</b>borders</span></div>
+        <div class="swatch"><i style="background: var(--fg)"></i><span><b>--fg</b>text</span></div>
+        <div class="swatch"><i style="background: var(--fg-dim)"></i><span><b>--fg-dim</b>secondary</span></div>
+        <div class="swatch"><i style="background: var(--accent)"></i><span><b>--accent</b>one per screen region</span></div>
+        <div class="swatch"><i style="background: linear-gradient(90deg, var(--ok) 33%, var(--warn) 33% 66%, var(--err) 66%)"></i><span><b>--ok / --warn / --err</b>status only</span></div>
+      </div>
+
+      <h3 class="label" style="margin: var(--space-7) 0 var(--space-4)">Type</h3>
+      <div class="card stack">
+        <div class="h-hero" style="font-size: 3rem">Hero 600 / -0.04em</div>
+        <div class="h-section" style="margin: 0">Section title 2rem</div>
+        <div class="lead">Lead 1.25rem, dim. For one sentence of explanation.</div>
+        <div>Body 0.9375rem / 1.65. The default voice: plain, direct, technical.</div>
+        <div class="label">Label · uppercase · 0.14em tracking</div>
+      </div>
+
+      <h3 class="label" style="margin: var(--space-7) 0 var(--space-4)">Space · 4px base</h3>
+      <div class="stack">
+        <div class="space-row"><i style="width: var(--space-2)"></i>--space-2 · 8</div>
+        <div class="space-row"><i style="width: var(--space-4)"></i>--space-4 · 16</div>
+        <div class="space-row"><i style="width: var(--space-6)"></i>--space-6 · 32</div>
+        <div class="space-row"><i style="width: var(--space-8)"></i>--space-8 · 80</div>
+      </div>
+
+      <h3 class="label" style="margin: var(--space-7) 0 var(--space-4)">Components</h3>
+      <div class="stack">
+        <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; align-items: center">
+          <a class="btn btn--primary" href="#system">Primary</a>
+          <a class="btn" href="#system">Secondary</a>
+          <button class="chip" type="button" aria-pressed="true">chip on</button>
+          <button class="chip" type="button">chip off</button>
+          <span class="tag ok">ok</span><span class="tag warn">warn</span><span class="tag err">err</span>
+          <kbd>Ctrl</kbd><kbd>C</kbd>
+        </div>
+        <div class="grid grid--2">
+          <div class="card"><span class="label">card</span><h3>Bordered cell</h3><p>No shadow, no radius. Hierarchy comes from lines and spacing.</p></div>
+          <div class="callout" data-title="callout"><span class="dim">Dashed border for caveats. Title sits on the line.</span></div>
+        </div>
+      </div>
+
+      <h3 class="label" style="margin: var(--space-7) 0 var(--space-4)">Voice</h3>
+      <ul class="prose" style="padding-left: 1.2em; margin: 0">
+        <li>Say what it does. Skip “seamless”, “powerful”, “blazing”.</li>
+        <li>Be upfront about limits. Trust is the product.</li>
+        <li>One joke per page, and it is the cursor.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">~*~ relops · mozilla platform ops · <span id="year"></span> ~*~</div>
+</footer>
+<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>

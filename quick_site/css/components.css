@@ -1,0 +1,181 @@
+/* ==========================================================================
+   RELOPS DESIGN SYSTEM — COMPONENTS
+   Consumes tokens.css only. No raw colors or sizes in here.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: var(--text-md) / var(--leading-body) var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--selection); }
+a { color: inherit; text-decoration-color: var(--fg-faint); text-underline-offset: 3px; }
+a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+code, kbd, pre { font-family: inherit; }
+img, svg { max-width: 100%; }
+
+/* --- Layout ------------------------------------------------------------- */
+.wrap { max-width: var(--page-w); margin: 0 auto; padding: 0 var(--gutter); }
+.section { padding: var(--space-8) 0; border-top: var(--border-w) solid var(--line); }
+.grid { display: grid; gap: var(--space-5); }
+.grid--2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+.grid--4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
+.stack > * + * { margin-top: var(--space-4); }
+
+/* --- Type --------------------------------------------------------------- */
+.label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--fg-dim);
+}
+.label b { color: var(--accent); font-weight: 400; margin-right: var(--space-2); }
+.h-hero { font-size: var(--text-hero); line-height: var(--leading-tight); letter-spacing: -0.04em; font-weight: 600; margin: 0; }
+.h-section { font-size: var(--text-xl); line-height: 1.15; letter-spacing: -0.03em; font-weight: 600; margin: var(--space-3) 0 var(--space-5); }
+.lead { font-size: var(--text-lg); line-height: 1.5; color: var(--fg-dim); max-width: 52ch; margin: 0; }
+.prose { max-width: var(--measure); color: var(--fg-dim); }
+.prose strong, .lead strong { color: var(--fg); font-weight: 500; }
+.dim { color: var(--fg-dim); }
+.faint { color: var(--fg-faint); }
+.accent { color: var(--accent); }
+.ok { color: var(--ok); } .warn { color: var(--warn); } .err { color: var(--err); }
+
+/* Block cursor — the brand mark. */
+.cursor {
+  display: inline-block;
+  width: 0.55em; height: 1em;
+  background: var(--accent);
+  vertical-align: -0.12em;
+  margin-left: 0.08em;
+  animation: blink var(--cursor-blink) steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* --- Button ------------------------------------------------------------- */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  font: inherit; font-size: var(--text-sm);
+  text-transform: uppercase; letter-spacing: var(--tracking-label);
+  color: var(--fg); background: transparent;
+  border: var(--border-w) solid var(--line-strong);
+  border-radius: var(--radius-0);
+  cursor: pointer; text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+.btn:hover { border-color: var(--fg); color: var(--fg); transform: translate(-2px, -2px); box-shadow: 3px 3px 0 var(--fg-faint); }
+.btn:active { transform: none; box-shadow: none; }
+.btn--primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn--primary:hover { color: var(--accent-ink); border-color: var(--accent); box-shadow: 3px 3px 0 var(--fg); }
+
+/* --- Chip / kbd / tag --------------------------------------------------- */
+.chip {
+  display: inline-block; padding: 0 var(--space-2);
+  font: inherit; font-size: var(--text-xs);
+  color: var(--fg-dim); background: transparent;
+  border: var(--border-w) solid var(--line-strong); border-radius: var(--radius-1);
+  cursor: pointer;
+}
+button.chip:hover { color: var(--fg); border-color: var(--fg-dim); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tag { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); padding: 1px var(--space-2); border: var(--border-w) solid currentColor; }
+kbd { font-size: var(--text-xs); padding: 1px var(--space-2); background: var(--bg-raised); border: var(--border-w) solid var(--line-strong); border-bottom-width: 2px; border-radius: var(--radius-1); }
+
+/* --- Card (a bordered cell; no shadows, no radii) ----------------------- */
+.card { background: var(--bg-raised); border: var(--border-w) solid var(--line); padding: var(--space-5); }
+.card h3 { margin: var(--space-3) 0 var(--space-2); font-size: var(--text-md); font-weight: 600; }
+.card p { margin: 0; color: var(--fg-dim); font-size: var(--text-sm); }
+
+/* --- Terminal ----------------------------------------------------------- */
+.term { background: var(--bg-sunk); border: var(--border-w) solid var(--line-strong); font-size: var(--text-sm); }
+.term__bar { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4); border-bottom: var(--border-w) solid var(--line); color: var(--fg-faint); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); }
+.term__bar .spacer { flex: 1; }
+.term__body { margin: 0; padding: var(--space-5) var(--space-4); min-height: 15.5rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; line-height: 1.7; }
+.term__prompt { color: var(--accent); user-select: none; }
+.term__meta { color: var(--fg-faint); }
+.term__sha { color: var(--warn); }
+.term__out { color: var(--fg); }
+.term__tabs { display: flex; gap: var(--space-2); flex-wrap: wrap; padding: var(--space-3) var(--space-4); border-top: var(--border-w) solid var(--line); align-items: center; }
+
+/* Copyable command line */
+.cmd { display: flex; align-items: stretch; background: var(--bg-sunk); border: var(--border-w) solid var(--line-strong); font-size: var(--text-sm); }
+.cmd code { flex: 1; padding: var(--space-3) var(--space-4); overflow-x: auto; white-space: nowrap; }
+.cmd code::before { content: "$ "; color: var(--accent); }
+.cmd button { font: inherit; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--fg-dim); background: transparent; border: 0; border-left: var(--border-w) solid var(--line-strong); padding: 0 var(--space-4); cursor: pointer; }
+.cmd button:hover { color: var(--accent); }
+
+/* --- Table -------------------------------------------------------------- */
+.table-wrap { overflow-x: auto; border: var(--border-w) solid var(--line); }
+table { border-collapse: collapse; width: 100%; font-size: var(--text-sm); }
+th, td { text-align: left; padding: var(--space-3) var(--space-4); border-bottom: var(--border-w) solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-weight: 400; color: var(--fg-dim); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); background: var(--bg-raised); }
+td:first-child { white-space: nowrap; color: var(--accent); }
+
+/* --- Steps -------------------------------------------------------------- */
+.step { border-top: var(--border-w) solid var(--line-strong); padding-top: var(--space-4); }
+.step__n { font-size: var(--text-xl); color: var(--accent); letter-spacing: -0.04em; line-height: 1; }
+.step h3 { margin: var(--space-3) 0 var(--space-2); font-size: var(--text-md); }
+.step p { margin: 0; color: var(--fg-dim); font-size: var(--text-sm); }
+.step code { color: var(--fg); background: var(--bg-raised); padding: 0 var(--space-1); }
+
+/* --- Callout ------------------------------------------------------------ */
+.callout { border: var(--border-w) dashed var(--line-strong); padding: var(--space-5); position: relative; }
+.callout::before { content: attr(data-title); position: absolute; top: -0.75em; left: var(--space-4); background: var(--bg); padding: 0 var(--space-2); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--warn); }
+.callout ul { margin: 0; padding-left: 1.2em; color: var(--fg-dim); }
+.callout li + li { margin-top: var(--space-2); }
+.callout li::marker { color: var(--warn); content: "× "; }
+
+/* --- Timeline ----------------------------------------------------------- */
+.timeline { list-style: none; margin: 0; padding: 0; border-left: var(--border-w) solid var(--line-strong); }
+.timeline li { position: relative; padding: 0 0 var(--space-5) var(--space-5); }
+.timeline li::before { content: ""; position: absolute; left: -4px; top: 0.55em; width: 7px; height: 7px; background: var(--bg); border: var(--border-w) solid var(--fg-dim); }
+.timeline li.is-now::before { background: var(--accent); border-color: var(--accent); }
+.timeline .when { color: var(--accent); margin-right: var(--space-3); }
+.timeline .what { color: var(--fg-dim); font-size: var(--text-sm); display: block; }
+
+/* --- Swatches (design-system section) ----------------------------------- */
+.swatch { border: var(--border-w) solid var(--line); }
+.swatch i { display: block; height: 3.5rem; border-bottom: var(--border-w) solid var(--line); }
+.swatch span { display: block; padding: var(--space-2) var(--space-3); font-size: var(--text-xs); color: var(--fg-dim); }
+.swatch span b { display: block; color: var(--fg); font-weight: 400; }
+.space-row { display: flex; align-items: center; gap: var(--space-4); font-size: var(--text-xs); color: var(--fg-dim); }
+.space-row i { display: block; height: var(--space-3); background: var(--accent); }
+
+/* --- Site chrome -------------------------------------------------------- */
+.nav { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: var(--border-w) solid var(--line); }
+.nav .wrap { display: flex; align-items: center; gap: var(--space-5); height: 3.25rem; }
+.nav .brand { font-weight: 600; letter-spacing: -0.02em; text-decoration: none; background: none; border: 0; color: var(--fg); font: inherit; font-weight: 600; cursor: pointer; padding: 0; }
+.nav .spacer { flex: 1; }
+.nav a.link { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); text-decoration: none; color: var(--fg-dim); }
+.nav a.link:hover { color: var(--accent); }
+@media (max-width: 40rem) { .nav a.link.hide-sm { display: none; } }
+
+.hero { padding: var(--space-8) 0 var(--space-7); }
+.hero .lead { margin-top: var(--space-5); }
+.hero__cta { display: flex; gap: var(--space-4); flex-wrap: wrap; margin-top: var(--space-6); }
+.hero__grid { display: grid; gap: var(--space-7); grid-template-columns: minmax(0, 1fr); margin-top: var(--space-7); }
+
+.footer { border-top: var(--border-w) solid var(--line); padding: var(--space-7) 0; text-align: center; color: var(--fg-faint); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); }
+
+/* Scroll reveal (progressive enhancement: only hidden when JS has opted in) */
+.js .reveal { opacity: 0; transform: translateY(12px); transition: opacity 500ms var(--ease), transform 500ms var(--ease); }
+.js .reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; transition: none; } }
+
+/* Detected platform row in the download table */
+a[data-detected] { color: var(--accent); }
+a[data-detected]::after { content: " ← you"; color: var(--fg-faint); }
+
+/* Split hero: copy left, blob right (stacks on small screens). */
+.hero--split .wrap { display: grid; gap: var(--space-7); align-items: center; grid-template-columns: minmax(0, 1fr); }
+.hero--split .hero__art { justify-self: center; }
+@media (min-width: 56rem) {
+  .hero--split .wrap { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
+  .hero--split .hero__art { justify-self: end; margin-right: -2rem; }
+}
