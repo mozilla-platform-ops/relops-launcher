@@ -6,7 +6,7 @@
   <title>relops — the future (concept)</title>
   <meta name="description" content="relops is a tiny CLI launcher. Push a branch, hand a coworker one command, and they run your tool without cloning anything.">
   <meta name="color-scheme" content="dark light">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='11' y='7' width='10' height='18' fill='%23ff5b1f'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='11' y='7' width='10' height='18' fill='%23c8ff2e'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/components.css">
   <script defer src="js/main.js"></script>
@@ -30,7 +30,7 @@
   <section class="hero">
     <div class="wrap">
       <p class="label"><b>v1</b>proposed · design 1.1 · macOS + linux</p>
-      <h1 class="h-hero" style="margin-top: var(--space-4)">Try my tool<br>on <span class="accent">my branch.</span></h1>
+      <h1 class="h-hero" style="margin-top: var(--space-4)">Try my tool<br>on <span class="accent mark">my branch.</span></h1>
       <p class="lead">
         <code>relops</code> runs a script from any <strong>mozilla-platform-ops</strong> repo
         at any ref. No clone, no checkout, no “which branch was it again?”
@@ -203,8 +203,8 @@
 
       <h3 class="label" style="margin: var(--space-7) 0 var(--space-4)">Accent &amp; theme</h3>
       <div style="display: flex; gap: var(--space-2); flex-wrap: wrap">
+        <button class="chip" type="button" data-set-accent="volt">volt</button>
         <button class="chip" type="button" data-set-accent="orange">orange</button>
-        <button class="chip" type="button" data-set-accent="lime">lime</button>
         <button class="chip" type="button" data-set-accent="cyan">cyan</button>
         <button class="chip" type="button" data-set-accent="violet">violet</button>
         <button class="chip" type="button" data-set-accent="pink">pink</button>

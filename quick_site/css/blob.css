@@ -1,8 +1,21 @@
 /* ==========================================================================
    RELOPS DESIGN SYSTEM — CHROME BLOB
-   Decorative hero object: liquid metal that tints toward --accent.
-   Pure CSS. Wrap in .blob; it is aria-hidden and never carries content.
+   Decorative hero object: liquid chrome tinted with the accent's COMPLEMENT
+   (--comp-h, derived in tokens.css). Color points drift independently, like
+   a mesh gradient. Pure CSS; uses @property so positions animate smoothly
+   (browsers without it show a static, still-good blob).
+   Wrap in .blob; it is aria-hidden and never carries content.
    ========================================================================== */
+
+@property --cx { syntax: "<percentage>"; inherits: true; initial-value: 32%; }
+@property --cy { syntax: "<percentage>"; inherits: true; initial-value: 64%; }
+@property --ang { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+@property --p1x { syntax: "<percentage>"; inherits: true; initial-value: 25%; }
+@property --p1y { syntax: "<percentage>"; inherits: true; initial-value: 30%; }
+@property --p2x { syntax: "<percentage>"; inherits: true; initial-value: 75%; }
+@property --p2y { syntax: "<percentage>"; inherits: true; initial-value: 40%; }
+@property --p3x { syntax: "<percentage>"; inherits: true; initial-value: 55%; }
+@property --p3y { syntax: "<percentage>"; inherits: true; initial-value: 80%; }
 
 .blob {
   --blob-size: min(78vw, 32rem);
@@ -11,54 +24,87 @@
   aspect-ratio: 1;
   pointer-events: none;
   animation: blob-drift 18s ease-in-out infinite;
-  filter: drop-shadow(0 2rem 3rem hsl(var(--accent-h) 100% 50% / 0.18));
+  filter: drop-shadow(0 2rem 3rem hsl(var(--comp-h) 100% 55% / 0.22));
 }
 
-/* The body: morphing silhouette that clips a spinning conic "environment map". */
+/* Silhouette: morphs and clips everything inside. */
 .blob__body {
   position: absolute; inset: 0;
   overflow: hidden;
   border-radius: 58% 42% 55% 45% / 48% 56% 44% 52%;
   animation: blob-morph 11s ease-in-out infinite;
-  background: #111;
+  background: #0a0c12;
 }
 
-/* Hard-banded conic gradient reads as reflective chrome. */
+/* Chrome: hard-banded conic gradient (cool neutrals). Its pinch point wanders
+   and its start angle turns, so the reflections slide across the surface. */
 .blob__env {
   position: absolute; inset: -30%;
   background: conic-gradient(
-    from 0deg at 32% 64%,
-    #0a0a0a 0%, #e9e9e9 8%, #3a3a3a 15%, #ffffff 22%,
-    hsl(var(--accent-h) 85% 52%) 29%, #1a1a1a 38%, #bdbdbd 46%,
-    #050505 54%, #f4f4f4 62%, #4a4a4a 70%,
-    hsl(var(--accent-h) 40% 70%) 77%, #151515 86%, #d8d8d8 94%, #0a0a0a 100%
+    from var(--ang) at var(--cx) var(--cy),
+    #05070b 0%, #eef2fa 8%, #384050 15%, #ffffff 22%,
+    #9aa4ba 29%, #12151c 38%, #c3cadb 46%,
+    #030407 54%, #f6f8fd 62%, #465066 70%,
+    #b4bdd0 77%, #10131a 86%, #dde2ee 94%, #05070b 100%
   );
-  animation: blob-spin 22s linear infinite;
   filter: blur(26px) contrast(1.2);
+  animation:
+    blob-center 17s ease-in-out infinite,
+    blob-angle 26s linear infinite;
 }
 
-/* Counter-rotating layer adds the liquid "swirl" interference. */
-.blob__env--b {
-  background: conic-gradient(
-    from 90deg at 68% 36%,
-    transparent 0 12%, rgb(255 255 255 / 0.55) 18%, transparent 26% 50%,
-    rgb(0 0 0 / 0.55) 58%, transparent 66% 82%, rgb(255 255 255 / 0.4) 90%, transparent 98%
-  );
-  mix-blend-mode: overlay;
-  animation: blob-spin 23s linear infinite reverse;
-  filter: blur(10px);
+/* Complementary color points. Three radial blobs, each on its own orbit.
+   `color` blend keeps the chrome's light/dark bands and swaps in the hue. */
+.blob__mesh {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at var(--p1x) var(--p1y), hsl(var(--comp-h) 100% 58%) 0, transparent 52%),
+    radial-gradient(circle at var(--p2x) var(--p2y), hsl(calc(var(--comp-h) + 45) 95% 60%) 0, transparent 48%),
+    radial-gradient(circle at var(--p3x) var(--p3y), hsl(calc(var(--comp-h) - 45) 95% 56%) 0, transparent 50%);
+  mix-blend-mode: color;
+  opacity: 0.95;
+  animation:
+    blob-p1 13s ease-in-out infinite,
+    blob-p2 17s ease-in-out infinite,
+    blob-p3 21s ease-in-out infinite;
+}
+
+/* Soft secondary glow so tinted areas feel lit, not flat. */
+.blob__glow {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at var(--p2x) var(--p2y), hsl(var(--comp-h) 100% 65% / 0.55), transparent 40%),
+    radial-gradient(circle at var(--p3x) var(--p3y), hsl(calc(var(--comp-h) - 45) 100% 60% / 0.4), transparent 38%);
+  mix-blend-mode: soft-light;
 }
 
 /* Specular highlight + edge falloff for volume. */
 .blob__gloss {
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse 38% 26% at 30% 22%, rgb(255 255 255 / 0.85), transparent 70%),
+    radial-gradient(ellipse 38% 26% at 30% 22%, rgb(255 255 255 / 0.8), transparent 70%),
     radial-gradient(circle at 50% 50%, transparent 55%, rgb(0 0 0 / 0.55) 100%);
   mix-blend-mode: soft-light;
 }
 
-@keyframes blob-spin { to { transform: rotate(360deg); } }
+@keyframes blob-center {
+  0%, 100% { --cx: 32%; --cy: 64%; }
+  33%      { --cx: 62%; --cy: 38%; }
+  66%      { --cx: 40%; --cy: 30%; }
+}
+@keyframes blob-angle { to { --ang: 360deg; } }
+@keyframes blob-p1 {
+  0%, 100% { --p1x: 22%; --p1y: 28%; }
+  50%      { --p1x: 58%; --p1y: 62%; }
+}
+@keyframes blob-p2 {
+  0%, 100% { --p2x: 78%; --p2y: 36%; }
+  50%      { --p2x: 36%; --p2y: 74%; }
+}
+@keyframes blob-p3 {
+  0%, 100% { --p3x: 52%; --p3y: 84%; }
+  50%      { --p3x: 82%; --p3y: 22%; }
+}
 @keyframes blob-morph {
   0%, 100% { border-radius: 58% 42% 55% 45% / 48% 56% 44% 52%; }
   25%      { border-radius: 44% 56% 40% 60% / 58% 42% 58% 42%; }
@@ -71,5 +117,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blob, .blob__body, .blob__env { animation: none; }
+  .blob, .blob__body, .blob__env, .blob__mesh { animation: none; }
 }

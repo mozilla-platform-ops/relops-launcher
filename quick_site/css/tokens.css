@@ -2,6 +2,7 @@
    RELOPS DESIGN SYSTEM — TOKENS
    The single source of truth. Components only consume these variables.
    Principles: monospace first, one accent, plain words, borders over shadows.
+   Palette: cool ink + volt accent. Art (blob) uses the accent's complement.
    ========================================================================== */
 
 :root {
@@ -45,32 +46,28 @@
   --dur-med: 240ms;
   --cursor-blink: 1.06s;
 
-  /* --- Accent (swappable; see [data-accent] below) ---------------------- */
-  --accent-h: 18;                              /* launch orange */
-  --accent: hsl(var(--accent-h) 100% 58%);
-  --accent-ink: #120a06;                       /* text on accent */
-  --accent-dim: hsl(var(--accent-h) 70% 40% / 0.18);
-
-  /* --- Status ----------------------------------------------------------- */
-  --ok: #5fdc8a;
-  --warn: #f2c14e;
-  --err: #ff6b6b;
+  /* --- Accent hue (swappable; see [data-accent] below) ------------------ */
+  --accent-h: 78;                              /* volt */
+  --comp-h: calc(var(--accent-h) + 180);       /* complement: art only */
 }
 
 /* Dark is the native habitat. */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0b0b0a;
-  --bg-raised: #121211;
-  --bg-sunk: #070707;
-  --line: #262623;
-  --line-strong: #3a3a35;
-  --fg: #e9e6dc;
-  --fg-dim: #9a978c;
-  --fg-faint: #5f5d55;
-  --selection: hsl(var(--accent-h) 100% 58% / 0.35);
-  --ok: #5fdc8a;
+  --bg: #080a0e;
+  --bg-raised: #0e1117;
+  --bg-sunk: #05060a;
+  --line: #1d222b;
+  --line-strong: #303744;
+  --fg: #e6eaf2;
+  --fg-dim: #8b94a5;
+  --fg-faint: #566072;
+  --accent: hsl(var(--accent-h) 100% 56%);       /* text, borders, small marks */
+  --accent-fill: hsl(var(--accent-h) 100% 56%);  /* backgrounds */
+  --accent-ink: #0a0d02;                         /* text on --accent-fill */
+  --selection: hsl(var(--accent-h) 100% 56% / 0.35);
+  --ok: #3ddc97;
   --warn: #f2c14e;
   --err: #ff6b6b;
 }
@@ -78,17 +75,19 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     color-scheme: light;
-    --bg: #f3f0e6;
-    --bg-raised: #faf8f1;
-    --bg-sunk: #e8e4d6;
-    --line: #d6d1bf;
-    --line-strong: #b9b3a0;
-    --fg: #16150f;
-    --fg-dim: #5c594d;
-    --fg-faint: #9a9685;
-    --accent: hsl(var(--accent-h) 95% 46%);
-    --accent-ink: #fff;
-    --ok: #1c8a46;
+    --bg: #f5f7fb;
+    --bg-raised: #ffffff;
+    --bg-sunk: #e9edf5;
+    --line: #d5dbe7;
+    --line-strong: #b4bdcf;
+    --fg: #0b0f1a;
+    --fg-dim: #4c566a;
+    --fg-faint: #8892a6;
+    --accent: hsl(var(--accent-h) 70% 9%);          /* light: near-ink; lime is fill-only */
+    --accent-fill: hsl(var(--accent-h) 100% 56%);
+    --accent-ink: #0a0d02;
+    --selection: hsl(var(--accent-h) 100% 56% / 0.45);
+    --ok: #138a55;
     --warn: #9a6b00;
     --err: #c42b2b;
   }
@@ -96,27 +95,30 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f3f0e6;
-  --bg-raised: #faf8f1;
-  --bg-sunk: #e8e4d6;
-  --line: #d6d1bf;
-  --line-strong: #b9b3a0;
-  --fg: #16150f;
-  --fg-dim: #5c594d;
-  --fg-faint: #9a9685;
-  --accent: hsl(var(--accent-h) 95% 46%);
-  --accent-ink: #fff;
-  --ok: #1c8a46;
+  --bg: #f5f7fb;
+  --bg-raised: #ffffff;
+  --bg-sunk: #e9edf5;
+  --line: #d5dbe7;
+  --line-strong: #b4bdcf;
+  --fg: #0b0f1a;
+  --fg-dim: #4c566a;
+  --fg-faint: #8892a6;
+  --accent: hsl(var(--accent-h) 70% 9%);
+  --accent-fill: hsl(var(--accent-h) 100% 56%);
+  --accent-ink: #0a0d02;
+  --selection: hsl(var(--accent-h) 100% 56% / 0.45);
+  --ok: #138a55;
   --warn: #9a6b00;
   --err: #c42b2b;
 }
 
-/* Accent presets — change one hue, the whole product re-colors. */
-[data-accent="orange"] { --accent-h: 18; }
-[data-accent="lime"]   { --accent-h: 86; }
+/* Accent presets — change one hue, the whole product re-colors,
+   and the blob follows via --comp-h. */
+[data-accent="volt"]   { --accent-h: 78; }
 [data-accent="cyan"]   { --accent-h: 188; }
 [data-accent="violet"] { --accent-h: 268; }
 [data-accent="pink"]   { --accent-h: 335; }
+[data-accent="orange"] { --accent-h: 18; }
 
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-fast: 0ms; --dur-med: 0ms; --cursor-blink: 0s; }

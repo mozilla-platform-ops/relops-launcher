@@ -49,7 +49,7 @@ img, svg { max-width: 100%; }
 .cursor {
   display: inline-block;
   width: 0.55em; height: 1em;
-  background: var(--accent);
+  background: var(--accent-fill);
   vertical-align: -0.12em;
   margin-left: 0.08em;
   animation: blink var(--cursor-blink) steps(1) infinite;
@@ -70,8 +70,8 @@ img, svg { max-width: 100%; }
 }
 .btn:hover { border-color: var(--fg); color: var(--fg); transform: translate(-2px, -2px); box-shadow: 3px 3px 0 var(--fg-faint); }
 .btn:active { transform: none; box-shadow: none; }
-.btn--primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.btn--primary:hover { color: var(--accent-ink); border-color: var(--accent); box-shadow: 3px 3px 0 var(--fg); }
+.btn--primary { background: var(--accent-fill); color: var(--accent-ink); border-color: var(--accent-fill); }
+.btn--primary:hover { color: var(--accent-ink); border-color: var(--accent-fill); box-shadow: 3px 3px 0 var(--fg); }
 
 /* --- Chip / kbd / tag --------------------------------------------------- */
 .chip {
@@ -82,7 +82,7 @@ img, svg { max-width: 100%; }
   cursor: pointer;
 }
 button.chip:hover { color: var(--fg); border-color: var(--fg-dim); }
-.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip[aria-pressed="true"] { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--accent-ink); }
 .tag { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); padding: 1px var(--space-2); border: var(--border-w) solid currentColor; }
 kbd { font-size: var(--text-xs); padding: 1px var(--space-2); background: var(--bg-raised); border: var(--border-w) solid var(--line-strong); border-bottom-width: 2px; border-radius: var(--radius-1); }
 
@@ -135,7 +135,7 @@ td:first-child { white-space: nowrap; color: var(--accent); }
 .timeline { list-style: none; margin: 0; padding: 0; border-left: var(--border-w) solid var(--line-strong); }
 .timeline li { position: relative; padding: 0 0 var(--space-5) var(--space-5); }
 .timeline li::before { content: ""; position: absolute; left: -4px; top: 0.55em; width: 7px; height: 7px; background: var(--bg); border: var(--border-w) solid var(--fg-dim); }
-.timeline li.is-now::before { background: var(--accent); border-color: var(--accent); }
+.timeline li.is-now::before { background: var(--accent-fill); border-color: var(--accent-fill); }
 .timeline .when { color: var(--accent); margin-right: var(--space-3); }
 .timeline .what { color: var(--fg-dim); font-size: var(--text-sm); display: block; }
 
@@ -178,4 +178,21 @@ a[data-detected]::after { content: " ← you"; color: var(--fg-faint); }
 @media (min-width: 56rem) {
   .hero--split .wrap { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
   .hero--split .hero__art { justify-self: end; margin-right: -2rem; }
+}
+
+/* Emphasis word. Dark: glowing accent text. Light: lime highlighter swipe,
+   because lime text on white is illegible (see --accent in tokens.css). */
+:root[data-theme="light"] .mark {
+  background: linear-gradient(transparent 20%, var(--accent-fill) 20% 90%, transparent 90%);
+  color: var(--fg);
+  padding: 0 0.1em; margin: 0 -0.1em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .mark {
+    background: linear-gradient(transparent 20%, var(--accent-fill) 20% 90%, transparent 90%);
+    color: var(--fg);
+    padding: 0 0.1em; margin: 0 -0.1em;
+    -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  }
 }

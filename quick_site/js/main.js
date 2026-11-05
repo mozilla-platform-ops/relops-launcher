@@ -11,25 +11,29 @@
   };
 
   /* ---- Accent + theme ------------------------------------------------- */
-  const ACCENTS = ["orange", "lime", "cyan", "violet", "pink"];
+  const ACCENTS = ["volt", "cyan", "violet", "pink", "orange"];
   const root = document.documentElement;
-  function setAccent(name) {
+  // Persist only on an explicit user choice, never for defaults,
+  // so a changed default can't be masked by a stale saved value.
+  function setAccent(name, persist = false) {
     root.dataset.accent = name;
-    store.set("relops-accent", name);
+    if (persist) store.set("relops-accent-v2", name);
     $$("[data-set-accent]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.setAccent === name)));
   }
-  function setTheme(name) {
+  function setTheme(name, persist = false) {
     if (name === "auto") { delete root.dataset.theme; } else { root.dataset.theme = name; }
-    store.set("relops-theme", name);
+    if (persist) store.set("relops-theme-v2", name);
     $$("[data-set-theme]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.setTheme === name)));
   }
-  setAccent(ACCENTS.includes(store.get("relops-accent")) ? store.get("relops-accent") : "orange");
-  setTheme(["dark", "light", "auto"].includes(store.get("relops-theme")) ? store.get("relops-theme") : "auto");
-  $$("[data-set-accent]").forEach((b) => b.addEventListener("click", () => setAccent(b.dataset.setAccent)));
-  $$("[data-set-theme]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.setTheme)));
+  const savedAccent = store.get("relops-accent-v2");
+  const savedTheme = store.get("relops-theme-v2");
+  setAccent(ACCENTS.includes(savedAccent) ? savedAccent : "volt");
+  setTheme(["dark", "light", "auto"].includes(savedTheme) ? savedTheme : "auto");
+  $$("[data-set-accent]").forEach((b) => b.addEventListener("click", () => setAccent(b.dataset.setAccent, true)));
+  $$("[data-set-theme]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.setTheme, true)));
   // Easter egg: poke the brand to cycle accents.
   $("[data-brand]")?.addEventListener("click", () => {
-    setAccent(ACCENTS[(ACCENTS.indexOf(root.dataset.accent) + 1) % ACCENTS.length]);
+    setAccent(ACCENTS[(ACCENTS.indexOf(root.dataset.accent) + 1) % ACCENTS.length]); // easter egg: not persisted
   });
 
   /* ---- Terminal demo -------------------------------------------------- */

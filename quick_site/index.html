@@ -6,10 +6,10 @@
   <title>relops — run a tool from a branch</title>
   <meta name="description" content="relops is a small CLI that runs scripts from mozilla-platform-ops repos at any ref, without cloning anything. Install instructions.">
   <meta name="color-scheme" content="dark light">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='11' y='7' width='10' height='18' fill='%23ff5b1f'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='11' y='7' width='10' height='18' fill='%23c8ff2e'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/moire.css">
+  <link rel="stylesheet" href="css/blob.css">
   <script defer src="js/main.js"></script>
 </head>
 <body>
@@ -27,7 +27,7 @@
     <div class="wrap">
       <div>
         <p class="label"><b>v1</b>proposed · macOS + linux</p>
-        <h1 class="h-hero" style="margin-top: var(--space-4)">Run a tool<br>from a <span class="accent">branch.</span></h1>
+        <h1 class="h-hero" style="margin-top: var(--space-4)">Run a tool<br>from a <span class="accent mark">branch.</span></h1>
         <p class="lead">
           <code>relops</code> runs scripts from <strong>mozilla-platform-ops</strong> repos at any ref.
           No cloning, no checkouts. Push a branch, send a coworker one command.
@@ -41,10 +41,13 @@
         </div>
       </div>
       <div class="hero__art">
-        <div class="moire" aria-hidden="true">
-          <div class="moire__layer moire__a"></div>
-          <div class="moire__b-pos"><div class="moire__layer moire__b"></div></div>
-          <div class="moire__layer moire__c"></div>
+        <div class="blob" aria-hidden="true">
+          <div class="blob__body">
+            <div class="blob__env"></div>
+            <div class="blob__mesh"></div>
+            <div class="blob__glow"></div>
+            <div class="blob__gloss"></div>
+          </div>
         </div>
       </div>
     </div>
