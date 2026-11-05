@@ -130,21 +130,25 @@
     platformPicker.value = platform;
     const filename = artifact.path.split("/").pop();
     const checksum = artifact.os === "linux" ? "sha256sum -c -" : "shasum -a 256 -c -";
-    $("#verify").textContent = `printf '%s  %s\\n' '${artifact.sha256}' '${filename}' | ${checksum}`;
-    $("#c1").textContent = `mkdir -p "$HOME/.local/bin" && install -m 755 ${filename} "$HOME/.local/bin/relops"`;
+    const verify = `printf '%s  %s\\n' '${artifact.sha256}' '${filename}' | ${checksum}`;
+    const install = `(cd "$HOME/Downloads" && ${verify} && mkdir -p "$HOME/.local/bin" && install -m 755 ${filename} "$HOME/.local/bin/relops") && export PATH="$HOME/.local/bin:$PATH" && relops --version`;
+    $("#verify").textContent = `(cd "$HOME/Downloads" && ${verify})`;
+    $("#c1").textContent = install;
+    if ($("#ex")) $("#ex").textContent = install;
+    if ($("#manual-install")) $("#manual-install").textContent = `mkdir -p "$HOME/.local/bin" && install -m 755 "$HOME/Downloads/${filename}" "$HOME/.local/bin/relops"`;
   }
   platformPicker?.addEventListener("change", () => selectPlatform(platformPicker.value));
   $$("[data-platform]").forEach((a) => a.addEventListener("click", () => selectPlatform(a.dataset.platform)));
-  if (platformPicker) selectPlatform(platformPicker.value);
 
   const ua = navigator.userAgent || "";
   const isLinux = /Linux/.test(ua) && !/Android/.test(ua);
   const isMac = /Mac/.test(navigator.platform || ua);
+  if (platformPicker) selectPlatform(isLinux ? "linux-amd64" : platformPicker.value);
   const downloads = $$("[data-os]");
   const want = isLinux ? "linux" : isMac ? "macos" : null;
   downloads.forEach((a) => a.toggleAttribute("data-detected", a.dataset.os === want));
   const primary = $("#download-primary");
-  if (primary && want) primary.textContent = `Get relops for ${want === "macos" ? "macOS" : "Linux"} ↓`;
+  if (primary && want) primary.textContent = `Download for ${want === "macos" ? "macOS" : "Linux"} ↓`;
   const unsupported = $("#unsupported");
   if (unsupported) unsupported.hidden = !!want;
 

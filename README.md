@@ -8,7 +8,7 @@ relops --ref my-feature relops-infra/path/to/check.sh --verbose
 
 `relops` fetches the repository from `mozilla-platform-ops` by default, resolves the revision to a commit, and runs the script in its own temporary checkout. Use `--owner USER_OR_ORG` for a fork or another GitHub organization. Online runs fetch every time. Git objects are cached per owner/repository; separate invocations never share a writable checkout. The repository and script above are illustrative.
 
-The initial implementation supports macOS and Linux on arm64/amd64. It has no Go package dependencies. See [design v1.1](design-v1.1.md) for the contract and release roadmap, or the [original design](../../product-specs/relops-launcher-design.md) for background.
+Published binaries target macOS Apple silicon (arm64) and Linux amd64. It has no Go package dependencies. See [design v1.1](design-v1.1.md) for the contract and release roadmap, or the [original design](../../product-specs/relops-launcher-design.md) for background.
 
 ## Install
 
@@ -27,7 +27,7 @@ mkdir -p ~/.local/bin
 install -m 755 bin/relops ~/.local/bin/relops
 ```
 
-Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary do not need Go. The download site is published at <https://relops-launcher.quick.mozilla.cloud/> behind Mozilla SSO. Copy the appropriate artifact to that directory using the same `install` command, then check `relops --version`. Generate the site with `just site`; see the [publishing instructions](quick_site/README.md#publishing) for the account-specific Quick deployment command. Live download verification, minimum OS versions, and real coworker installation trials remain release checks.
+Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary do not need Go. The download site is published at <https://relops-launcher.quick.mozilla.cloud/> behind Mozilla SSO. Download the appropriate artifact in your browser, then use the site's checksum-and-install command from any terminal directory. It reads from `~/Downloads` and sets PATH for the current terminal; the site also explains persistent PATH setup. Terminal downloads without authentication return Google sign-in HTML. Generate the site with `just site`; see the [publishing instructions](quick_site/README.md#publishing) for the account-specific Quick deployment command. Live download verification, minimum OS versions, and real coworker installation trials remain release checks.
 
 ## Use
 

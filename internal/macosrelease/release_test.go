@@ -116,7 +116,7 @@ func TestSignedArtifactsAndCacheReuse(t *testing.T) {
 			}
 		}
 	}
-	if apple.signs != 2 || apple.submits != 1 || apple.waits != 1 || apple.onlineChecks != 4 {
+	if apple.signs != 1 || apple.submits != 1 || apple.waits != 1 || apple.onlineChecks != 2 {
 		t.Fatalf("did not reuse accepted signed bytes and recheck tickets: %+v", apple)
 	}
 }
@@ -136,7 +136,7 @@ func TestResumeSubmissionAfterTimeout(t *testing.T) {
 	if err := run(context.Background(), cfg, io.Discard, apple.command); err != nil {
 		t.Fatal(err)
 	}
-	if apple.submits != 1 || apple.signs != 2 || apple.waits != 2 {
+	if apple.submits != 1 || apple.signs != 1 || apple.waits != 2 {
 		t.Fatalf("resubmitted after timeout: %+v", apple)
 	}
 }
@@ -167,7 +167,7 @@ func TestTicketDelayDoesNotResubmit(t *testing.T) {
 	if err := run(context.Background(), cfg, io.Discard, apple.command); err != nil {
 		t.Fatal(err)
 	}
-	if apple.submits != 1 || apple.signs != 2 {
+	if apple.submits != 1 || apple.signs != 1 {
 		t.Fatalf("ticket delay caused a new submission: %+v", apple)
 	}
 }

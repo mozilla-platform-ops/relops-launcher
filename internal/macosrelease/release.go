@@ -41,8 +41,8 @@ type Receipt struct {
 	SHA256        map[string]string `json:"sha256"`
 }
 
-var macFiles = []string{"relops-darwin-arm64", "relops-darwin-amd64"}
-var allFiles = []string{"relops-darwin-arm64", "relops-darwin-amd64", "relops-linux-arm64", "relops-linux-amd64"}
+var macFiles = []string{"relops-darwin-arm64"}
+var allFiles = []string{"relops-darwin-arm64", "relops-linux-amd64"}
 var versionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$`)
 var teamPattern = regexp.MustCompile(`^[A-Z0-9]{10}$`)
 

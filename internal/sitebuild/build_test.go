@@ -58,7 +58,7 @@ func TestBundleDownloadsInventoryAndLinks(t *testing.T) {
 	if err := json.Unmarshal(data, &release); err != nil {
 		t.Fatal(err)
 	}
-	if release.Version != cfg.Version || release.SourceCommit != strings.Repeat("a", 40) || release.GoVersion != "go1.27.3" || release.BuildCommand != "just version=0.1.0 site" || len(release.Artifacts) != 4 {
+	if release.Version != cfg.Version || release.SourceCommit != strings.Repeat("a", 40) || release.GoVersion != "go1.27.3" || release.BuildCommand != "just version=0.1.0 site" || len(release.Artifacts) != 2 {
 		t.Fatalf("release metadata: %+v", release)
 	}
 	sums, err := os.ReadFile(filepath.Join(output, "downloads", "v0.1.0", "SHA256SUMS"))
@@ -190,7 +190,7 @@ func TestSignedSiteRequiresApprovalForExactArtifacts(t *testing.T) {
 		t.Fatal("signed site accepted missing notarization receipt")
 	}
 	receipt := macosrelease.Receipt{SchemaVersion: 1, Version: cfg.Version, TeamID: "W5BHZ9R8A3", Status: "Accepted", SubmissionID: "12345678-1234-1234-1234-123456789abc", SHA256: make(map[string]string)}
-	for _, name := range []string{"relops-darwin-arm64", "relops-darwin-amd64"} {
+	for _, name := range []string{"relops-darwin-arm64"} {
 		data, err := os.ReadFile(filepath.Join(cfg.Binaries, name))
 		if err != nil {
 			t.Fatal(err)

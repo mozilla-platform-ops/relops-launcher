@@ -34,8 +34,9 @@
           <code>relops</code> runs scripts from <strong>mozilla-platform-ops</strong> repositories and personal forks.
           No manual clones or branch switching. Push a branch, send a coworker one command.
         </p>
-        <div class="cmd" style="margin-top: var(--space-6); max-width: 40rem">
-          <code id="ex">relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py --help</code>
+        <p class="prose" style="margin-top: var(--space-6)">Download below, then paste this to verify and install.</p>
+        <div class="cmd cmd--wrap" style="margin-top: var(--space-3); max-width: 40rem">
+          <code id="ex">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '__RELOPS_SHA_DARWIN_ARM64__' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code>
           <button type="button" data-copy="#ex">copy</button>
         </div>
         <div class="hero__cta">
@@ -59,57 +60,45 @@
   <section class="section" id="install">
     <div class="wrap">
       <p class="label"><b>01</b>install</p>
-      <h2 class="h-section">Install in four steps.</h2>
-      <p class="prose" style="margin-bottom: var(--space-6)">
-        You need <code>git</code>, SSH access to the repository, and the tool's interpreter.
-        Python projects with a <code>Pipfile</code> also need <code>pipenv</code> on your PATH.
-        You do not need Go. Downloads on this Quick site require Mozilla SSO in your browser.
-      </p>
-
-      <div class="grid grid--2">
-        <div class="stack">
-          <p class="label"><b>1</b>download for your platform</p>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Platform</th><th>Download</th></tr></thead>
-              <tbody>
-                <tr><td>macOS · Apple silicon</td><td><a data-os="macos" data-platform="darwin-arm64" download="relops-darwin-arm64" href="downloads/v{{RELOPS_VERSION}}/relops-darwin-arm64">relops-darwin-arm64</a></td></tr>
-                <tr><td>macOS · Intel</td><td><a data-os="macos" data-platform="darwin-amd64" download="relops-darwin-amd64" href="downloads/v{{RELOPS_VERSION}}/relops-darwin-amd64">relops-darwin-amd64</a></td></tr>
-                <tr><td>Linux · arm64</td><td><a data-os="linux" data-platform="linux-arm64" download="relops-linux-arm64" href="downloads/v{{RELOPS_VERSION}}/relops-linux-arm64">relops-linux-arm64</a></td></tr>
-                <tr><td>Linux · amd64</td><td><a data-os="linux" data-platform="linux-amd64" download="relops-linux-amd64" href="downloads/v{{RELOPS_VERSION}}/relops-linux-amd64">relops-linux-amd64</a></td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p class="prose" style="font-size: var(--text-sm)">
-            Choose your CPU architecture explicitly.
-            <a href="downloads/v{{RELOPS_VERSION}}/SHA256SUMS" download="SHA256SUMS">SHA-256 checksums</a>
-            are published with every build.
-            <span id="unsupported" hidden class="warn">Windows isn't supported.</span>
-          </p>
-          <p class="prose" style="font-size: var(--text-sm)">__RELOPS_MACOS_STATUS__</p>
+      <h2 class="h-section">Download. Install. Run.</h2>
+      <p class="prose" style="margin-bottom: var(--space-6)">Downloads require Mozilla sign-in in your browser. You do not need Go or the Quick CLI.</p>
+      <div class="stack">
+        <p class="label"><b>1</b>download in your browser</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Platform</th><th>Download</th></tr></thead>
+            <tbody>
+              <tr><td>macOS · Apple silicon</td><td><a data-os="macos" data-platform="darwin-arm64" download="relops-darwin-arm64" href="downloads/v{{RELOPS_VERSION}}/relops-darwin-arm64">relops-darwin-arm64</a></td></tr>
+              <tr><td>Linux · amd64</td><td><a data-os="linux" data-platform="linux-amd64" download="relops-linux-amd64" href="downloads/v{{RELOPS_VERSION}}/relops-linux-amd64">relops-linux-amd64</a></td></tr>
+            </tbody>
+          </table>
         </div>
-
-        <div class="stack">
-          <p class="label"><b>2</b>verify and install the file you downloaded</p>
-          <label for="install-platform">Platform for the commands below</label>
-          <select id="install-platform" class="platform-select">
-            <option value="darwin-arm64">macOS · Apple silicon</option>
-            <option value="darwin-amd64">macOS · Intel</option>
-            <option value="linux-arm64">Linux · arm64</option>
-            <option value="linux-amd64">Linux · amd64</option>
-          </select>
-          <p class="prose" style="font-size: var(--text-sm)">Run these in the directory where you saved the download. The checksum command must report <code>OK</code> before installing.</p>
-          <div class="cmd"><code id="verify">printf '%s  %s\n' '__RELOPS_SHA_DARWIN_ARM64__' 'relops-darwin-arm64' | shasum -a 256 -c -</code><button type="button" data-copy="#verify">copy</button></div>
-          <div class="cmd"><code id="c1">mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops"</code><button type="button" data-copy="#c1">copy</button></div>
-          <noscript><p class="prose">These commands show the Apple silicon build. For another platform, use its exact filename and checksum from SHA256SUMS.</p></noscript>
-          <p class="faint" style="font-size: var(--text-xs)">Make sure <code>~/.local/bin</code> is in your <code>PATH</code>. On macOS you may need to allow the binary in System Settings → Privacy &amp; Security the first time.</p>
-          <p class="label"><b>3</b>check repository access</p>
-          <div class="cmd"><code id="c2">git ls-remote git@github.com:aerickson/android-tools.git HEAD</code><button type="button" data-copy="#c2">copy</button></div>
-          <p class="prose" style="font-size: var(--text-sm)">This checks access for the example above. Use your tool's owner and repository when running something else.</p>
-          <p class="label"><b>4</b>confirm it works</p>
-          <div class="cmd"><code id="c3">relops --version</code><button type="button" data-copy="#c3">copy</button></div>
-          <p class="prose" style="font-size: var(--text-sm)">Expected: <code>relops {{RELOPS_VERSION}}</code>. Then try the example command above; it prints the replay tool's help.</p>
-        </div>
+        <p class="prose">Save the file in <code>~/Downloads</code> with the filename shown above. If your browser uses another folder, change <code>$HOME/Downloads</code> in the commands below.</p>
+        <p class="prose" style="font-size: var(--text-sm)">__RELOPS_MACOS_STATUS__</p>
+        <p id="unsupported" hidden class="warn">Downloads are available for macOS Apple silicon and Linux amd64 only.</p>
+        <p class="label"><b>2</b>verify and install</p>
+        <label for="install-platform">Platform for the install commands</label>
+        <select id="install-platform" class="platform-select">
+          <option value="darwin-arm64">macOS · Apple silicon</option>
+          <option value="linux-amd64">Linux · amd64</option>
+        </select>
+        <p class="prose">Paste this into your terminal from any directory. It checks the download before installing, adds relops to this terminal's PATH, and prints <code>relops {{RELOPS_VERSION}}</code>.</p>
+        <div class="cmd cmd--wrap"><code id="c1">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '__RELOPS_SHA_DARWIN_ARM64__' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code><button type="button" data-copy="#c1">copy</button></div>
+        <noscript><p class="prose">These commands install the Apple silicon build. For Linux amd64, substitute its filename and checksum from SHA256SUMS and use <code>sha256sum</code> instead of <code>shasum -a 256</code>.</p></noscript>
+        <details class="stack">
+          <summary>Individual steps and PATH setup</summary>
+          <p class="prose">Verify the download first. Continue only if the checksum reports <code>OK</code>.</p>
+          <div class="cmd cmd--wrap"><code id="verify">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '__RELOPS_SHA_DARWIN_ARM64__' 'relops-darwin-arm64' | shasum -a 256 -c -)</code><button type="button" data-copy="#verify">copy</button></div>
+          <p class="prose">Install the verified file:</p>
+          <div class="cmd cmd--wrap"><code id="manual-install">mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 "$HOME/Downloads/relops-darwin-arm64" "$HOME/.local/bin/relops"</code><button type="button" data-copy="#manual-install">copy</button></div>
+          <p class="prose">For future terminals, add this line once to your shell's startup file: <code>~/.zshrc</code> for zsh (the macOS default), or <code>~/.bashrc</code> for bash. Then open a new terminal.</p>
+          <div class="cmd"><code id="path-setup">export PATH="$HOME/.local/bin:$PATH"</code><button type="button" data-copy="#path-setup">copy</button></div>
+          <p class="prose"><a href="downloads/v{{RELOPS_VERSION}}/SHA256SUMS" download="SHA256SUMS">Download SHA-256 checksums</a>. On macOS, follow any first-run approval prompt in System Settings → Privacy &amp; Security.</p>
+        </details>
+        <p class="label"><b>3</b>ready to run tools</p>
+        <p class="prose">You need Git, SSH access to the repository, and the tool's interpreter. Python projects with a <code>Pipfile</code> also need <code>pipenv</code> on your PATH.</p>
+        <div class="cmd"><code id="c2">git ls-remote git@github.com:aerickson/android-tools.git HEAD</code><button type="button" data-copy="#c2">copy</button></div>
+        <p class="prose">This checks access to the fork used below. Substitute your tool's owner and repository when needed.</p>
       </div>
     </div>
   </section>
@@ -118,11 +107,26 @@
     <div class="wrap stack">
       <p class="label"><b>02</b>usage</p>
       <h2 class="h-section">Your branch. One command.</h2>
-      <p class="prose">Use <code>--owner</code> for a personal fork; the default is <code>mozilla-platform-ops</code>. Launcher options go before <code>repo/path</code>. Everything after it goes to the tool.</p>
-      <p class="prose">The tool starts in your current directory, so relative inputs and outputs behave like local commands. Use <code>--cwd repo</code> if it needs its repository root.</p>
-      <p class="prose">The default runner honors shebangs and detects Python scripts. For Python projects with a committed <code>Pipfile.lock</code>, installed Pipenv prepares and caches runtime dependencies automatically. No outer <code>pipenv run</code> is needed. An explicit <code>--runner python3</code>, <code>bash</code>, or <code>sh</code> overrides detection.</p>
-      <p class="prose">Online runs fetch the latest branch or tag. Every run reports the exact commit on stderr and uses its own temporary checkout. Push your changes first; use a full commit SHA with <code>--ref</code> for an exact revision. <code>--offline</code> requires cached code and an already-prepared environment.</p>
-      <p class="prose">Tools run with your normal permissions. Dev dependencies, submodules, and Git LFS downloads are not installed automatically. Files written into the temporary checkout are removed at exit; files in your current directory stay there.</p>
+      <p class="prose">Launcher options go before the script path. Arguments after it go to the tool.</p>
+      <p class="label">Try a tool from a personal branch</p>
+      <div class="cmd cmd--wrap"><code id="usage-fork">relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py --help</code><button type="button" data-copy="#usage-fork">copy</button></div>
+      <p class="prose">Runs the replay tool's help from the pushed branch in aerickson's fork.</p>
+      <p class="label">Run an organization tool</p>
+      <div class="cmd"><code id="usage-org">relops REPO/path/to/tool.py --help</code><button type="button" data-copy="#usage-org">copy</button></div>
+      <p class="prose">Replace <code>REPO/path/to/tool.py</code> with your script. The default owner is <code>mozilla-platform-ops</code>.</p>
+      <p class="label">Share your pushed branch</p>
+      <div class="cmd cmd--wrap"><code id="usage-branch">relops --ref my-feature REPO/path/to/tool.py</code><button type="button" data-copy="#usage-branch">copy</button></div>
+      <p class="prose">Replace the branch and script path, then send the command to a coworker.</p>
+      <p class="label">Run from the repository root</p>
+      <div class="cmd"><code id="usage-cwd">relops --cwd repo REPO/path/to/tool.py</code><button type="button" data-copy="#usage-cwd">copy</button></div>
+      <p class="prose">Use this for tools that expect repository-relative files. By default, tools run in your terminal's current directory.</p>
+      <details class="stack">
+        <summary>Runners, caching, and other details</summary>
+        <p class="prose">The default runner honors shebangs and detects Python scripts. Installed Pipenv prepares and caches runtime dependencies for projects with a committed <code>Pipfile.lock</code>. No outer <code>pipenv run</code> is needed. Use <code>--runner python3</code>, <code>bash</code>, or <code>sh</code> to override detection.</p>
+        <p class="prose">Online runs fetch the latest branch or tag and report the exact commit on stderr. Use a full commit SHA with <code>--ref</code> for an exact revision. <code>--offline</code> needs cached code and an already-prepared environment.</p>
+        <p class="prose">Tools run with your normal permissions. Dev dependencies, submodules, and Git LFS downloads are not installed automatically. The temporary checkout is removed at exit; save outputs in your current directory to keep them.</p>
+        <div class="cmd"><code id="usage-help">relops --help</code><button type="button" data-copy="#usage-help">copy</button></div>
+      </details>
     </div>
   </section>
 </main>

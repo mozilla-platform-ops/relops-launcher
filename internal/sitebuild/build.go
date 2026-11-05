@@ -51,7 +51,7 @@ type metadata struct {
 var versionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$`)
 
 var platforms = []struct{ os, arch string }{
-	{"darwin", "arm64"}, {"darwin", "amd64"}, {"linux", "arm64"}, {"linux", "amd64"},
+	{"darwin", "arm64"}, {"linux", "amd64"},
 }
 
 // Build replaces Binaries/site only after preparing and validating a complete

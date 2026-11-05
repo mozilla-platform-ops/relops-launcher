@@ -22,8 +22,6 @@ dist/site/
   index.json                  inventory of every file in this bundle
   downloads/v0.1.1/
     relops-darwin-arm64
-    relops-darwin-amd64
-    relops-linux-arm64
     relops-linux-amd64
     SHA256SUMS
 ```
@@ -53,7 +51,7 @@ For each release, update `VERSION`, commit source, then run:
 just signed-site
 ```
 
-This builds the four binaries, signs the two macOS binaries with Developer ID, hardened runtime, and a secure timestamp, and submits a ZIP of those binaries to Apple. It records the submission ID before waiting, requires Apple's `Accepted` result, retrieves the log, and checks online notarization tickets for both binaries. Then it exports the signed bytes, regenerates SHA-256 checksums, and assembles/tests `dist/site` with `--require-notarized`. That flag refuses missing, stale, rejected, or mismatched receipts. Linux binaries are unchanged by signing.
+This builds macOS arm64 and Linux amd64 binaries, signs the macOS binary with Developer ID, hardened runtime, and a secure timestamp, and submits it in a ZIP to Apple. It records the submission ID before waiting, requires Apple's `Accepted` result, retrieves the log, and checks the online notarization ticket for the macOS binary. Then it exports the signed bytes, regenerates SHA-256 checksums, and assembles/tests `dist/site` with `--require-notarized`. That flag refuses missing, stale, rejected, or mismatched receipts. Linux binaries are unchanged by signing.
 
 Submission state, signed bytes, and logs stay under ignored `dist/macos/`. A wait timeout or ticket propagation delay can be retried with the same `just signed-site` command. Identical inputs reuse the stored submission and signed artifacts. Changed inputs create a new signing cache. Rejected submissions fail and leave their log for diagnosis. Do not delete the cache during a pending submission. `just sign-macos` signs only and does not make a notarized release; `just notarize-macos` performs signing/notarization without assembling the website.
 
@@ -89,7 +87,7 @@ CLOUDSDK_CORE_ACCOUNT=aerickson@mozilla.com \
   quick deploy dist/site relops-launcher
 ```
 
-This invocation was used successfully to publish the site. `CLOUDSDK_CORE_ACCOUNT` selects the publishing account for this command without changing the default gcloud account. Other publishers should substitute their own authenticated Mozilla account. Only `just publish` deploys automatically; build and signing recipes do not. Browser downloads use the staff member's Mozilla SSO session; this flow does not promise unauthenticated `curl` installation or launcher self-update. Quick publishers need its CLI/credentials; people downloading `relops` do not.
+This invocation was used successfully to publish the site. `CLOUDSDK_CORE_ACCOUNT` selects the publishing account for this command without changing the default gcloud account. Other publishers should substitute their own authenticated Mozilla account. Only `just publish` deploys automatically; build and signing recipes do not. Browser downloads use the staff member's Mozilla SSO session. Unauthenticated terminal downloads redirect to Google IAP sign-in HTML, even when the download command reports success. The site therefore requires a browser download, then supplies a command that verifies the checksum from `~/Downloads`, installs into `~/.local/bin`, sets PATH for the current terminal, and checks the version. Individual steps and persistent shell PATH setup remain in a disclosure. Custom download folders require editing the Downloads path. Launcher self-update is not provided. Quick publishers need its CLI/credentials; people downloading `relops` do not.
 
 Use normal deployment without `--mirror` to retain older versioned downloads already on Quick. The local bundle and `index.json` describe the current release only. Do not republish different bytes under a previously shared version. If CI later owns deployment, use that workflow consistently rather than alternating manual and CI publishers.
 
@@ -100,7 +98,7 @@ The repository workflow `.github/workflows/relops-launcher.yml` runs tests on Li
 ## Source files
 
 ```text
-index.html          current template: hero, fork example, install steps, usage, blob
+index.html          current template: hero install command, browser download/install steps, usage examples, blob
 future.html         concept site for later releases (terminal demo, contract,
                     roadmap, and the living design system in section 06)
 future2.html        earlier index: overview, install, usage, chrome blob
@@ -110,7 +108,7 @@ css/components.css  components built only from tokens
 css/moire.css       animated moiré hero object (pointer-reactive, uses --accent)
 css/blob.css        mesh-gradient blob hero (complement of accent, drifting points)
 js/main.js          progressive enhancement: copy, OS detection, theme/accent,
-                    platform-specific install/checksum selection, live blob
+                    platform-specific Downloads install/checksum selection, live blob
                     silhouette, moire pointer hook, terminal demo
                     (future.html only). Each feature is guarded on missing elements.
 tests/downloads.test.cjs   tests against the generated release data and JS

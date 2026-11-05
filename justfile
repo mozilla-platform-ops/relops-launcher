@@ -27,12 +27,12 @@ check:
     {{ quote(go) }} vet ./...
     {{ quote(go) }} test -race ./...
 
-# Build four release binaries and their checksums.
+# Build the macOS Apple silicon and Linux amd64 release binaries and their checksums.
 release:
     #!/usr/bin/env sh
     set -eu
     mkdir -p dist
-    for platform in darwin/arm64 darwin/amd64 linux/arm64 linux/amd64; do
+    for platform in darwin/arm64 linux/amd64; do
         target_os=${platform%/*}
         target_arch=${platform#*/}
         CGO_ENABLED=0 GOOS="$target_os" GOARCH="$target_arch" {{ quote(go) }} build -trimpath \
@@ -40,7 +40,7 @@ release:
             -o "dist/relops-$target_os-$target_arch" ./cmd/relops
     done
     cd dist
-    shasum -a 256 relops-darwin-arm64 relops-darwin-amd64 relops-linux-arm64 relops-linux-amd64 > SHA256SUMS
+    shasum -a 256 relops-darwin-arm64 relops-linux-amd64 > SHA256SUMS
 
 # Assemble the complete Quick download site under dist/site.
 site: release
