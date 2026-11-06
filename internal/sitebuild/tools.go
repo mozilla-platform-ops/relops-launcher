@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"os"
-	"sort"
 	"strings"
 )
 
@@ -74,10 +73,16 @@ func renderTools(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	sort.SliceStable(entries, func(i, j int) bool {
-		return entries[i].Channel != "preview" && entries[j].Channel == "preview"
-	})
-	tmpl, err := template.New("tools").Parse(`{{range .Tools}}
+	var groups struct{ Standard, Preview []tool }
+	for _, entry := range entries {
+		if entry.Channel == "preview" {
+			groups.Preview = append(groups.Preview, entry)
+		} else {
+			groups.Standard = append(groups.Standard, entry)
+		}
+	}
+	tmpl, err := template.New("tools").Parse(`{{define "list"}}
+      <ul class="tool-list">{{range .}}
         <li class="tool-row">
           <div class="tool-row__heading">
             <h3>{{.Name}}</h3>
@@ -88,12 +93,21 @@ func renderTools(path string) (string, error) {
           <div class="cmd cmd--wrap"><code id="tool-{{.ID}}">{{.Command}}</code><button type="button" data-copy="#tool-{{.ID}}">copy</button></div>
           {{if .Note}}<p class="prose usage-note">{{.Note}}</p>{{end}}
         </li>
+{{end}}
+      </ul>{{end}}
+{{if .Standard}}{{template "list" .Standard}}{{end}}
+{{if .Preview}}
+      <div class="tool-preview-intro">
+        <h3 class="label">Tools in preview</h3>
+        <p class="prose">These tools use development branches. Try them out and share feedback.</p>
+      </div>
+      {{template "list" .Preview}}
 {{end}}`)
 	if err != nil {
 		return "", err
 	}
 	var out bytes.Buffer
-	if err := tmpl.Execute(&out, struct{ Tools []tool }{entries}); err != nil {
+	if err := tmpl.Execute(&out, groups); err != nil {
 		return "", err
 	}
 	return out.String(), nil

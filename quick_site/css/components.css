@@ -163,6 +163,9 @@ details > summary { cursor: pointer; }
 .usage-note { font-size: var(--text-sm); }
 .badge { display: inline-block; padding: var(--space-1) var(--space-2); border: var(--border-w) solid var(--line); color: var(--fg); font-size: var(--text-xs); }
 .tool-list { list-style: none; padding: 0; }
+.tool-preview-intro { padding-top: var(--space-5); border-top: var(--border-w) solid var(--line); }
+.tool-preview-intro > * { margin: 0; }
+.tool-preview-intro > p { margin-top: var(--space-2); }
 .tool-row { display: grid; gap: var(--space-2); padding: var(--space-4) 0; min-width: 0; }
 .tool-row + .tool-row { border-top: var(--border-w) solid var(--line); }
 .tool-row > * { margin: 0; min-width: 0; }

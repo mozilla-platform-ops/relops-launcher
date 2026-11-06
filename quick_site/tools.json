@@ -53,6 +53,20 @@
       "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_x11_talos.sh"
     },
     {
+      "id": "moonshot-2404-wayland-talos",
+      "name": "Moonshot oneshot tool — 24.04 Wayland Talos",
+      "description": "Reimage and converge a Moonshot worker for Ubuntu 24.04 Wayland Talos.",
+      "owner": "mozilla-platform-ops",
+      "repo": "relops-infra",
+      "path": "moonshot/oneshot_2404_wayland_talos.sh",
+      "ref": "20260805-tool_fixing",
+      "args": ["229"],
+      "channel": "preview",
+      "prerequisites": "Bash. Execution requires the helper's dependencies and host access.",
+      "note": "Replace 229 with the desired worker. Runs in dry-run mode by default.",
+      "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_wayland_talos.sh"
+    },
+    {
       "id": "fleetroll",
       "name": "Fleetroll",
       "description": "Audit and monitor Firefox CI hosts, and manage their Puppet configuration.",
