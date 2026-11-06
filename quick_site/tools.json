@@ -16,7 +16,7 @@
     {
       "id": "create-tc-task",
       "name": "Taskcluster task creator",
-      "description": "Submit test tasks to a worker queue to check workers or run a custom command.",
+      "description": "Submit test tasks to a worker queue to check workers. Can run custom commands.",
       "owner": "mozilla-platform-ops",
       "repo": "android-tools",
       "path": "worker_health/create_tc_task.py",
@@ -28,7 +28,7 @@
     {
       "id": "moonshot-2404-x11-talos",
       "name": "Moonshot oneshot tool — 24.04 X11 Talos",
-      "description": "Reimage and converge a Moonshot worker for Ubuntu 24.04 X11 Talos. The example previews worker 229 without making changes.",
+      "description": "Reimage and converge a Moonshot worker for Ubuntu 24.04 X11 Talos.",
       "owner": "mozilla-platform-ops",
       "repo": "relops-infra",
       "path": "moonshot/oneshot_2404_x11_talos.sh",
@@ -36,7 +36,7 @@
       "args": ["229"],
       "channel": "preview",
       "prerequisites": "Bash. Execution requires the helper's dependencies and host access.",
-      "note": "Replace 229 with your worker. Dry run by default; add --confirm to execute.",
+      "note": "Replace 229 with the desired worker. Runs in dry-run mode by default.",
       "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_x11_talos.sh"
     },
     {
@@ -47,8 +47,7 @@
       "repo": "fleetroll_mvp",
       "args": ["--help"],
       "channel": "mainline",
-      "prerequisites": "Requires a launcher build with uv project support, uv, and Python 3.11+. Host operations also need SSH access and the credentials described in the documentation.",
-      "note": "Requires a launcher build with uv project support.",
+      "prerequisites": "Requires uv and Python 3.11+. Host operations also need SSH access and the credentials described in the documentation.",
       "documentation": "https://github.com/mozilla-platform-ops/fleetroll_mvp#readme"
     }
   ]
