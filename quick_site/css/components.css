@@ -53,6 +53,8 @@ img, svg { max-width: 100%; }
 .lead { font-size: var(--text-lg); line-height: 1.5; color: var(--fg-dim); max-width: 52ch; margin: 0; }
 .prose { max-width: var(--measure); color: var(--fg-dim); }
 .prose strong, .lead strong { color: var(--fg); font-weight: 500; }
+.prose code, .lead code { color: var(--fg); background: var(--bg-raised); padding: 0 var(--space-1); overflow-wrap: anywhere; }
+.inline-command { color: var(--fg); font-weight: 600; background: var(--bg-raised); border: var(--border-w) solid var(--line); padding: 0 var(--space-1); white-space: nowrap; }
 .dim { color: var(--fg-dim); }
 .faint { color: var(--fg-faint); }
 .accent { color: var(--accent); }

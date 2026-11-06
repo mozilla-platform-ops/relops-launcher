@@ -91,10 +91,10 @@ func TestBundleDownloadsInventoryAndLinks(t *testing.T) {
 		}
 	}
 	// Download/asset links must all resolve within the assembled site. Hash links
-	// and external URLs/the inline SVG favicon do not refer to deployed files.
+	// and external URLs/email links/the inline SVG favicon do not refer to deployed files.
 	for _, match := range regexp.MustCompile(`(?:href|src)="([^"]+)"`).FindAllStringSubmatch(string(page), -1) {
 		path := match[1]
-		if strings.HasPrefix(path, "#") || strings.HasPrefix(path, "data:") || strings.HasPrefix(path, "https://") || strings.HasPrefix(path, "http://") {
+		if strings.HasPrefix(path, "#") || strings.HasPrefix(path, "data:") || strings.HasPrefix(path, "mailto:") || strings.HasPrefix(path, "https://") || strings.HasPrefix(path, "http://") {
 			continue
 		}
 		if _, err := os.Stat(filepath.Join(output, path)); err != nil {
