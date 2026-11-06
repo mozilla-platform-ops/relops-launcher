@@ -196,6 +196,18 @@ Manually verify the three real trial tools, SSH access, binary installation, and
 
 ## Tentative release roadmap
 
+### Future proposal: tool directory with optional beta targets
+
+When `relops` gains a built-in directory of common tools, each entry could define a production target and an optional beta target. For example, `relops fleetroll` would use Fleetroll's production configuration, while `relops --beta fleetroll` would select its configured beta branch when available.
+
+- Production remains the default. Its target can use an explicit branch, tag, or commit, or omit the ref to follow the repository's actual default branch; do not guess `master` or `main`.
+- `--beta` selects the entry's optional beta target. If none is configured, use the production target and clearly report that no beta target was configured.
+- A configured beta target that is missing or inaccessible must fail rather than silently fall back to production.
+- Report the selected channel, repository, ref, and resolved commit so the choice is visible. `list`/`info` should expose whether a beta target exists.
+- An explicit `--ref` can select a revision instead of the configured production ref. Reject combining `--ref` and `--beta` to avoid ambiguity. Launcher options still precede the tool name.
+
+This is a future registry feature, not a current launcher option. The directory format, beta target overrides beyond a ref (such as owner or path), and interaction with cached/offline directory entries need design before implementation.
+
 | Release | User outcome | Features / gates |
 | --- | --- | --- |
 | v1 | “Try this tool on my branch.” | Explicit repo/path, refs, shared object cache, per-run checkout, runners/cwd, offline mode, provenance, manual installation |
