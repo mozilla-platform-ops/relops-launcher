@@ -14,6 +14,19 @@
       "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md"
     },
     {
+      "id": "replay-tc-task",
+      "name": "Taskcluster task replay",
+      "description": "Replay a completed Firefox CI task as an independent diagnostic task.",
+      "owner": "aerickson",
+      "repo": "android-tools",
+      "path": "worker_health/replay_tc_task.py",
+      "ref": "20261105-more_tool_development",
+      "args": ["-h"],
+      "channel": "preview",
+      "prerequisites": "Python 3 and Pipenv. Replaying tasks also needs Taskcluster credentials and scopes; see the tool's help.",
+      "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md#replay_tc_taskpy"
+    },
+    {
       "id": "create-tc-task",
       "name": "Taskcluster task creator",
       "description": "Submit test tasks to a worker queue to check workers. Can run custom commands.",
