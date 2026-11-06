@@ -12,7 +12,7 @@ Published binaries target macOS Apple silicon (arm64) and Linux amd64. It has no
 
 ## Install
 
-Prerequisites: Git with working GitHub SSH access, plus the tool's interpreter. Automatic Python project execution also requires an installed `pipenv` when a `Pipfile` is found. Verify access to the actual owner/repository:
+Prerequisites: Git with working GitHub SSH access, plus the tool's interpreter. Automatic Python project execution also requires an installed `pipenv` for Pipfile projects or `uv` for locked uv projects. Missing managers produce an installation hint; relops does not install managers or download Python interpreters. Verify access to the actual owner/repository:
 
 ```sh
 git ls-remote git@github.com:mozilla-platform-ops/REPOSITORY.git HEAD
@@ -34,6 +34,12 @@ Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary d
 ```sh
 # Default branch, discovered from the remote
 relops repo/path/to/tool.sh --help
+
+# Run a uv project's default console command, with arguments
+relops fleetroll_mvp host-monitor configs/host-lists/linux/all.list -h
+
+# Select another console command or alias from the same project
+relops --command fr fleetroll_mvp host-monitor -h
 
 # Branch names can include slashes
 relops --ref feature/my-change repo/path/to/tool.sh arg1
@@ -59,11 +65,25 @@ relops --cwd repo repo/path/to/tool.sh
 relops --offline --ref feature/my-change repo/path/to/tool.sh
 ```
 
-Launcher options must precede `repo/path`. Every argument after it belongs to the tool, including `--help`, `--ref`, and `--`. `relops --help` lists launcher options.
+Launcher options must precede the repository or script target. Every argument after it belongs to the tool, including `--help`, `--ref`, and `--`. `relops --help` lists launcher options.
 
 The default runner is `auto`. It honors shebangs, including for non-executable files, and falls back to `python3` for `.py` scripts without a shebang. A `.sh` extension alone does not identify a shell. Explicit runners are `python3`, `bash`, and `sh`; they override detection and bypass Pipenv setup. There are no repository setup hooks, submodule initialization, or Git LFS downloads.
 
-The tool starts in the caller's directory unless you pass `--cwd repo`. Relative arguments are not rewritten. `RELOPS_CALLER_CWD` always contains the original absolute directory. Save outputs outside the temporary checkout: the entire checkout, including generated files, is removed when the tool exits.
+Script targets start in the caller's directory unless you pass `--cwd repo`. Project targets start in the project directory by default, so repository-relative inputs such as `configs/host-lists/linux/all.list` work. Explicit `--cwd caller` or `--cwd repo` selects the caller's directory or checkout root for either target type. Relative arguments are not rewritten. `RELOPS_CALLER_CWD` always contains the original absolute directory. Save outputs outside the temporary checkout: the entire checkout, including generated files, is removed when the tool exits.
+
+### Automatic uv projects
+
+Target a repository (`relops fleetroll_mvp`) or a project subdirectory (`relops repo/path/to/project`) containing committed `pyproject.toml` and `uv.lock` files. relops uses installed uv to sync the locked runtime environment, then runs a console entry point from the installed project:
+
+- Prefer the command matching the Python project name, not the GitHub repository name. For fleetroll_mvp, the project name is `fleetroll`, so `relops fleetroll_mvp` runs `fleetroll`.
+- Otherwise use the sole entry point, or a deterministic alias when all entry points call the same function.
+- If distinct commands remain ambiguous, list them and require `--command NAME` before the target. `--command fr` selects fleetroll's alias explicitly.
+
+The project must be packaged with a build system to install console entry points. Python script targets also use uv automatically when the nearest project has both `pyproject.toml` and `uv.lock`. A nearer Pipfile takes precedence over an outer uv project; a locked uv project wins when both managers are defined in the same directory. An explicit `--runner` bypasses environment detection for scripts; project targets require `auto`.
+
+Setup uses `uv sync --locked --no-default-groups --no-dev --no-editable --no-python-downloads`. Missing or stale locks and unavailable compatible Python versions stop execution. Dependencies are installed without development/default groups or optional extras. Project and local dependency installs are non-editable so the cached environment survives checkout cleanup. uv may execute package build backends during installation. relops does not load project `.env` files during setup; the tool still inherits your normal runtime environment.
+
+Environments and installed entry-point metadata are cached per owner, repository, commit, and project path, separately from Pipenv environments. Setup is locked across concurrent invocations. Subsequent runs reuse the environment while each run gets its own checkout. `--offline` requires a prepared environment and never invokes uv setup. Cache pruning remains manual. Build-time dependencies may require additional downloads during initial setup; the runtime lock does not pin every build backend input.
 
 ### Automatic Pipenv environments
 
@@ -92,7 +112,7 @@ Tool exit statuses pass through; signal termination returns `128 + signal`. Laun
 
 ## Cache and recovery
 
-Cache location is the platform's user cache directory plus `relops`: normally `~/Library/Caches/relops` on macOS and `$XDG_CACHE_HOME/relops` (or `~/.cache/relops`) on Linux. It contains shared bare repositories in `repos/OWNER/REPO.git`, repository locks in `locks/OWNER/REPO.lock`, per-invocation directories in `runs/`, and managed environments in `envs/OWNER/REPO/COMMIT/PROJECT/`. Cache directories have mode 0700. Older flat repository caches are left untouched and are no longer used; run online once to populate the owner-specific cache before using offline mode.
+Cache location is the platform's user cache directory plus `relops`: normally `~/Library/Caches/relops` on macOS and `$XDG_CACHE_HOME/relops` (or `~/.cache/relops`) on Linux. It contains shared bare repositories in `repos/OWNER/REPO.git`, repository locks in `locks/OWNER/REPO.lock`, per-invocation directories in `runs/`, and managed environments in `envs/OWNER/REPO/COMMIT/PROJECT_HASH/` (uv uses its `uv-v1/` subdirectory). Cache directories have mode 0700. Older flat repository caches are left untouched and are no longer used; run online once to populate the owner-specific cache before using offline mode.
 
 `--verbose` prints the run's checkout path. Cleanup errors report the retained path. A force kill or machine crash can leave an orphan without an error message; inspect `runs/` when recovering. Only remove an orphan after verifying that no invocation is using it:
 
@@ -123,13 +143,13 @@ just site-from-release     # rebuild/test website using retained signed download
 just publish-site          # publish website changes without rebuilding binaries
 ```
 
-Build recipes read the version from `VERSION` (currently `0.1.1`) and embed it in the executable; `relops --version` prints it. Override with `just version=... signed-site` when needed. Direct `go build`/`go run` without the justfile report `dev`. Only `just publish` and `just publish-site` deploy; other recipes prepare artifacts locally. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
+Build recipes read the version from `VERSION` (currently `0.1.2`) and embed it in the executable; `relops --version` prints it. Override with `just version=... signed-site` when needed. Direct `go build`/`go run` without the justfile report `dev`. Only `just publish` and `just publish-site` deploy; other recipes prepare artifacts locally. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
 
 For shared macOS downloads, use `just signed-site` or `just publish`, on a Mac with Xcode tools and a Developer ID Application identity. `just site` is for unsigned previews and rebuilds ordinary binaries; do not run it after signing and then publish that preview. See the [macOS release workflow](quick_site/README.md#macos-signing-and-notarization) for credential setup, retries, and publisher overrides. `0.1.1` introduces this workflow; the already-published `0.1.0` files are left unchanged.
 
 All build outputs stay in ignored `bin/` and `dist/` directories; no binaries need committing. The [site README](quick_site/README.md) describes the bundle, source/toolchain metadata, local preview, and later Quick publication. CI tests the launcher on Linux and macOS and uploads a generated site artifact without deploying it.
 
-Integration tests use local Git repositories and temporary caches without accessing GitHub. They exercise owner isolation, ref changes, offline failures, ambiguous refs, concurrent runs, cwd/arguments/IO, runner detection, Pipenv setup/reuse/failure, path containment, disabled checkout hooks, and process cleanup. Python runner checks skip if `python3` is unavailable. Normal tests use a fake Pipenv process without accessing a package index; an opt-in `RELOPS_TEST_REAL_PIPENV=1 go test ./internal/launcher -run '^TestRealPipenv$'` checks the installed Pipenv using an empty dependency set.
+Integration tests use local Git repositories and temporary caches without accessing GitHub. They exercise owner isolation, ref changes, offline failures, ambiguous refs, concurrent runs, cwd/arguments/IO, runner detection, Pipenv/uv setup/reuse/failure, uv command selection and concurrent initialization, path containment, disabled checkout hooks, and process cleanup. Python runner checks skip if `python3` is unavailable. Normal tests use fake Pipenv/uv processes without accessing a package index; an opt-in `RELOPS_TEST_REAL_PIPENV=1 go test ./internal/launcher -run '^TestRealPipenv$'` checks the installed Pipenv using an empty dependency set.
 
 Check terminal input, Ctrl-C, and foreground restoration interactively on each supported OS:
 

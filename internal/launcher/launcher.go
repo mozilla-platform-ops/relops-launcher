@@ -88,17 +88,36 @@ func (a *app) run(ctx context.Context, o options) (int, error) {
 			fmt.Fprintf(a.errOut, "relops: cleanup failed: %v; retained worktree: %s\n", err, checkout.dir)
 		}
 	}()
-	script, err := resolveScript(checkout.dir, o.path)
+	target, err := resolveTarget(checkout.dir, o.path)
 	if err != nil {
 		return 1, err
 	}
+	info, err := os.Stat(target)
+	if err != nil {
+		return 1, err
+	}
+	projectTarget := info.IsDir()
 	fmt.Fprintf(a.errOut, "relops: %s/%s ref=%s commit=%s (%s)\n", o.owner, o.repo, checkout.ref, checkout.sha, resolutionMode(o.offline))
-	command, virtualenv, err := a.command(ctx, o, checkout, script)
+	var command *exec.Cmd
+	var virtualenv string
+	if projectTarget {
+		command, virtualenv, err = a.uvCommand(ctx, o, checkout, target)
+	} else if o.commandName != "" {
+		return 1, errors.New("--command requires a repository or project directory target")
+	} else {
+		script, resolveErr := resolveScript(checkout.dir, o.path)
+		if resolveErr != nil {
+			return 1, resolveErr
+		}
+		command, virtualenv, err = a.command(ctx, o, checkout, script)
+	}
 	if err != nil {
 		return 1, err
 	}
 	command.Dir = a.caller
-	if o.cwd == "repo" {
+	if projectTarget && !o.cwdSet {
+		command.Dir = target
+	} else if o.cwd == "repo" {
 		command.Dir = checkout.dir
 	}
 	command.Env = replaceEnv(os.Environ(), "RELOPS_CALLER_CWD", a.caller)
@@ -127,7 +146,7 @@ func resolutionMode(offline bool) string {
 	return "fetched"
 }
 
-func resolveScript(root, path string) (string, error) {
+func resolveTarget(root, path string) (string, error) {
 	script, err := filepath.EvalSymlinks(filepath.Join(root, filepath.FromSlash(path)))
 	if err != nil {
 		return "", fmt.Errorf("locate tool %q: %w", path, err)
@@ -139,6 +158,14 @@ func resolveScript(root, path string) (string, error) {
 	rel, err := filepath.Rel(resolvedRoot, script)
 	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
 		return "", errors.New("tool symlink escapes the checkout")
+	}
+	return script, nil
+}
+
+func resolveScript(root, path string) (string, error) {
+	script, err := resolveTarget(root, path)
+	if err != nil {
+		return "", err
 	}
 	info, err := os.Stat(script)
 	if err != nil {

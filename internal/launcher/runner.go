@@ -69,7 +69,19 @@ func (a *app) command(ctx context.Context, o options, c checkout, script string)
 		return nil, "", err
 	}
 	if pythonScript(script, interpreter, optional) {
-		project, err := pipenvProject(c.dir, script)
+		project, err := uvProject(c.dir, script)
+		if err != nil {
+			return nil, "", err
+		}
+		if project != "" {
+			venv, _, err := a.uvEnvironment(ctx, o, c, project)
+			if err != nil {
+				return nil, "", err
+			}
+			cmd, err := managedPythonCommand(script, interpreter, optional, o.args, venv)
+			return cmd, venv, err
+		}
+		project, err = pipenvProject(c.dir, script)
 		if err != nil {
 			return nil, "", err
 		}

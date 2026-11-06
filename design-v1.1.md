@@ -24,12 +24,12 @@ Examples use illustrative repository and script names.
 
 ## V1 scope
 
-- Execute an explicit `repo/path` in `mozilla-platform-ops`, or select another GitHub owner with `--owner`.
+- Execute an explicit `repo/path` or a uv project at `repo` in `mozilla-platform-ops`, or select another GitHub owner with `--owner`.
 - Resolve the repository's actual default branch, or an explicit branch, tag, or commit.
 - Cache Git objects while giving each invocation a separate writable checkout.
 - Preserve tool arguments, interactive input, output, exit status, and interruption behavior.
 - Provide explicit working-directory and runner choices.
-- Default to the caller's directory and automatically detect shebang/Python runners and Pipenv projects.
+- Default scripts to the caller's directory and uv project commands to the project directory. Automatically detect shebang/Python runners and locked Pipenv/uv projects.
 - Support intentional offline execution and report the executed commit.
 - Ship a single launcher binary for macOS and Linux, with documented installation.
 
@@ -60,7 +60,7 @@ relops --ref my-feature relops-infra/path/to/check.sh ./hosts.csv
 relops --offline --ref my-feature relops-infra/path/to/check.sh
 ```
 
-Syntax: `relops [launcher-options] <repo>/<path> [tool-arguments...]`.
+Syntax: `relops [launcher-options] <repo>[/<path>] [tool-arguments...]`. A repository or directory target runs a uv project's console command; a file target runs a script.
 
 The first positional argument ends launcher option parsing. Everything after it is passed unchanged to the tool, including `--help`, `--ref`, and `--`. `relops --help` describes the launcher; `relops repo/tool --help` asks the tool for help. Launcher errors exit with status 1 and a diagnostic on stderr; usage errors exit with status 2. Once launched, the tool's exit status is preserved. A signal-terminated tool uses the conventional `128 + signal` status.
 
@@ -71,13 +71,14 @@ Initial options:
 | `--owner VALUE` | GitHub user or organization; default `mozilla-platform-ops` |
 | `--ref VALUE` | Branch, tag, or commit; omitted means remote default branch |
 | `--runner auto\|python3\|bash\|sh` | Execution rule; default `auto` |
-| `--cwd repo\|caller` | Tool working directory; default `caller` |
+| `--command NAME` | Select an installed uv project console entry point |
+| `--cwd repo\|caller` | Tool working directory; default caller for scripts, project directory for project targets |
 | `--offline` | Make no network requests; require cached resolution and objects |
 | `--verbose` | Additional cache and resolution diagnostics on stderr |
 | `--version` | Launcher version |
 | `--help` | Launcher usage |
 
-Automatic detection honors shebangs, then falls back to Python for `.py` files. It never guesses a shell from `.sh`. Explicit runners override detection, including Pipenv environment selection. No shell command strings. More runners can be added when a real tool requires them; `uv` integration remains deferred.
+Automatic detection honors shebangs, then falls back to Python for `.py` files. It never guesses a shell from `.sh`. Explicit runners override detection, including Pipenv/uv environment selection, for script targets. Project targets require `auto`. No shell command strings.
 
 ## Revision resolution and updates
 
@@ -109,6 +110,7 @@ relops/
   locks/<owner>/<repo>.lock  # repository mutation lock
   runs/<unique-run-id>/      # detached worktree for one invocation
   envs/<owner>/<repo>/<commit>/<project-hash>/  # managed Pipenv environments
+  envs/<owner>/<repo>/<commit>/<project-hash>/uv-v1/  # managed uv environments and entry-point metadata
 ```
 
 Keep private cache directories accessible only to the current user. Lock clone/fetch/ref metadata/worktree bookkeeping mutations per repository, releasing the lock before running the tool. A partially initialized clone must never be reused as a healthy cache entry. Use bounded lock waiting and an actionable timeout error.
@@ -121,17 +123,19 @@ V1 does not automatically initialize submodules or download Git LFS content. Too
 
 ## Execution and working directory
 
-Resolve the script within the run's checkout. Reject absolute paths, `..` components, missing/non-file targets, and symlinks whose resolved target escapes the checkout. Resolve the executable to an absolute path so changing the working directory does not change which file executes.
+Resolve the target within the run's checkout. Reject absolute paths, `..` components, missing targets, unsupported file types, and symlinks whose resolved target escapes the checkout. A directory must contain a supported uv project. Resolve the executable to an absolute path so changing the working directory does not change which file executes.
 
 Runner behavior:
 
-- `auto`: honor a shebang, invoking executable scripts directly or invoking the declared interpreter for non-executable scripts. Fall back to `python3` for `.py` without a shebang. For Python scripts, detect the nearest Pipfile within the checkout and use the managed Pipenv environment described below.
+- `auto`: honor a shebang, invoking executable scripts directly or invoking the declared interpreter for non-executable scripts. Fall back to `python3` for `.py` without a shebang. For Python scripts, detect the nearest Pipfile or locked uv project within the checkout and use its managed environment. A locked uv project takes precedence when both exist at the same level.
 - `python3`, `bash`, `sh`: override detection, including Pipenv; look up that executable on the caller's `PATH`, then pass the absolute script path followed by the untouched tool arguments.
 - Do not infer Bash compatibility from `.sh`, run repository setup hooks, or install missing interpreters/Pipenv.
 
-Default `--cwd caller` preserves the directory from which the user invoked `relops`. `--cwd repo` starts the tool at the checkout root. Export `RELOPS_CALLER_CWD` with the original absolute directory in both cases. Relative tool arguments are passed unchanged: with the default working directory, `./hosts.csv` refers to a file in the caller's directory. The launcher never rewrites path arguments.
+Script targets default to the caller's directory. Project targets default to their project directory so bundled configuration paths work. Explicit `--cwd caller` preserves the directory from which the user invoked `relops`; `--cwd repo` starts the tool at the checkout root. Export `RELOPS_CALLER_CWD` with the original absolute directory in all cases. Relative tool arguments are passed unchanged. The launcher never rewrites path arguments.
 
 For automatic Pipenv execution, require an installed Pipenv and a committed, current `Pipfile.lock`. Verify the lockfile and sync runtime dependencies into an environment keyed by owner, repository, commit, and project path. Cache successful initialization and serialize setup with an environment-specific lock, released before running the tool. The environment persists independently of temporary checkouts. Do not install dev dependencies; reject editable runtime dependencies that would retain a link to a removed checkout. Offline mode requires an already-prepared environment and never performs setup. Missing Pipenv, missing/outdated lockfiles, or setup failures produce actionable errors before executing the tool. Explicit runners bypass this behavior. Automatic setup does not load project `.env` files. Environment pruning is deferred.
+
+For automatic uv execution, require installed uv, a compatible installed Python, and committed `pyproject.toml` and `uv.lock` files. Sync with `--locked --no-default-groups --no-dev --no-editable --no-python-downloads`, rejecting outdated locks. Cache the environment and installed console-entry-point metadata by owner, repository, commit, and project path, with serialized initialization and no setup in offline mode. Read entry points from the installed distribution using managed Python's standard-library metadata support. Select an entry point matching the Python project name, otherwise the sole distinct entry point (aliases sharing one function are equivalent); ambiguous choices require `--command NAME`. Non-editable installs survive checkout cleanup. Missing tools and setup failures stop execution with guidance. Setup does not load `.env` files or download interpreters. Package build backends may execute during setup.
 
 Inherit the environment and stdin/stdout/stderr. Do not capture or reformat tool output. Preserve terminal interaction and forward interruption/termination to the tool's process group, wait for it to exit, then clean up the worktree. Terminal foreground-process-group behavior must be verified with an interactive tool before declaring this complete.
 

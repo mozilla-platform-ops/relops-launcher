@@ -111,10 +111,15 @@ func TestCLI(t *testing.T) {
 		{}, {"https://github.com/org/repo/file"}, {"-evil/tool"}, {"example/../file"}, {"example//etc/passwd"},
 		{"example/.git/config"}, {"--runner", "guess", "example/tool"}, {"--cwd", "elsewhere", "example/tool"},
 		{"--ref=-oops", "example/tool"}, {"example/tool\\other"}, {"../file"},
+		{"example/"}, {"--command", "../outside", "example"},
 	} {
 		if _, _, err := parse(args, &bytes.Buffer{}, "test"); err == nil {
 			t.Errorf("accepted %q", args)
 		}
+	}
+	oProject, _, projectErr := parse([]string{"--cwd", "caller", "--command", "fr", "fleetroll_mvp", "-h"}, &bytes.Buffer{}, "test")
+	if projectErr != nil || oProject.repo != "fleetroll_mvp" || oProject.path != "" || !oProject.cwdSet || oProject.commandName != "fr" || strings.Join(oProject.args, "|") != "-h" {
+		t.Fatalf("project argument boundary: %+v %v", oProject, projectErr)
 	}
 	o, _, err := parse([]string{"--ref", "feature/one", "example/tool", "--ref", "tool-ref", "--", "a b"}, &bytes.Buffer{}, "test")
 	if err != nil || o.ref != "feature/one" || strings.Join(o.args, "|") != "--ref|tool-ref|--|a b" {
