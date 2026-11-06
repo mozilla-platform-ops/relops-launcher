@@ -135,6 +135,42 @@ func TestBundleDownloadsInventoryAndLinks(t *testing.T) {
 	}
 }
 
+func TestConcurrentBuilds(t *testing.T) {
+	cfg, inspect := fixture(t)
+	const count = 12
+	results := make(chan error, count)
+	start := make(chan struct{})
+	for i := 0; i < count; i++ {
+		go func() {
+			<-start
+			_, err := build(cfg, inspect)
+			results <- err
+		}()
+	}
+	close(start)
+	for i := 0; i < count; i++ {
+		if err := <-results; err != nil {
+			t.Errorf("concurrent build: %v", err)
+		}
+	}
+	data, err := os.ReadFile(filepath.Join(cfg.Binaries, "site", "index.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var inventory struct{ Files []string }
+	if err := json.Unmarshal(data, &inventory); err != nil {
+		t.Fatal(err)
+	}
+	if len(inventory.Files) == 0 {
+		t.Fatal("empty output inventory")
+	}
+	for _, path := range inventory.Files {
+		if _, err := os.Stat(filepath.Join(cfg.Binaries, "site", path)); err != nil {
+			t.Errorf("incomplete output: %s: %v", path, err)
+		}
+	}
+}
+
 func TestBadArtifactsPreservePreviousSite(t *testing.T) {
 	cfg, inspect := fixture(t)
 	output, err := build(cfg, inspect)

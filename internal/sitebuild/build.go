@@ -186,6 +186,13 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 	if err := writeFile(stage, "index.json", append(inventory, '\n')); err != nil {
 		return "", err
 	}
+	// Serialize replacement across preview watchers and manual builds. Keep the
+	// lock outside site/ so replacing the output cannot remove the lock file.
+	unlock, err := lockOutput(filepath.Join(binaries, ".site-build.lock"))
+	if err != nil {
+		return "", err
+	}
+	defer unlock()
 	// Refuse to replace arbitrary hand-maintained content or a symlink at the
 	// generated destination. Our artifact inventory identifies previous builds.
 	if info, err := os.Lstat(output); err == nil {
