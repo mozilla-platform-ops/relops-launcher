@@ -151,6 +151,15 @@ details > summary { cursor: pointer; }
 .usage-example { display: grid; align-content: start; gap: var(--space-3); min-width: 0; }
 .usage-example > * { margin: 0; min-width: 0; }
 .usage-example h3 { font-weight: 400; }
+.usage-details { margin-top: var(--space-6); }
+.usage-details > h3 { margin: 0 0 var(--space-3); font-weight: 400; }
+.usage-detail { border-top: var(--border-w) solid var(--line); }
+.usage-detail > summary { padding: var(--space-4) 0; }
+.usage-detail__content { display: grid; gap: var(--space-3); padding-bottom: var(--space-5); }
+.usage-detail__content > * { margin: 0; min-width: 0; }
+.usage-note { font-size: var(--text-sm); }
+.usage-help { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3) var(--space-5); padding-top: var(--space-5); border-top: var(--border-w) solid var(--line); }
+.usage-help > p { margin: 0; }
 
 /* --- Table -------------------------------------------------------------- */
 .table-wrap { overflow-x: auto; border: var(--border-w) solid var(--line); }

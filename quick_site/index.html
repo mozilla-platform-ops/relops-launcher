@@ -94,13 +94,37 @@
           <p class="prose">Use this for tools that expect repository-relative files. By default, tools run in your terminal's current directory.</p>
         </div>
       </div>
-      <details class="stack">
-        <summary>Runners, caching, and other details</summary>
-        <p class="prose">The default runner honors shebangs and detects Python scripts. Installed Pipenv prepares and caches runtime dependencies for projects with a committed <code>Pipfile.lock</code>. No outer <code>pipenv run</code> is needed. Use <code>--runner python3</code>, <code>bash</code>, or <code>sh</code> to override detection.</p>
-        <p class="prose">Online runs fetch the latest branch or tag and report the exact commit on stderr. Use a full commit SHA with <code>--ref</code> for an exact revision. <code>--offline</code> needs cached code and an already-prepared environment.</p>
-        <p class="prose">Tools run with your normal permissions. Dev dependencies, submodules, and Git LFS downloads are not installed automatically. The temporary checkout is removed at exit; save outputs in your current directory to keep them.</p>
-        <div class="cmd"><code id="usage-help">relops --help</code><button type="button" data-copy="#usage-help">copy</button></div>
-      </details>
+      <div class="usage-details">
+        <h3 class="label">When you need more control</h3>
+        <details class="usage-detail">
+          <summary>Python and runners</summary>
+          <div class="usage-detail__content">
+            <p class="prose">Usually, just run the script. Relops follows its shebang or detects Python automatically.</p>
+            <p class="prose">For Pipenv projects, install <code>pipenv</code> first. Relops uses the committed <code>Pipfile.lock</code> to prepare and cache runtime dependencies. No outer <code>pipenv run</code> needed.</p>
+            <div class="cmd cmd--wrap"><code id="usage-runner">relops --runner python3 REPO/path/to/tool.py</code><button type="button" data-copy="#usage-runner">copy</button></div>
+            <p class="prose usage-note">An explicit runner uses your own environment and skips Pipenv setup. You can also choose <code>bash</code> or <code>sh</code>.</p>
+          </div>
+        </details>
+        <details class="usage-detail">
+          <summary>Revisions and offline use</summary>
+          <div class="usage-detail__content">
+            <p class="prose">Online runs fetch the latest branch or tag and print the exact commit on stderr. To share a fixed revision, pass a full commit SHA with <code>--ref</code>.</p>
+            <div class="cmd cmd--wrap"><code id="usage-offline">relops --offline --ref my-feature REPO/path/to/tool.py</code><button type="button" data-copy="#usage-offline">copy</button></div>
+            <p class="prose usage-note">Run that revision online first. Offline use needs cached code and an already-prepared environment.</p>
+          </div>
+        </details>
+        <details class="usage-detail">
+          <summary>Permissions and output files</summary>
+          <div class="usage-detail__content">
+            <p class="prose">Tools run with your normal permissions. Save outputs in your current directory to keep them; the temporary repository checkout is deleted when the tool exits.</p>
+            <p class="prose usage-note">Dev dependencies, submodules, and Git LFS downloads are not installed automatically.</p>
+          </div>
+        </details>
+        <div class="usage-help">
+          <p class="label">All launcher options</p>
+          <div class="cmd"><code id="usage-help">relops --help</code><button type="button" data-copy="#usage-help">copy</button></div>
+        </div>
+      </div>
     </div>
   </section>
   <section class="section" id="install">
