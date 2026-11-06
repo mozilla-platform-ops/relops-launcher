@@ -117,6 +117,8 @@ Set `channel` explicitly: `mainline` follows the repository's main branch, `prev
 
 This catalog is a prototype for a future manifest, not a supported launcher registry format. The launcher does not read it or resolve tool aliases. Fleetroll's repository-target command requires the uv project support currently in development; the entry states that requirement. Only the rendered entries ship, not the catalog source.
 
+The Tools list shows mainline and release entries first, followed by preview entries, preserving catalog order within each group.
+
 Run `just check-tools` to check the catalog against GitHub using your existing Git SSH access. It resolves each branch, tag, full commit SHA, or default branch, fetches that commit into a temporary bare repository, and checks that the script exists. Project targets must contain `pyproject.toml` and `uv.lock`. Each result includes the tool ID, repository, ref, path, and resolved commit; failures stop the command. Tools are never executed. Each entry has a two-minute timeout, and temporary repositories are removed afterward. This checks availability, not runtime dependencies or behavior. Ordinary builds and tests remain offline; `just publish-site` and `just publish` run this live check before preparing and deploying the site. Direct `quick deploy` commands bypass it.
 
 ```text

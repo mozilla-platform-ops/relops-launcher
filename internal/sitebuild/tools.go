@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -73,6 +74,9 @@ func renderTools(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	sort.SliceStable(entries, func(i, j int) bool {
+		return entries[i].Channel != "preview" && entries[j].Channel == "preview"
+	})
 	tmpl, err := template.New("tools").Parse(`{{range .Tools}}
         <li class="tool-row">
           <div class="tool-row__heading">

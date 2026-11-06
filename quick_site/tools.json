@@ -20,14 +20,14 @@
       "owner": "mozilla-platform-ops",
       "repo": "android-tools",
       "path": "worker_health/create_tc_task.py",
-      "args": ["--help"],
+      "args": ["-q", "gecko-t/t-linux-docker-noscratch-amd", "--count", "1", "--dry-run"],
       "channel": "mainline",
       "prerequisites": "Python 3 and Pipenv. Submitting tasks also needs Taskcluster credentials in ~/.tc_token with the required scopes.",
       "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/create_tc_task.py"
     },
     {
       "id": "moonshot-2404-x11-talos",
-      "name": "Moonshot Ubuntu 24.04 X11 Talos",
+      "name": "Moonshot oneshot tool — 24.04 X11 Talos",
       "description": "Reimage and converge a Moonshot worker for Ubuntu 24.04 X11 Talos. The example previews worker 229 without making changes.",
       "owner": "mozilla-platform-ops",
       "repo": "relops-infra",
@@ -35,8 +35,8 @@
       "ref": "20260805-tool_fixing",
       "args": ["229"],
       "channel": "preview",
-      "prerequisites": "Bash and a local relops-infra checkout. Run from its moonshot directory because the script calls ./oneshot_linux.sh. Execution requires the helper's dependencies and host access.",
-      "note": "Run from your local relops-infra/moonshot directory; the helper runs from that checkout. Replace 229 with your worker. Dry run by default; add --confirm to execute.",
+      "prerequisites": "Bash. Execution requires the helper's dependencies and host access.",
+      "note": "Replace 229 with your worker. Dry run by default; add --confirm to execute.",
       "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_x11_talos.sh"
     },
     {
