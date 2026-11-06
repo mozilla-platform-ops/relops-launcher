@@ -39,6 +39,19 @@
       "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/create_tc_task.py"
     },
     {
+      "id": "quarantine-tool",
+      "name": "Taskcluster worker quarantine",
+      "description": "View quarantined workers, quarantine hosts, or lift their quarantine.",
+      "owner": "mozilla-platform-ops",
+      "repo": "android-tools",
+      "path": "worker_health/quarantine_tool.py",
+      "ref": "master",
+      "args": ["--help"],
+      "channel": "mainline",
+      "prerequisites": "Python 3 and Pipenv. Changing quarantines also needs Taskcluster credentials and scopes; see the documentation.",
+      "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/README.md#quarantine_tool"
+    },
+    {
       "id": "moonshot-2404-x11-talos",
       "name": "Moonshot oneshot tool — 24.04 X11 Talos",
       "description": "Reimage and converge a Moonshot worker for Ubuntu 24.04 X11 Talos.",
