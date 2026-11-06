@@ -216,7 +216,11 @@ td:first-child { white-space: nowrap; color: var(--accent); }
 .nav .spacer { flex: 1; }
 .nav a.link { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); text-decoration: none; color: var(--fg-dim); }
 .nav a.link:hover { color: var(--accent); }
-@media (max-width: 40rem) { .nav a.link.hide-sm { display: none; } }
+.nav .nav-top { border-left: var(--border-w) solid var(--line); padding-left: var(--space-4); }
+@media (max-width: 40rem) {
+  .nav .wrap { gap: var(--space-3); }
+  .nav a.link.hide-sm { display: none; }
+}
 
 .hero { padding: var(--space-8) 0 var(--space-7); }
 .hero .lead { margin-top: var(--space-5); }
