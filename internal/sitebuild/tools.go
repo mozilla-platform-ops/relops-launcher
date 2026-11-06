@@ -99,7 +99,7 @@ func renderTools(path string) (string, error) {
 {{if .Preview}}
       <div class="tool-preview-intro">
         <h3 class="label">Tools in preview</h3>
-        <p class="prose">These tools use development branches. Try them out and share feedback.</p>
+        <p class="prose">These tools use development branches. Try them out and share feedback in Slack’s #relops channel.</p>
       </div>
       {{template "list" .Preview}}
 {{end}}`)
