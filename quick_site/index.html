@@ -106,52 +106,63 @@
   <section class="section" id="install">
     <div class="wrap">
       <p class="label"><b>02</b>manual installation</p>
-      <h2 class="h-section">Download. Install. Run.</h2>
-      <p class="prose">Downloads require Mozilla sign-in in your browser. You do not need Go or the Quick CLI.</p>
+      <h2 class="h-section">Install at your own pace.</h2>
+      <p class="prose">Already installed? You're ready to run tools. For individual installation steps, start here. No Go or Quick CLI needed.</p>
+      <div class="install-platform">
+        <label for="install-platform">Your platform</label>
+        <select id="install-platform" class="platform-select">
+          <option value="darwin-arm64">macOS · Apple silicon</option>
+          <option value="linux-amd64">Linux · amd64</option>
+        </select>
+      </div>
+      <noscript><p class="prose">Commands below show macOS Apple silicon. For Linux amd64, substitute its filename and checksum from SHA256SUMS and use <code>sha256sum</code> instead of <code>shasum -a 256</code>.</p></noscript>
       <ol class="install-steps">
         <li class="install-step">
-          <h3 class="label"><b>1</b>download in your browser</h3>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Platform</th><th>Download</th></tr></thead>
-              <tbody>
-                <tr><td>macOS · Apple silicon</td><td><a data-os="macos" data-platform="darwin-arm64" download="relops-darwin-arm64" href="downloads/v{{RELOPS_VERSION}}/relops-darwin-arm64">relops-darwin-arm64</a></td></tr>
-                <tr><td>Linux · amd64</td><td><a data-os="linux" data-platform="linux-amd64" download="relops-linux-amd64" href="downloads/v{{RELOPS_VERSION}}/relops-linux-amd64">relops-linux-amd64</a></td></tr>
-              </tbody>
-            </table>
+          <h3 class="label"><b>1</b>download</h3>
+          <div class="install-step__content">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Platform</th><th>Download</th></tr></thead>
+                <tbody>
+                  <tr><td>macOS · Apple silicon</td><td><a data-os="macos" data-platform="darwin-arm64" download="relops-darwin-arm64" href="downloads/v{{RELOPS_VERSION}}/relops-darwin-arm64">relops-darwin-arm64</a></td></tr>
+                  <tr><td>Linux · amd64</td><td><a data-os="linux" data-platform="linux-amd64" download="relops-linux-amd64" href="downloads/v{{RELOPS_VERSION}}/relops-linux-amd64">relops-linux-amd64</a></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="prose">Download in your browser using Mozilla sign-in. Save to <code>~/Downloads</code>; if you use another folder, change that path in the commands below.</p>
+            <details class="stack install-note">
+              <summary>macOS signing and first run</summary>
+              <p class="prose">{{RELOPS_MACOS_STATUS}}</p>
+              <p class="prose">Follow any first-run approval prompt in System Settings → Privacy &amp; Security.</p>
+            </details>
+            <p id="unsupported" hidden class="warn">Downloads are available for macOS Apple silicon and Linux amd64 only.</p>
           </div>
-          <p class="prose install-note">{{RELOPS_MACOS_STATUS}}</p>
-          <p class="prose">Save the file in <code>~/Downloads</code> with the filename shown above. If your browser uses another folder, change <code>$HOME/Downloads</code> in the commands below.</p>
-          <p id="unsupported" hidden class="warn">Downloads are available for macOS Apple silicon and Linux amd64 only.</p>
         </li>
         <li class="install-step">
-          <h3 class="label"><b>2</b>verify and install</h3>
-          <div class="install-platform">
-            <label for="install-platform">Platform</label>
-            <select id="install-platform" class="platform-select">
-              <option value="darwin-arm64">macOS · Apple silicon</option>
-              <option value="linux-amd64">Linux · amd64</option>
-            </select>
-          </div>
-          <p class="prose">Paste this into your terminal from any directory. It checks the download before installing, adds relops to this terminal's PATH, and prints <code>relops {{RELOPS_VERSION}}</code>.</p>
-          <div class="cmd cmd--wrap"><code id="c1">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '{{RELOPS_SHA_DARWIN_ARM64}}' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code><button type="button" data-copy="#c1">copy</button></div>
-          <noscript><p class="prose">These commands install the Apple silicon build. For Linux amd64, substitute its filename and checksum from SHA256SUMS and use <code>sha256sum</code> instead of <code>shasum -a 256</code>.</p></noscript>
-          <details class="stack">
-            <summary>Individual steps and PATH setup</summary>
-            <p class="prose">Verify the download first. Continue only if the checksum reports <code>OK</code>.</p>
+          <h3 class="label"><b>2</b>verify</h3>
+          <div class="install-step__content">
+            <p class="prose">Check the downloaded file. Continue only when the result says <code>OK</code>.</p>
             <div class="cmd cmd--wrap"><code id="verify">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '{{RELOPS_SHA_DARWIN_ARM64}}' 'relops-darwin-arm64' | shasum -a 256 -c -)</code><button type="button" data-copy="#verify">copy</button></div>
-            <p class="prose">Install the verified file:</p>
-            <div class="cmd cmd--wrap"><code id="manual-install">mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 "$HOME/Downloads/relops-darwin-arm64" "$HOME/.local/bin/relops"</code><button type="button" data-copy="#manual-install">copy</button></div>
-            <p class="prose">For future terminals, add this line once to your shell's startup file: <code>~/.zshrc</code> for zsh (the macOS default), or <code>~/.bashrc</code> for bash. Then open a new terminal.</p>
-            <div class="cmd"><code id="path-setup">export PATH="$HOME/.local/bin:$PATH"</code><button type="button" data-copy="#path-setup">copy</button></div>
-            <p class="prose"><a href="downloads/v{{RELOPS_VERSION}}/SHA256SUMS" download="SHA256SUMS">Download SHA-256 checksums</a>. On macOS, follow any first-run approval prompt in System Settings → Privacy &amp; Security.</p>
-          </details>
+            <p class="prose install-note"><a href="downloads/v{{RELOPS_VERSION}}/SHA256SUMS" download="SHA256SUMS">All release checksums</a></p>
+          </div>
         </li>
         <li class="install-step">
-          <h3 class="label"><b>3</b>ready to run tools</h3>
-          <p class="prose">You need Git, SSH access to the repository, and the tool's interpreter. Python projects with a <code>Pipfile</code> also need <code>pipenv</code> on your PATH.</p>
-          <div class="cmd"><code id="c2">git ls-remote git@github.com:aerickson/android-tools.git HEAD</code><button type="button" data-copy="#c2">copy</button></div>
-          <p class="prose">This checks access to the fork used below. Substitute your tool's owner and repository when needed.</p>
+          <h3 class="label"><b>3</b>install</h3>
+          <div class="install-step__content">
+            <p class="prose">Put the verified file in <code>~/.local/bin</code>.</p>
+            <div class="cmd cmd--wrap"><code id="manual-install">mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 "$HOME/Downloads/relops-darwin-arm64" "$HOME/.local/bin/relops"</code><button type="button" data-copy="#manual-install">copy</button></div>
+            <p class="prose">Add it to this terminal's PATH and check the version. Expected: <code>relops {{RELOPS_VERSION}}</code>.</p>
+            <div class="cmd cmd--wrap"><code id="path-setup">export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code><button type="button" data-copy="#path-setup">copy</button></div>
+            <p class="prose install-note">For future terminals, add <code>export PATH="$HOME/.local/bin:$PATH"</code> once to <code>~/.zshrc</code> (zsh) or <code>~/.bashrc</code> (bash).</p>
+          </div>
+        </li>
+        <li class="install-step">
+          <h3 class="label"><b>4</b>check access</h3>
+          <div class="install-step__content">
+            <p class="prose">Tools need Git, repository SSH access, and their interpreter. Python projects with a <code>Pipfile</code> also need <code>pipenv</code> on your PATH.</p>
+            <div class="cmd cmd--wrap"><code id="c2">git ls-remote git@github.com:aerickson/android-tools.git HEAD</code><button type="button" data-copy="#c2">copy</button></div>
+            <p class="prose install-note">This checks the development tool's fork. For another tool, substitute its owner and repository.</p>
+          </div>
         </li>
       </ol>
     </div>

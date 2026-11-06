@@ -27,13 +27,13 @@ function page(data = release, linux = false) {
   const elements = {
     '#release-data': node({ textContent: JSON.stringify(data) }),
     '#install-platform': node({ value: 'darwin-arm64' }),
-    '#verify': node(), '#c1': node(), '#ex': node(), '#manual-install': node(),
+    '#verify': node(), '#ex': node(), '#manual-install': node(),
   };
   const links = data.artifacts.map((artifact) => node({ dataset: {
     platform: `${artifact.os}-${artifact.arch}`,
     os: artifact.os === 'darwin' ? 'macos' : 'linux',
   } }));
-  const copy = node({ dataset: { copy: '#c1' } });
+  const copy = node({ dataset: { copy: '#ex' } });
   const document = {
     documentElement: { dataset: {}, classList: { add() {} } },
     querySelector(selector) { return elements[selector] || null; },
@@ -61,17 +61,16 @@ test('platform selection updates all install commands and copy buttons', async (
   for (const link of p.links) {
     link.handlers.click();
     const artifact = release.artifacts.find(a => a.os + '-' + a.arch === link.dataset.platform);
-    const command = p.elements['#c1'].textContent;
+    const command = p.elements['#ex'].textContent;
     assert.equal(p.elements['#install-platform'].value, link.dataset.platform);
     assert.ok(command.includes(artifact.sha256));
     assert.ok(command.includes('cd "$HOME/Downloads"'));
-    assert.equal(p.elements['#ex'].textContent, command);
     assert.ok(p.elements['#manual-install'].textContent.includes('$HOME/Downloads/relops-' + link.dataset.platform));
     await p.copy.handlers.click();
     assert.equal(p.copied(), command);
     p.elements['#install-platform'].value = link.dataset.platform;
     p.elements['#install-platform'].handlers.change();
-    assert.equal(p.elements['#c1'].textContent, command);
+    assert.equal(p.elements['#ex'].textContent, command);
   }
 });
 
@@ -97,9 +96,13 @@ test('pasted install command works outside Downloads and rejects incorrect bytes
     const installed = path.join(home, '.local/bin/relops');
     p.elements['#install-platform'].value = platform;
     p.elements['#install-platform'].handlers.change();
-    const command = p.elements['#c1'].textContent;
+    const command = p.elements['#ex'].textContent;
     const run = () => spawnSync('/bin/sh', ['-c', command], { cwd: base, env: { ...process.env, HOME: home }, encoding: 'utf8' });
     fs.writeFileSync(download, binary);
+    const manualCommand = p.elements['#verify'].textContent + ' && ' + p.elements['#manual-install'].textContent;
+    const manual = spawnSync('/bin/sh', ['-c', manualCommand], { cwd: base, env: { ...process.env, HOME: home }, encoding: 'utf8' });
+    assert.equal(manual.status, 0, manual.stderr);
+    assert.equal(fs.readFileSync(installed, 'utf8'), binary);
     const success = run();
     assert.equal(success.status, 0, success.stderr);
     assert.ok(success.stdout.includes('relops test'));

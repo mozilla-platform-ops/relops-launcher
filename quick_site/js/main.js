@@ -135,7 +135,6 @@
     const verify = `printf '%s  %s\\n' '${artifact.sha256}' '${filename}' | ${checksum}`;
     const install = `(cd "$HOME/Downloads" && ${verify} && mkdir -p "$HOME/.local/bin" && install -m 755 ${filename} "$HOME/.local/bin/relops") && export PATH="$HOME/.local/bin:$PATH" && relops --version`;
     $("#verify").textContent = `(cd "$HOME/Downloads" && ${verify})`;
-    $("#c1").textContent = install;
     if ($("#ex")) $("#ex").textContent = install;
     if ($("#manual-install")) $("#manual-install").textContent = `mkdir -p "$HOME/.local/bin" && install -m 755 "$HOME/Downloads/${filename}" "$HOME/.local/bin/relops"`;
   }
