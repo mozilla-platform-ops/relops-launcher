@@ -47,6 +47,10 @@ release:
 site: release
     {{ quote(go) }} run ./cmd/relops-site --version {{ quote(version) }}
 
+# Serve the existing generated site at http://localhost:8080.
+serve:
+    python3 -m http.server 8080 --bind 127.0.0.1 --directory dist/site
+
 # Build the site and test download selection and copying (requires Node).
 site-check: site
     node --check dist/site/js/main.js
