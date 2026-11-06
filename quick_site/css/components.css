@@ -106,6 +106,8 @@ kbd { font-size: var(--text-xs); padding: 1px var(--space-2); background: var(--
 .cmd { display: flex; align-items: stretch; background: var(--bg-sunk); border: var(--border-w) solid var(--line-strong); font-size: var(--text-sm); }
 .cmd code { flex: 1; padding: var(--space-3) var(--space-4); overflow-x: auto; white-space: nowrap; }
 .cmd--wrap code { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+.cmd--hero { border-left-color: var(--accent-fill); border-left-width: var(--space-1); }
+.hero-downloads { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); font-size: var(--text-sm); }
 details > summary { cursor: pointer; }
 .cmd code::before { content: "$ "; color: var(--accent); }
 .cmd button { font: inherit; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--fg-dim); background: transparent; border: 0; border-left: var(--border-w) solid var(--line-strong); padding: 0 var(--space-4); cursor: pointer; }

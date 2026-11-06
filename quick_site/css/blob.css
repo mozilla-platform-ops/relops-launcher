@@ -7,7 +7,7 @@
    Round balls only: no conic or striped geometry (it reads as a star).
    Pure CSS; uses @property so positions animate smoothly (browsers without
    it show a static, still-good blob).
-   Wrap in .blob; it is aria-hidden and never carries content.
+   Wrap in .blob; decorative layers are hidden from assistive technology.
    ========================================================================== */
 
 @property --p1x { syntax: "<percentage>"; inherits: true; initial-value: 51%; }
@@ -40,6 +40,16 @@
   pointer-events: none;
   animation: blob-drift 34s ease-in-out infinite;
   filter: drop-shadow(0 2rem 3rem hsl(var(--comp-h) 100% 55% / 0.22));
+}
+
+.blob[data-cycle-accent] {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 /* Silhouette: clips everything inside. With JS the outline is driven live
