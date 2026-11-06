@@ -74,19 +74,24 @@
       <p class="prose">Launcher options go before the script path. Arguments after it go to the tool.</p>
       <div class="grid grid--2 usage-examples">
         <div class="usage-example">
-          <h3 class="label">Try a tool from a personal branch</h3>
-          <div class="cmd cmd--wrap"><code id="usage-fork">relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py --help</code><button type="button" data-copy="#usage-fork">copy</button></div>
-          <p class="prose">Runs the replay tool's help from the pushed branch in aerickson's fork.</p>
-        </div>
-        <div class="usage-example">
           <h3 class="label">Run an organization tool</h3>
           <div class="cmd"><code id="usage-org">relops REPO/path/to/tool.py --help</code><button type="button" data-copy="#usage-org">copy</button></div>
           <p class="prose">Replace <code>REPO/path/to/tool.py</code> with your script. The default owner is <code>mozilla-platform-ops</code>.</p>
         </div>
         <div class="usage-example">
+          <h3 class="label">Run from a personal fork</h3>
+          <div class="cmd cmd--wrap"><code id="usage-fork">relops --owner YOUR_USERNAME --ref my-feature REPO/path/to/tool.py --help</code><button type="button" data-copy="#usage-fork">copy</button></div>
+          <p class="prose">Replace the owner, branch, and script path with your fork's details.</p>
+        </div>
+        <div class="usage-example">
           <h3 class="label">Share your pushed branch</h3>
           <div class="cmd cmd--wrap"><code id="usage-branch">relops --ref my-feature REPO/path/to/tool.py</code><button type="button" data-copy="#usage-branch">copy</button></div>
           <p class="prose">Replace the branch and script path, then send the command to a coworker.</p>
+        </div>
+        <div class="usage-example">
+          <h3 class="label">Pass a local file to a tool</h3>
+          <div class="cmd cmd--wrap"><code id="usage-file">relops REPO/path/to/tool.py ./hosts.csv</code><button type="button" data-copy="#usage-file">copy</button></div>
+          <p class="prose">Use a tool that accepts a file argument. <code>./hosts.csv</code> resolves from your current directory.</p>
         </div>
         <div class="usage-example">
           <h3 class="label">Run from the repository root</h3>
