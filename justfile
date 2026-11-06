@@ -119,10 +119,14 @@ site-from-release:
     node --check {{ quote(retained_release + "/site/js/main.js") }}
     RELOPS_SITE_DIR={{ quote(retained_release + "/site") }} node --test quick_site/tests/downloads.test.cjs
 
-# Publish site changes using retained release binaries; no signing or downloading.
-publish-site: site-from-release
+# Check live tools and publish site changes using retained release binaries.
+publish-site: check-tools site-from-release
     CLOUDSDK_CORE_ACCOUNT={{ quote(quick_account) }} quick deploy {{ quote(retained_release + "/site") }} relops-launcher
 
 # Sign, notarize, test the bundle, then publish it using the Mozilla account.
-publish: signed-site
+publish: check-tools signed-site
     CLOUDSDK_CORE_ACCOUNT={{ quote(quick_account) }} quick deploy dist/site relops-launcher
+
+# Check live catalog refs and paths using GitHub SSH access; never runs tools.
+check-tools:
+    {{ quote(go) }} run ./cmd/relops-site --check-tools

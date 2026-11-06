@@ -18,12 +18,10 @@ type tool struct {
 
 func (t tool) ChannelLabel() string {
 	switch t.Channel {
-	case "mainline":
-		return "Mainline"
 	case "preview":
 		return "Preview"
 	case "release":
-		return "Release · " + t.Ref
+		return t.Ref
 	}
 	return ""
 }
@@ -50,28 +48,36 @@ func (t tool) Command() string {
 	return strings.Join(words, " ")
 }
 
-func renderTools(path string) (string, error) {
+func readTools(path string) ([]tool, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	var catalog struct{ Tools []tool }
 	if err := json.Unmarshal(data, &catalog); err != nil {
-		return "", fmt.Errorf("parse tools catalog: %w", err)
+		return nil, fmt.Errorf("parse tools catalog: %w", err)
 	}
 	for _, t := range catalog.Tools {
-		if t.ChannelLabel() == "" {
-			return "", fmt.Errorf("tool %q: channel must be mainline, preview, or release", t.ID)
+		if t.Channel != "mainline" && t.Channel != "preview" && t.Channel != "release" {
+			return nil, fmt.Errorf("tool %q: channel must be mainline, preview, or release", t.ID)
 		}
 		if (t.Channel == "release" || t.Channel == "preview") && t.Ref == "" {
-			return "", fmt.Errorf("tool %q: %s channel requires an explicit ref", t.ID, t.Channel)
+			return nil, fmt.Errorf("tool %q: %s channel requires an explicit ref", t.ID, t.Channel)
 		}
+	}
+	return catalog.Tools, nil
+}
+
+func renderTools(path string) (string, error) {
+	entries, err := readTools(path)
+	if err != nil {
+		return "", err
 	}
 	tmpl, err := template.New("tools").Parse(`{{range .Tools}}
         <li class="tool-row">
           <div class="tool-row__heading">
             <h3>{{.Name}}</h3>
-            <span class="badge">{{.ChannelLabel}}</span>
+            {{if .ChannelLabel}}<span class="badge">{{.ChannelLabel}}</span>{{end}}
             <a href="{{.Documentation}}" aria-label="{{.Name}} documentation">docs ↗</a>
           </div>
           <p class="prose">{{.Description}}</p>
@@ -83,7 +89,7 @@ func renderTools(path string) (string, error) {
 		return "", err
 	}
 	var out bytes.Buffer
-	if err := tmpl.Execute(&out, catalog); err != nil {
+	if err := tmpl.Execute(&out, struct{ Tools []tool }{entries}); err != nil {
 		return "", err
 	}
 	return out.String(), nil
