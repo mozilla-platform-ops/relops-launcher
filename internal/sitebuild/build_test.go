@@ -83,7 +83,7 @@ func TestBundleDownloadsInventoryAndLinks(t *testing.T) {
 		t.Fatal("unrendered or stale release information")
 	}
 	for _, command := range []string{
-		"relops --ref 20261105-more_tool_development android-tools/worker_health/replay_tc_pool.py -h",
+		"relops --owner aerickson --ref 20261105-more_tool_development android-tools/worker_health/replay_tc_pool.py -h",
 		"relops fleetroll_mvp --help",
 	} {
 		if !strings.Contains(string(page), command) {

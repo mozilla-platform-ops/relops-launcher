@@ -51,6 +51,19 @@ site: release
 serve:
     python3 -m http.server 8080 --bind 127.0.0.1 --directory dist/site
 
+# Rebuild the local preview on source changes (run alongside just serve).
+watch-site:
+    watchexec --poll 1s --shell=none -w quick_site -w internal/sitebuild -w cmd/relops-site -w VERSION -w go.mod -- {{ quote(go) }} run ./cmd/relops-site
+
+# Watch, rebuild, and serve the local preview in one terminal.
+dev:
+    watchexec --poll 1s --restart --shell=none -w quick_site -w internal/sitebuild -w cmd/relops-site -w VERSION -w go.mod -- just _serve-preview
+
+[private]
+_serve-preview:
+    {{ quote(go) }} run ./cmd/relops-site
+    just serve
+
 # Build the site and test download selection and copying (requires Node).
 site-check: site
     node --check dist/site/js/main.js
