@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -21,6 +22,8 @@ type app struct {
 	// Only tests substitute a local remote; production always constructs SSH URLs.
 	remote      func(string, string) string
 	lockTimeout time.Duration
+	// Tests replace HTTP transport; release URLs are fixed in production.
+	httpClient *http.Client
 }
 
 type interrupted struct{ signal syscall.Signal }
@@ -75,6 +78,9 @@ func Main(args []string, version string) int {
 }
 
 func (a *app) run(ctx context.Context, o options) (int, error) {
+	if isReleaseTarget(o) {
+		return a.runRelease(ctx, o)
+	}
 	if _, err := exec.LookPath("git"); err != nil {
 		return 1, errors.New("git is required; install Git and configure GitHub SSH access")
 	}

@@ -12,7 +12,7 @@ import (
 
 const usage = `Usage: relops [options] <repo>[/<path>] [tool-arguments...]
 
-Run a tool from a GitHub repository using existing Git SSH access.
+Run a repository tool using Git SSH access, or a supported release binary via HTTPS.
 Launcher options must precede the target. All following arguments go to the tool.
 
 Options:
@@ -21,18 +21,22 @@ Options:
   --runner VALUE    auto, python3, bash, or sh (default: auto)
   --command VALUE   Select a uv project's console entry point
   --cwd VALUE       repo or caller (default: caller for scripts, project for projects)
-  --offline         Use cached refs and objects; do not access the network
+  --offline         Use cached code or the last resolved release; no network access
   --verbose         Show cache and worktree diagnostics on stderr
   --version         Print launcher version
   --help            Show this help
 
 Examples:
+  relops fleetbench cpu --mode quick --json
   relops --ref my-feature relops-infra/path/to/check.sh --verbose
   relops --cwd caller --runner python3 repo/check.py ./hosts.csv
   relops fleetroll_mvp host-monitor configs/host-lists/linux/all.list
   relops --command fr fleetroll_mvp -h
 
-Online runs fetch before executing. Each run uses a temporary checkout that is
+The bare fleetbench target runs its latest stable GitHub release, verified against
+SHA256SUMS and cached locally. It requires no Git or Rust. Release targets run in
+the caller's directory and reject --ref, --command, --runner, and --cwd repo.
+Other online runs fetch before executing. Each uses a temporary checkout that is
 removed on exit. Save outputs outside that checkout. Tools run with your normal
 permissions; relops is not a sandbox. Auto detects shebangs and Python scripts;
 Python projects with a Pipfile use installed Pipenv to sync locked dependencies.
@@ -118,5 +122,19 @@ func parse(args []string, out io.Writer, version string) (options, bool, error) 
 		return o, false, errors.New("invalid revision")
 	}
 	o.args = fs.Args()[1:]
+	if isReleaseTarget(o) {
+		var invalid string
+		fs.Visit(func(f *flag.Flag) {
+			if f.Name == "ref" || f.Name == "runner" || f.Name == "command" {
+				invalid = "--" + f.Name
+			}
+		})
+		if invalid != "" {
+			return o, false, fmt.Errorf("%s is not supported for release target %s; use the bare target to run the latest stable binary (branch builds are not supported)", invalid, o.repo)
+		}
+		if o.cwd == "repo" {
+			return o, false, errors.New("--cwd repo is not supported for release targets; binaries run in the caller's directory")
+		}
+	}
 	return o, false, nil
 }

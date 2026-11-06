@@ -25,6 +25,7 @@ Examples use illustrative repository and script names.
 ## V1 scope
 
 - Execute an explicit `repo/path` or a uv project at `repo` in `mozilla-platform-ops`, or select another GitHub owner with `--owner`.
+- Execute the bare `fleetbench` target using its latest stable release binary over public HTTPS, without Git or Rust.
 - Resolve the repository's actual default branch, or an explicit branch, tag, or commit.
 - Cache Git objects while giving each invocation a separate writable checkout.
 - Preserve tool arguments, interactive input, output, exit status, and interruption behavior.
@@ -60,7 +61,7 @@ relops --ref my-feature relops-infra/path/to/check.sh ./hosts.csv
 relops --offline --ref my-feature relops-infra/path/to/check.sh
 ```
 
-Syntax: `relops [launcher-options] <repo>[/<path>] [tool-arguments...]`. A repository or directory target runs a uv project's console command; a file target runs a script.
+Syntax: `relops [launcher-options] <repo>[/<path>] [tool-arguments...]`. The bare `fleetbench` target runs a release binary. Other repository or directory targets run a uv project's console command; a file target runs a script.
 
 The first positional argument ends launcher option parsing. Everything after it is passed unchanged to the tool, including `--help`, `--ref`, and `--`. `relops --help` describes the launcher; `relops repo/tool --help` asks the tool for help. Launcher errors exit with status 1 and a diagnostic on stderr; usage errors exit with status 2. Once launched, the tool's exit status is preserved. A signal-terminated tool uses the conventional `128 + signal` status.
 
@@ -79,6 +80,16 @@ Initial options:
 | `--help` | Launcher usage |
 
 Automatic detection honors shebangs, then falls back to Python for `.py` files. It never guesses a shell from `.sh`. Explicit runners override detection, including Pipenv/uv environment selection, for script targets. Project targets require `auto`. No shell command strings.
+
+## Release binary execution
+
+Release targets use explicit definitions; fleetbench is the initial supported repository. Resolve GitHub's `/repos/OWNER/fleetbench/releases/latest` endpoint on every online invocation. Reject drafts, prereleases, and tags outside stable `vMAJOR.MINOR.PATCH`. Select `fleetbench-TAG-macos-aarch64` on macOS arm64 or `fleetbench-TAG-linux-x86_64` on Linux amd64. Unsupported platforms and missing binary/checksum assets stop execution without fallback to another platform or older release. `--owner` supports public forks with the same naming convention; private release authentication is deferred.
+
+Fetch `SHA256SUMS`, require exactly one valid checksum for the selected asset, and verify binaries before execution. Download only absent or corrupt binaries. Store them under `releases/OWNER/REPO/OS-ARCH/TAG/SHA256/ASSET` in the user cache; checksum paths preserve the bytes selected by concurrent invocations even if a tag's asset changes. Serialize preparation per owner/repository/platform, install verified binaries atomically, and update `latest.json` only after successful preparation. Release checksums provide integrity against the published checksum file, not an independent signature. Bound requests and downloads, require HTTPS redirects, and honor cancellation.
+
+`--offline` requires `latest.json` and its verified cached binary and never uses the network. Online failures stop execution, with no automatic cached fallback. Failed updates retain the previous successful resolution for offline use. Cache pruning remains manual.
+
+Release binaries run directly in the caller's directory with inherited environment and IO, unchanged tool arguments, `RELOPS_CALLER_CWD`, and the existing process-group signal/exit handling. Report repository, version, and online/offline resolution on stderr. Reject `--ref`, `--command`, `--runner`, and `--cwd repo`; branch builds and explicit version selection are deferred. `fleetbench/runner` and other paths retain source execution. The following Git/worktree contracts apply to source targets.
 
 ## Revision resolution and updates
 

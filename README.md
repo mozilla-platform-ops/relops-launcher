@@ -8,11 +8,13 @@ relops --ref my-feature relops-infra/path/to/check.sh --verbose
 
 `relops` fetches the repository from `mozilla-platform-ops` by default, resolves the revision to a commit, and runs the script in its own temporary checkout. Use `--owner USER_OR_ORG` for a fork or another GitHub organization. Online runs fetch every time. Git objects are cached per owner/repository; separate invocations never share a writable checkout. The repository and script above are illustrative.
 
+For supported binary tools, relops can instead download and run the latest stable GitHub release. The first supported tool is fleetbench: `relops fleetbench cpu --mode quick --json`. No Git checkout or Rust toolchain is needed for this target.
+
 Published binaries target macOS Apple silicon (arm64) and Linux amd64. It has no Go package dependencies. See [design v1.1](design-v1.1.md) for the contract and release roadmap, or the [original design](../../product-specs/relops-launcher-design.md) for background.
 
 ## Install
 
-Prerequisites: Git with working GitHub SSH access, plus the tool's interpreter. Automatic Python project execution also requires an installed `pipenv` for Pipfile projects or `uv` for locked uv projects. Missing managers produce an installation hint; relops does not install managers or download Python interpreters. Verify access to the actual owner/repository:
+Prerequisites for source targets: Git with working GitHub SSH access, plus the tool's interpreter. Automatic Python project execution also requires an installed `pipenv` for Pipfile projects or `uv` for locked uv projects. Missing managers produce an installation hint; relops does not install managers or download Python interpreters. Release binary targets use public HTTPS downloads instead and need none of those build tools. Verify source access to the actual owner/repository:
 
 ```sh
 git ls-remote git@github.com:mozilla-platform-ops/REPOSITORY.git HEAD
@@ -32,6 +34,10 @@ Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary d
 ## Use
 
 ```sh
+# Latest stable fleetbench release for this machine; options after the target
+# belong to fleetbench, including --mode and --json
+relops fleetbench cpu --mode quick --json
+
 # Default branch, discovered from the remote
 relops repo/path/to/tool.sh --help
 
@@ -69,7 +75,25 @@ Launcher options must precede the repository or script target. Every argument af
 
 The default runner is `auto`. It honors shebangs, including for non-executable files, and falls back to `python3` for `.py` scripts without a shebang. A `.sh` extension alone does not identify a shell. Explicit runners are `python3`, `bash`, and `sh`; they override detection and bypass Pipenv setup. There are no repository setup hooks, submodule initialization, or Git LFS downloads.
 
-Script targets start in the caller's directory unless you pass `--cwd repo`. Project targets start in the project directory by default, so repository-relative inputs such as `configs/host-lists/linux/all.list` work. Explicit `--cwd caller` or `--cwd repo` selects the caller's directory or checkout root for either target type. Relative arguments are not rewritten. `RELOPS_CALLER_CWD` always contains the original absolute directory. Save outputs outside the temporary checkout: the entire checkout, including generated files, is removed when the tool exits.
+Script targets start in the caller's directory unless you pass `--cwd repo`. Project targets start in the project directory by default, so repository-relative inputs such as `configs/host-lists/linux/all.list` work. Explicit `--cwd caller` or `--cwd repo` selects the caller's directory or checkout root for source targets. Relative arguments are not rewritten. `RELOPS_CALLER_CWD` always contains the original absolute directory. Save outputs outside the temporary checkout: the entire checkout, including generated files, is removed when the tool exits.
+
+### Release binaries (fleetbench)
+
+The bare `fleetbench` target selects GitHub's latest published stable release. Online invocations check the release API and its `SHA256SUMS`; binaries are downloaded only when missing or corrupt. The resolved version appears on stderr, and stdout belongs to fleetbench. Downloads and cached binaries must match the published SHA-256 before execution. Checksums verify integrity against the release's checksum file; they are not a separate publisher signature.
+
+Platform selection is automatic: macOS arm64 uses `fleetbench-<tag>-macos-aarch64`, and Linux amd64 uses `fleetbench-<tag>-linux-x86_64`. Unsupported platforms or a latest release missing its matching binary/checksum fail clearly; relops never substitutes a different architecture or an older release.
+
+```sh
+relops fleetbench --version
+relops fleetbench cpu --mode quick --json > result.json
+relops --offline fleetbench --version
+```
+
+Release binaries run in the caller's directory and inherit its environment, arguments, IO, and permissions. They use the same exit-status and signal handling as source tools. `--cwd caller` is allowed; `--cwd repo`, `--ref`, `--runner`, and `--command` are rejected for release targets. Branch builds and explicit release-version selection are deferred. Paths such as `fleetbench/runner` continue to use source execution and support `--ref`.
+
+`--offline` uses the last successfully prepared release for this owner/repository/platform, verifies the cached binary, and makes no network requests. A failed online check or download stops execution; there is no automatic fallback. Failed updates preserve the previous verified release for explicit offline use. Cache installation is locked across concurrent invocations and files are replaced atomically after verification. Old versions remain cached until manually removed.
+
+`--owner` selects another owner's fleetbench repository using the same asset convention. Only public releases are supported: relops does not load GitHub tokens or reuse SSH authentication for HTTPS. GitHub API rate limits can stop online checks; prepared releases remain available with `--offline`. Adding other binary tools requires an explicit launcher definition rather than guessing asset names.
 
 ### Automatic uv projects
 
@@ -104,7 +128,7 @@ For the replay tool, the full command is now:
 
 Run it from whichever directory should hold relative inputs and outputs. No `pipenv run`, `--runner`, or `--cwd` is needed.
 
-The source, requested ref, and full commit SHA appear on stderr before execution; stdout belongs to the tool. Tools inherit your environment, input, output, and permissions. Git child processes ignore inherited Git repository-selection variables so launching from inside another checkout works. Normal user Git configuration, including transport rewrites, remains in effect; checkout hooks are disabled. This is trusted-code execution, not sandboxing.
+For source targets, the source, requested ref, and full commit SHA appear on stderr before execution; stdout belongs to the tool. Tools inherit your environment, input, output, and permissions. Git child processes ignore inherited Git repository-selection variables so launching from inside another checkout works. Normal user Git configuration, including transport rewrites, remains in effect; checkout hooks are disabled. This is trusted-code execution, not sandboxing.
 
 Online fetch failures stop execution; use `--offline` explicitly if you want cached code. Bare names shared by a branch and tag are ambiguous: use `refs/heads/NAME` or `refs/tags/NAME`. Moving branches and tags can execute new code on each run. Use a full commit SHA when you want coworkers to try a particular revision; this does not pin the tool's dependencies.
 
@@ -113,6 +137,8 @@ Tool exit statuses pass through; signal termination returns `128 + signal`. Laun
 ## Cache and recovery
 
 Cache location is the platform's user cache directory plus `relops`: normally `~/Library/Caches/relops` on macOS and `$XDG_CACHE_HOME/relops` (or `~/.cache/relops`) on Linux. It contains shared bare repositories in `repos/OWNER/REPO.git`, repository locks in `locks/OWNER/REPO.lock`, per-invocation directories in `runs/`, and managed environments in `envs/OWNER/REPO/COMMIT/PROJECT_HASH/` (uv uses its `uv-v1/` subdirectory). Cache directories have mode 0700. Older flat repository caches are left untouched and are no longer used; run online once to populate the owner-specific cache before using offline mode.
+
+Release binaries live separately in `releases/OWNER/REPO/OS-ARCH/TAG/SHA256/ASSET`. The platform directory also holds `latest.json` (the last verified release and checksum) and `release.lock`. Release binaries persist after execution; they do not use temporary checkouts. Including the checksum in the path keeps concurrent invocations on the bytes they verified even if an asset is replaced under the same tag.
 
 `--verbose` prints the run's checkout path. Cleanup errors report the retained path. A force kill or machine crash can leave an orphan without an error message; inspect `runs/` when recovering. Only remove an orphan after verifying that no invocation is using it:
 
@@ -150,6 +176,8 @@ For shared macOS downloads, use `just signed-site` or `just publish`, on a Mac w
 All build outputs stay in ignored `bin/` and `dist/` directories; no binaries need committing. The [site README](quick_site/README.md) describes the bundle, source/toolchain metadata, local preview, and later Quick publication. CI tests the launcher on Linux and macOS and uploads a generated site artifact without deploying it.
 
 Integration tests use local Git repositories and temporary caches without accessing GitHub. They exercise owner isolation, ref changes, offline failures, ambiguous refs, concurrent runs, cwd/arguments/IO, runner detection, Pipenv/uv setup/reuse/failure, uv command selection and concurrent initialization, path containment, disabled checkout hooks, and process cleanup. Python runner checks skip if `python3` is unavailable. Normal tests use fake Pipenv/uv processes without accessing a package index; an opt-in `RELOPS_TEST_REAL_PIPENV=1 go test ./internal/launcher -run '^TestRealPipenv$'` checks the installed Pipenv using an empty dependency set.
+
+Release tests use a fake HTTP transport and temporary caches to cover platform mapping, stable-release validation, checksums, updates, corruption repair, offline execution, concurrent installation, cancellation, and tool IO. An opt-in `RELOPS_TEST_REAL_FLEETBENCH=1 go test ./internal/launcher -run '^TestRealFleetbenchRelease$' -v` downloads a real release into a temporary cache and checks online/offline `--version` execution without running a benchmark.
 
 Check terminal input, Ctrl-C, and foreground restoration interactively on each supported OS:
 
