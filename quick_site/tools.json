@@ -1,0 +1,42 @@
+{
+  "tools": [
+    {
+      "id": "replay-tc-pool",
+      "name": "Taskcluster pool replay",
+      "description": "Replay a mix of level-1 jobs into available worker-pool capacity.",
+      "owner": "aerickson",
+      "repo": "android-tools",
+      "path": "worker_health/replay_tc_pool.py",
+      "ref": "022526-tool_tweaks",
+      "args": ["-h"],
+      "channel": "preview",
+      "prerequisites": "Python 3 and Pipenv. Replaying tasks also needs Taskcluster credentials and scopes; see the tool's help.",
+      "documentation": "https://github.com/aerickson/android-tools/blob/022526-tool_tweaks/worker_health/README.md"
+    },
+    {
+      "id": "create-tc-task",
+      "name": "Taskcluster task creator",
+      "description": "Submit test tasks to a worker queue to check workers or run a custom command.",
+      "owner": "mozilla-platform-ops",
+      "repo": "android-tools",
+      "path": "worker_health/create_tc_task.py",
+      "ref": "master",
+      "args": ["--help"],
+      "channel": "mainline",
+      "prerequisites": "Python 3 and Pipenv. Submitting tasks also needs Taskcluster credentials in ~/.tc_token with the required scopes.",
+      "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/create_tc_task.py"
+    },
+    {
+      "id": "fleetroll",
+      "name": "Fleetroll",
+      "description": "Audit and monitor Firefox CI hosts, and manage their Puppet configuration.",
+      "owner": "mozilla-platform-ops",
+      "repo": "fleetroll_mvp",
+      "args": ["--help"],
+      "channel": "mainline",
+      "prerequisites": "Requires a launcher build with uv project support, uv, and Python 3.11+. Host operations also need SSH access and the credentials described in the documentation.",
+      "note": "Requires a launcher build with uv project support.",
+      "documentation": "https://github.com/mozilla-platform-ops/fleetroll_mvp#readme"
+    }
+  ]
+}

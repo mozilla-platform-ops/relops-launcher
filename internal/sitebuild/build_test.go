@@ -23,7 +23,7 @@ func fixture(t *testing.T) (Config, func(string) (metadata, error)) {
 	if err := os.MkdirAll(cfg.Source, 0755); err != nil {
 		t.Fatal(err)
 	}
-	for _, item := range []string{"index.html", "css", "js"} {
+	for _, item := range []string{"index.html", "css", "js", "tools.json"} {
 		if err := copySource(filepath.Join("..", "..", "quick_site", item), filepath.Join(cfg.Source, item)); err != nil {
 			t.Fatal(err)
 		}
@@ -81,6 +81,14 @@ func TestBundleDownloadsInventoryAndLinks(t *testing.T) {
 	}
 	if strings.Contains(string(page), "{{RELOPS_") || strings.Contains(string(page), "releases/latest/download") || !strings.Contains(string(page), "v0.1.0") {
 		t.Fatal("unrendered or stale release information")
+	}
+	for _, command := range []string{
+		"relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py -h",
+		"relops fleetroll_mvp --help",
+	} {
+		if !strings.Contains(string(page), command) {
+			t.Errorf("missing catalog command: %s", command)
+		}
 	}
 	// Download/asset links must all resolve within the assembled site. Hash links
 	// and external URLs/the inline SVG favicon do not refer to deployed files.

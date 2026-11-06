@@ -251,6 +251,7 @@
           <button class="chip" type="button" aria-pressed="true">chip on</button>
           <button class="chip" type="button">chip off</button>
           <span class="tag ok">ok</span><span class="tag warn">warn</span><span class="tag err">err</span>
+          <span class="badge">Mainline</span><span class="badge">Preview</span><span class="badge">Release · v1.2.0</span>
           <kbd>Ctrl</kbd><kbd>C</kbd>
         </div>
         <div class="grid grid--2">
@@ -259,6 +260,13 @@
         </div>
       </div>
 
+      <ul class="tool-list">
+        <li class="tool-row">
+          <div class="tool-row__heading"><h3>Example tool</h3><span class="badge">Preview</span><a href="#system">docs ↗</a></div>
+          <p class="prose">A compact tool entry with a copyable help command.</p>
+          <div class="cmd cmd--wrap"><code id="system-tool">relops REPO/path/to/tool.py --help</code><button type="button" data-copy="#system-tool">copy</button></div>
+        </li>
+      </ul>
       <h3 class="label" style="margin: var(--space-7) 0 var(--space-4)">Voice</h3>
       <ul class="prose" style="padding-left: 1.2em; margin: 0">
         <li>Say what it does. Skip “seamless”, “powerful”, “blazing”.</li>

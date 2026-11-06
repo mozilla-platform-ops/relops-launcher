@@ -6,7 +6,7 @@ From `scripts/relops-launcher`:
 
 ```sh
 just site-check
-python3 -m http.server 8080 --bind 127.0.0.1 --directory dist/site
+just serve
 ```
 
 Open `http://localhost:8080`. `just site-check` requires Node for the download-selector/copy tests; `just site` requires just, Go, Git, and `shasum`. Go release builds use the compiler version recorded in `.go-version` in CI. For local reproduction, use that compiler version too. Override the release version with `just version=0.2.0 site` when needed.
@@ -107,8 +107,15 @@ The repository workflow `.github/workflows/relops-launcher.yml` runs tests on Li
 
 ## Source files
 
+The Tools section is rendered at build time from `tools.json`, so it works without JavaScript; the existing copy buttons enhance it. Each entry supplies an ID, name, description, owner, repository, optional script path/ref, example arguments, channel, prerequisites, and documentation link. Commands are derived from those fields with shell quoting. An omitted ref uses the remote's default branch. Keep examples on help commands and label launcher requirements in prerequisites.
+
+Set `channel` explicitly: `mainline` follows the repository's main branch, `preview` identifies development work, and `release` selects a release tag. Preview and release entries require a `ref`; a release entry's ref must name its release tag. The builder checks the channel and presence of a ref, but does not query GitHub to validate tags or branch names. Mainline is not a stability guarantee. The compact list shows a name, channel badge, docs link, description, and copyable command. Source details are visible in the command; general prerequisites stay in the catalog and linked documentation. Use an optional `note` for a short launcher requirement that needs to remain visible.
+
+This catalog is a prototype for a future manifest, not a supported launcher registry format. The launcher does not read it or resolve tool aliases. Fleetroll's repository-target command requires the uv project support currently in development; the entry states that requirement. Only the rendered entries ship, not the catalog source.
+
 ```text
 index.html          current template: hero install command, browser download/install steps, usage examples, blob
+tools.json          curated tool entries used to generate the Tools section
 future.html         concept site for later releases (terminal demo, contract,
                     roadmap, and the living design system in section 06)
 future2.html        earlier index: overview, install, usage, chrome blob

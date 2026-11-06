@@ -159,6 +159,15 @@ details > summary { cursor: pointer; }
 .usage-detail__content > * { margin: 0; min-width: 0; }
 .usage-detail__content > .prose { max-width: none; }
 .usage-note { font-size: var(--text-sm); }
+.badge { display: inline-block; padding: var(--space-1) var(--space-2); border: var(--border-w) solid var(--line); color: var(--fg); font-size: var(--text-xs); }
+.tool-list { list-style: none; padding: 0; }
+.tool-row { display: grid; gap: var(--space-2); padding: var(--space-4) 0; min-width: 0; }
+.tool-row + .tool-row { border-top: var(--border-w) solid var(--line); }
+.tool-row > * { margin: 0; min-width: 0; }
+.tool-row > .prose { max-width: none; font-size: var(--text-sm); }
+.tool-row__heading { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+.tool-row__heading h3 { margin: 0; font-size: var(--text-md); font-weight: 500; }
+.tool-row__heading a { font-size: var(--text-xs); color: var(--fg-dim); }
 .usage-help { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3) var(--space-5); padding-top: var(--space-5); border-top: var(--border-w) solid var(--line); }
 .usage-help > p { margin: 0; }
 
