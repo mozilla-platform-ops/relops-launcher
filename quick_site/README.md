@@ -72,9 +72,19 @@ RELOPS_NOTARY_PROFILE=your-keychain-profile \
 
 The public release manifest includes the signing identity, Team ID, submission ID, and approved hashes. The Keychain profile's credentials, submission ZIP, and private keys are not included in the website.
 
+After validation, `just signed-site` also retains the two release binaries, notarization receipt, and checksums in gitignored `dist/releases/vVERSION/`. Preview builds can overwrite the top-level `dist/` binaries without touching these retained files. An existing version with different binary bytes is refused; use a new release version. Keep this directory for later site updates. It is local to this checkout and is not a backup shared through Git.
+
 ## Publishing
 
-The site is published at <https://relops-launcher.quick.mozilla.cloud/>. From `scripts/relops-launcher`, sign, notarize, test, and publish with:
+The site is published at <https://relops-launcher.quick.mozilla.cloud/>. For copy, style, or other website changes using the current release:
+
+```sh
+just publish-site
+```
+
+This rebuilds the site from current web sources and retained `dist/releases/vVERSION/` downloads, verifies checksums and the notarization receipt, runs the download/install tests, and deploys `dist/releases/vVERSION/site`. It does not rebuild, sign, notarize, or fetch binaries. `just site-from-release` performs the same preparation and checks without deploying. If the retained release is missing, preparation fails with instructions to run `just signed-site`. To retain already-prepared signed binaries from the top-level `dist/` directory, run `just retain-release`.
+
+For a new binary release, update `VERSION`, commit source, then sign, notarize, test, retain, and publish with:
 
 ```sh
 just publish
@@ -87,7 +97,7 @@ CLOUDSDK_CORE_ACCOUNT=aerickson@mozilla.com \
   quick deploy dist/site relops-launcher
 ```
 
-This invocation was used successfully to publish the site. `CLOUDSDK_CORE_ACCOUNT` selects the publishing account for this command without changing the default gcloud account. Other publishers should substitute their own authenticated Mozilla account. Only `just publish` deploys automatically; build and signing recipes do not. Browser downloads use the staff member's Mozilla SSO session. Unauthenticated terminal downloads redirect to Google IAP sign-in HTML, even when the download command reports success. The site therefore requires a browser download, then supplies a command that verifies the checksum from `~/Downloads`, installs into `~/.local/bin`, sets PATH for the current terminal, and checks the version. Individual steps and persistent shell PATH setup remain in a disclosure. Custom download folders require editing the Downloads path. Launcher self-update is not provided. Quick publishers need its CLI/credentials; people downloading `relops` do not.
+This invocation was used successfully to publish the site. `CLOUDSDK_CORE_ACCOUNT` selects the publishing account for this command without changing the default gcloud account. Other publishers should substitute their own authenticated Mozilla account. Only `just publish` and `just publish-site` deploy automatically; build and signing recipes do not. Browser downloads use the staff member's Mozilla SSO session. Unauthenticated terminal downloads redirect to Google IAP sign-in HTML, even when the download command reports success. The site therefore requires a browser download, then supplies a command that verifies the checksum from `~/Downloads`, installs into `~/.local/bin`, sets PATH for the current terminal, and checks the version. Individual steps and persistent shell PATH setup remain in a disclosure. Custom download folders require editing the Downloads path. Launcher self-update is not provided. Quick publishers need its CLI/credentials; people downloading `relops` do not.
 
 Use normal deployment without `--mirror` to retain older versioned downloads already on Quick. The local bundle and `index.json` describe the current release only. Do not republish different bytes under a previously shared version. If CI later owns deployment, use that workflow consistently rather than alternating manual and CI publishers.
 

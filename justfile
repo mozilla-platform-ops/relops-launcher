@@ -6,6 +6,7 @@ sign_identity := env("RELOPS_SIGN_IDENTITY", "Developer ID Application: Andrew E
 team_id := env("RELOPS_TEAM_ID", "W5BHZ9R8A3")
 notary_profile := env("RELOPS_NOTARY_PROFILE", "relops-notary")
 quick_account := env("RELOPS_QUICK_ACCOUNT", "aerickson@mozilla.com")
+retained_release := "dist/releases/v" + version
 
 # List available recipes.
 default:
@@ -68,6 +69,42 @@ signed-site: notarize-macos
     {{ quote(go) }} run ./cmd/relops-site --version {{ quote(version) }} --require-notarized
     node --check dist/site/js/main.js
     node --test quick_site/tests/downloads.test.cjs
+    just version={{ quote(version) }} retain-release
+
+# Keep verified release bytes separate from preview builds. Never replace a version.
+retain-release:
+    #!/usr/bin/env sh
+    set -eu
+    {{ quote(go) }} run ./cmd/relops-site --version {{ quote(version) }} --require-notarized
+    destination={{ quote(retained_release) }}
+    if [ -d "$destination" ]; then
+        for name in relops-darwin-arm64 relops-linux-amd64; do
+            if ! cmp -s "dist/$name" "$destination/$name"; then
+                echo "Retained release differs: $destination/$name; use a new release version." >&2
+                exit 1
+            fi
+        done
+        echo "Retained release already exists: $destination"
+        exit 0
+    fi
+    mkdir -p dist/releases
+    stage=$(mktemp -d dist/releases/.retain-XXXXXX)
+    trap 'rm -rf "$stage"' EXIT
+    cp dist/relops-darwin-arm64 dist/relops-linux-amd64 dist/macos-notarization.json dist/site/downloads/v{{ version }}/SHA256SUMS "$stage/"
+    mv "$stage" "$destination"
+    echo "Retained release: $destination"
+
+# Rebuild and test web assets using retained downloads, without building binaries.
+site-from-release:
+    test -d {{ quote(retained_release) }} || { echo 'No retained release; run just signed-site first.' >&2; exit 1; }
+    cd {{ quote(retained_release) }} && shasum -a 256 -c SHA256SUMS
+    {{ quote(go) }} run ./cmd/relops-site --version {{ quote(version) }} --binaries {{ quote(retained_release) }} --require-notarized
+    node --check {{ quote(retained_release + "/site/js/main.js") }}
+    RELOPS_SITE_DIR={{ quote(retained_release + "/site") }} node --test quick_site/tests/downloads.test.cjs
+
+# Publish site changes using retained release binaries; no signing or downloading.
+publish-site: site-from-release
+    CLOUDSDK_CORE_ACCOUNT={{ quote(quick_account) }} quick deploy {{ quote(retained_release + "/site") }} relops-launcher
 
 # Sign, notarize, test the bundle, then publish it using the Mozilla account.
 publish: signed-site

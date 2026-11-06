@@ -9,7 +9,9 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 
-const site = path.resolve(__dirname, '../../dist/site');
+const site = process.env.RELOPS_SITE_DIR
+  ? path.resolve(process.env.RELOPS_SITE_DIR)
+  : path.resolve(__dirname, '../../dist/site');
 const release = JSON.parse(fs.readFileSync(path.join(site, 'releases.json'), 'utf8'));
 const script = fs.readFileSync(path.join(site, 'js/main.js'), 'utf8');
 
