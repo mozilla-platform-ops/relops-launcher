@@ -32,11 +32,12 @@
       "owner": "mozilla-platform-ops",
       "repo": "relops-infra",
       "path": "moonshot/oneshot_2404_x11_talos.sh",
+      "ref": "20260805-tool_fixing",
       "args": ["229"],
-      "channel": "mainline",
+      "channel": "preview",
       "prerequisites": "Bash and a local relops-infra checkout. Run from its moonshot directory because the script calls ./oneshot_linux.sh. Execution requires the helper's dependencies and host access.",
       "note": "Run from your local relops-infra/moonshot directory; the helper runs from that checkout. Replace 229 with your worker. Dry run by default; add --confirm to execute.",
-      "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/master/moonshot/oneshot_2404_x11_talos.sh"
+      "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_x11_talos.sh"
     },
     {
       "id": "fleetroll",
