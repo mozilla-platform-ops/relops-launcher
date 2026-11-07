@@ -37,7 +37,7 @@ Options:
   --cwd VALUE       repo or caller (default: caller for scripts, project for projects)
   --offline         Use cached code or the last resolved release; no network access
   --refresh         Check the latest release now (still respects rate-limit cooldowns)
-  --verbose         Show cache and worktree diagnostics on stderr
+  -v, --verbose     Show cache and worktree diagnostics on stderr
   --version         Print launcher version
   --help            Show this help
 
@@ -97,6 +97,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 	fs.BoolVar(&o.offline, "offline", false, "offline")
 	fs.BoolVar(&o.refresh, "refresh", false, "refresh release")
 	fs.BoolVar(&o.verbose, "verbose", false, "verbose")
+	fs.BoolVar(&o.verbose, "v", false, "verbose")
 	if mode == "catalog" {
 		fs.BoolVar(&beta, "beta", false, "select beta target")
 		fs.BoolVar(&beta, "b", false, "select beta target")

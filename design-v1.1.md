@@ -105,7 +105,7 @@ V1 favors predictable branch sharing over a TTL policy: every online invocation 
 - A missing ref or failed online fetch is an error. Do not silently execute stale code. Suggest `--offline` when cached execution is possible.
 - `--offline` resolves using the last successfully fetched refs/default-branch metadata and existing objects. Clearly label that resolution as cached.
 
-Each run writes a short provenance line to stderr before starting the tool, including repository, requested ref, full resolved SHA, and whether resolution was offline. Keep stdout exclusively for tool output. This makes the executed SHA available in captured logs without requiring verbose mode. A branch or tag can move; a full SHA identifies the selected code. Neither pins external dependencies or external services.
+Each run writes one compact provenance line to stderr before starting the tool, including its catalog name (or repository/path), readable ref, eight-character commit prefix, and beta/offline markers when applicable. Full repository/ref/SHA provenance and catalog revision/channel are available with `--verbose`. Headers are cyan and occasional setup status is dim on terminals, respecting `NO_COLOR` and `TERM=dumb`; redirected logs remain plain. Setup logs stream in verbose mode and replay on failure otherwise. Keep stdout exclusively for tool output. A branch or tag can move; a full SHA identifies the selected code. Neither pins external dependencies or external services.
 
 V1 never automatically updates the launcher itself. Later registered operational commands should explicitly choose a moving branch or a pinned commit; adding an alias must not obscure that choice.
 

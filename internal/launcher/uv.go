@@ -1,7 +1,6 @@
 package launcher
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -134,7 +133,7 @@ func (a *app) uvCommand(ctx context.Context, o options, c checkout, project stri
 		return nil, "", fmt.Errorf("uv did not install console command %q in %s", name, venv)
 	}
 	if o.verbose {
-		fmt.Fprintf(a.errOut, "relops: uv console command=%s\n", name)
+		a.provenancef("uv console command=%s", name)
 	}
 	return exec.Command(file, o.args...), venv, nil
 }
@@ -182,7 +181,7 @@ func (a *app) uvEnvironment(ctx context.Context, o options, c checkout, project 
 	ready := filepath.Join(base, "ready.json")
 	if data, err := os.ReadFile(ready); err == nil && json.Unmarshal(data, &meta) == nil && meta.Name != "" && executable(python) {
 		if o.verbose {
-			fmt.Fprintf(a.errOut, "relops: reusing uv environment %s\n", venv)
+			a.provenancef("reusing uv environment %s", venv)
 		}
 		return venv, meta, nil
 	}
@@ -199,18 +198,13 @@ func (a *app) uvEnvironment(ctx context.Context, o options, c checkout, project 
 	run := func(program string, args []string, capture bool) ([]byte, error) {
 		cmd := exec.Command(program, args...)
 		cmd.Dir, cmd.Env = project, env
-		var output bytes.Buffer
-		cmd.Stdout, cmd.Stderr = a.errOut, a.errOut
-		if capture {
-			cmd.Stdout = &output
-		}
-		code, err := runTool(ctx, cmd)
+		output, code, err := a.runSetup(ctx, o, cmd, capture)
 		if err != nil || code != 0 {
 			return nil, fmt.Errorf("%s %s failed (status %d): %v; check the lockfile and installed Python version; no tool was executed", filepath.Base(program), args[0], code, err)
 		}
-		return output.Bytes(), nil
+		return output, nil
 	}
-	fmt.Fprintf(a.errOut, "relops: preparing uv runtime dependencies for %s/%s/%s\n", o.owner, o.repo, filepath.ToSlash(rel))
+	a.statusf("preparing environment…")
 	// --locked rejects stale locks rather than silently accepting them as --frozen does.
 	if _, err := run(uv, []string{"sync", "--locked", "--no-default-groups", "--no-dev", "--no-editable", "--no-python-downloads", "--project", project}, false); err != nil {
 		return "", meta, err

@@ -233,7 +233,7 @@ func TestReleaseLegacyAndFutureCacheRefresh(t *testing.T) {
 				t.Fatal(err)
 			}
 			f.tag = "v0.4.7"
-			if code, _, log := f.run("fleetbench"); code != 0 || !strings.Contains(log, "release=v0.4.7") {
+			if code, _, log := f.run("fleetbench"); code != 0 || !strings.Contains(log, "· v0.4.7") {
 				t.Fatalf("refresh: %d %s", code, log)
 			}
 		})

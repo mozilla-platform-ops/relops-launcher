@@ -136,7 +136,7 @@ func TestCLI(t *testing.T) {
 func TestDefaultBranchAndFreshBranchTips(t *testing.T) {
 	f := newFixture(t)
 	old := f.git("rev-parse", "HEAD")
-	code, out, log := f.run("example/tool.sh")
+	code, out, log := f.run("--verbose", "example/tool.sh")
 	if code != 0 || out != "original\n" || !strings.Contains(log, "ref=refs/heads/trunk commit="+old) {
 		t.Fatalf("default branch: %d %q %s", code, out, log)
 	}
@@ -147,7 +147,7 @@ func TestDefaultBranchAndFreshBranchTips(t *testing.T) {
 	f.git("checkout", "-b", "feature/one")
 	f.write("tool.sh", "#!/bin/sh\nprintf 'feature\\n'\n", 0755)
 	sha := f.commit()
-	code, out, log = f.run("--ref", "feature/one", "example/tool.sh")
+	code, out, log = f.run("--verbose", "--ref", "feature/one", "example/tool.sh")
 	if code != 0 || out != "feature\n" || !strings.Contains(log, "commit="+sha) {
 		t.Fatalf("feature branch: %d %q %s", code, out, log)
 	}
@@ -162,7 +162,7 @@ func TestDefaultBranchAndFreshBranchTips(t *testing.T) {
 		t.Fatalf("pinned SHA: %d %q %s", code, out, log)
 	}
 	// The source repository's HEAD is also its advertised default branch.
-	code, out, log = f.run("example/tool.sh")
+	code, out, log = f.run("--verbose", "example/tool.sh")
 	if code != 0 || out != "updated\n" || !strings.Contains(log, "ref=refs/heads/feature/one") {
 		t.Fatalf("default branch changed: %d %q %s", code, out, log)
 	}
@@ -220,7 +220,7 @@ func TestOfflineAndFailedOnlineFetch(t *testing.T) {
 		t.Fatalf("failed fetch silently ran code: %d %q %s", code, out, log)
 	}
 	code, out, log = f.run("--offline", "example/tool.sh")
-	if code != 0 || out != "original\n" || !strings.Contains(log, "offline cached") {
+	if code != 0 || out != "original\n" || !strings.Contains(log, "(cached)") {
 		t.Fatalf("offline reuse: %d %q %s", code, out, log)
 	}
 	code, _, log = f.run("--offline", "--ref", strings.Repeat("a", 40), "example/tool.sh")

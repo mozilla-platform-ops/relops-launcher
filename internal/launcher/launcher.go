@@ -78,8 +78,8 @@ func Main(args []string, version string) int {
 }
 
 func (a *app) run(ctx context.Context, o options) (int, error) {
-	if o.catalogName != "" {
-		fmt.Fprintf(a.errOut, "relops: catalog=%s tool=%s channel=%s\n", o.catalogRevision, o.catalogName, o.catalogChannel)
+	if o.catalogName != "" && o.verbose {
+		a.provenancef("catalog=%s tool=%s channel=%s", o.catalogRevision, o.catalogName, o.catalogChannel)
 	}
 	if isReleaseTarget(o) {
 		return a.runRelease(ctx, o)
@@ -106,7 +106,7 @@ func (a *app) run(ctx context.Context, o options) (int, error) {
 		return 1, err
 	}
 	projectTarget := info.IsDir()
-	fmt.Fprintf(a.errOut, "relops: %s/%s ref=%s commit=%s (%s)\n", o.owner, o.repo, checkout.ref, checkout.sha, resolutionMode(o.offline))
+	a.sourceHeader(o, checkout)
 	var command *exec.Cmd
 	var virtualenv string
 	if projectTarget {
@@ -139,7 +139,7 @@ func (a *app) run(ctx context.Context, o options) (int, error) {
 	}
 	command.Stdin, command.Stdout, command.Stderr = a.in, a.out, a.errOut
 	if o.verbose {
-		fmt.Fprintf(a.errOut, "relops: worktree=%s cwd=%s runner=%s\n", checkout.dir, command.Dir, o.runner)
+		a.provenancef("worktree=%s cwd=%s runner=%s", checkout.dir, command.Dir, o.runner)
 	}
 	return runTool(ctx, command)
 }

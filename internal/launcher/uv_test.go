@@ -102,7 +102,7 @@ func TestUVProjectCacheOfflineCWDAndScripts(t *testing.T) {
 	uvFiles(f)
 	logFile := fakeUV(t, f)
 	code, out, log := f.run("example", "host-monitor", "-h")
-	if code != 0 || !strings.HasPrefix(out, "host-monitor -h\ncwd=") || strings.Contains(out, "setup diagnostics") || !strings.Contains(out, "caller="+f.caller) || !strings.Contains(log, "setup diagnostics") {
+	if code != 0 || !strings.HasPrefix(out, "host-monitor -h\ncwd=") || strings.Contains(out, "setup diagnostics") || !strings.Contains(out, "caller="+f.caller) || strings.Contains(log, "setup diagnostics") || !strings.Contains(log, "preparing environment…") {
 		t.Fatalf("project command: %d %q %s", code, out, log)
 	}
 	lines := strings.Split(out, "\n")

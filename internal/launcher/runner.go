@@ -190,7 +190,7 @@ func (a *app) pipenv(ctx context.Context, o options, c checkout, project string)
 	if _, err := os.Stat(ready); err == nil {
 		if info, err := os.Stat(python); err == nil && info.Mode().IsRegular() && info.Mode()&0111 != 0 {
 			if o.verbose {
-				fmt.Fprintf(a.errOut, "relops: reusing Pipenv environment %s\n", venv)
+				a.provenancef("reusing Pipenv environment %s", venv)
 			}
 			return venv, nil
 		}
@@ -210,12 +210,11 @@ func (a *app) pipenv(ctx context.Context, o options, c checkout, project string)
 	} {
 		env = replaceEnv(env, key, value)
 	}
-	fmt.Fprintf(a.errOut, "relops: preparing Pipenv runtime dependencies for %s/%s/%s\n", o.owner, o.repo, filepath.ToSlash(rel))
+	a.statusf("preparing environment…")
 	for _, args := range [][]string{{"verify"}, {"sync"}} {
 		cmd := exec.Command(pipenv, args...)
 		cmd.Dir, cmd.Env = project, env
-		cmd.Stdout, cmd.Stderr = a.errOut, a.errOut
-		code, err := runTool(ctx, cmd)
+		_, code, err := a.runSetup(ctx, o, cmd, false)
 		if err != nil || code != 0 {
 			return "", fmt.Errorf("pipenv %s failed (status %d): %v; check the lockfile and installed Python version; no tool was executed", args[0], code, err)
 		}

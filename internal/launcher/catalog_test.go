@@ -88,7 +88,7 @@ func TestCatalogExecutionAndOffline(t *testing.T) {
 		{"c", "-b", "replay-tc-pool", "a b", "--beta"},
 	} {
 		code, out, errOut := f.run(args...)
-		if code != 19 || out != "a b\n--beta\n" || !strings.Contains(errOut, "catalog=") || !strings.Contains(errOut, "commit=") {
+		if code != 19 || out != "a b\n--beta\n" || !strings.Contains(errOut, " · ") || strings.Count(errOut, "\n") != 1 || strings.Contains(errOut, "catalog=") {
 			t.Fatalf("launch %v: code=%d out=%q stderr=%s", args, code, out, errOut)
 		}
 	}

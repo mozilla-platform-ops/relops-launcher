@@ -67,14 +67,21 @@ func (a *app) runRelease(ctx context.Context, o options) (int, error) {
 	if o.offline {
 		mode = "offline cached"
 	}
-	fmt.Fprintf(a.errOut, "relops: %s/%s release=%s (%s)\n", o.owner, o.repo, meta.Tag, mode)
+	suffix := ""
+	if o.offline {
+		suffix = " (cached)"
+	}
+	a.provenancef("%s · %s%s", launchName(o), meta.Tag, suffix)
+	if o.verbose {
+		a.provenancef("%s/%s release=%s (%s)", o.owner, o.repo, meta.Tag, mode)
+	}
 	cmd := exec.Command(binary, o.args...)
 	cmd.Dir = a.caller
 	cmd.Env = replaceEnv(os.Environ(), "RELOPS_CALLER_CWD", a.caller)
 	cmd.Env = replaceEnv(cmd.Env, "PWD", a.caller)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = a.in, a.out, a.errOut
 	if o.verbose {
-		fmt.Fprintf(a.errOut, "relops: binary=%s cwd=%s\n", binary, a.caller)
+		a.provenancef("binary=%s cwd=%s", binary, a.caller)
 	}
 	return runTool(ctx, cmd)
 }
@@ -134,7 +141,7 @@ func (a *app) prepareRelease(ctx context.Context, o options) (string, releaseMet
 		if o.offline {
 			return "", meta, fmt.Errorf("cached release is missing or corrupt; run online to repair: %w", err)
 		}
-		fmt.Fprintf(a.errOut, "relops: downloading %s/%s %s\n", o.owner, o.repo, meta.Asset)
+		a.statusf("downloading release…")
 		if err := os.MkdirAll(filepath.Dir(binary), 0700); err != nil {
 			return "", meta, err
 		}

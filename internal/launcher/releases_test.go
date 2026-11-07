@@ -168,7 +168,7 @@ exit 7
 	o, _, _ := parse([]string{"fleetbench", "cpu", "a b", "--help", "--", ""}, &out, "test")
 	code, err := a.run(context.Background(), o)
 	want := "input=hello\n<cpu>\n<a b>\n<--help>\n<-->\n<>\ncwd=" + f.caller + "\ncaller=" + f.caller + "\n"
-	if err != nil || code != 7 || out.String() != want || !strings.Contains(log.String(), "release=v0.4.6") || !strings.Contains(log.String(), "binary stderr") {
+	if err != nil || code != 7 || out.String() != want || !strings.Contains(log.String(), "· v0.4.6") || !strings.Contains(log.String(), "binary stderr") {
 		t.Fatalf("execution: %d %v stdout=%q stderr=%s", code, err, out.String(), log.String())
 	}
 	asset, _ := fleetbenchAsset(f.tag, runtime.GOOS, runtime.GOARCH)
@@ -185,7 +185,7 @@ exit 7
 	}
 	before := f.requests[binaryURL]
 	code, _, logText = f.run("--offline", "fleetbench")
-	if code != 7 || !strings.Contains(logText, "offline cached") || len(f.requests) != count || f.requests[binaryURL] != before {
+	if code != 7 || !strings.Contains(logText, "(cached)") || len(f.requests) != count || f.requests[binaryURL] != before {
 		t.Fatalf("offline reuse: %d %s", code, logText)
 	}
 	// Missing cached releases must not trigger network requests in offline mode.
@@ -208,12 +208,12 @@ func TestReleaseUpdateFailureAndRepair(t *testing.T) {
 		t.Fatalf("bad download: %d %q %s", code, out, log)
 	}
 	code, out, log = f.run("--offline", "fleetbench")
-	if code != 0 || out != "released\n" || !strings.Contains(log, "release=v0.4.6") {
+	if code != 0 || out != "released\n" || !strings.Contains(log, "· v0.4.6") {
 		t.Fatalf("failed update lost last good release: %d %q %s", code, out, log)
 	}
 	f.badBinary = false
 	code, out, log = f.run("--refresh", "fleetbench")
-	if code != 0 || out != "updated\n" || !strings.Contains(log, "release=v0.4.7") {
+	if code != 0 || out != "updated\n" || !strings.Contains(log, "· v0.4.7") {
 		t.Fatalf("update: %d %q %s", code, out, log)
 	}
 	asset, _ := fleetbenchAsset(f.tag, runtime.GOOS, runtime.GOARCH)
@@ -364,7 +364,7 @@ func TestRealFleetbenchRelease(t *testing.T) {
 		return nil, fmt.Errorf("offline network access")
 	})}
 	code, err = a.run(context.Background(), o)
-	if err != nil || code != 0 || !strings.HasPrefix(out.String(), "fleetbench ") || !strings.Contains(log.String(), "offline cached") {
+	if err != nil || code != 0 || !strings.HasPrefix(out.String(), "fleetbench ") || !strings.Contains(log.String(), "(cached)") {
 		t.Fatalf("live offline reuse: %d %v %q %s", code, err, out.String(), log.String())
 	}
 }
