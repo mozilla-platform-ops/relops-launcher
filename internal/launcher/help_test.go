@@ -13,6 +13,7 @@ func TestFocusedHelp(t *testing.T) {
 		args         []string
 		want, absent string
 	}{
+		{nil, "QUICK START", "ENVIRONMENTS"},
 		{[]string{"--help"}, "QUICK START", "ENVIRONMENTS"},
 		{[]string{"c", "--help"}, "CATALOG SELECTION", "--owner OWNER"},
 		{[]string{"catalog", "launch", "--help"}, "RELEASE UPDATES", "--owner OWNER"},
@@ -26,6 +27,16 @@ func TestFocusedHelp(t *testing.T) {
 		text := out.String()
 		if err != nil || !done || !strings.Contains(text, tc.want) || strings.Contains(text, tc.absent) || strings.Contains(text, "\x1b[") || strings.Contains(text, wordmark) {
 			t.Fatalf("help %v: done=%v err=%v output=%q", tc.args, done, err, text)
+		}
+	}
+}
+
+func TestMissingExecutionTarget(t *testing.T) {
+	for _, args := range [][]string{{"c"}, {"catalog", "launch"}, {"repo"}, {"--offline"}, {"--ref", "main"}} {
+		var out bytes.Buffer
+		_, done, err := parse(args, &out, "test")
+		if err == nil || done || out.Len() != 0 {
+			t.Fatalf("missing target %v: done=%v err=%v output=%q", args, done, err, out.String())
 		}
 	}
 }

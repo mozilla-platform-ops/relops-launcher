@@ -108,7 +108,7 @@ func (f *fixture) assertClean() {
 
 func TestCLI(t *testing.T) {
 	for _, args := range [][]string{
-		{}, {"https://github.com/org/repo/file"}, {"-evil/tool"}, {"example/../file"}, {"example//etc/passwd"},
+		{"https://github.com/org/repo/file"}, {"-evil/tool"}, {"example/../file"}, {"example//etc/passwd"},
 		{"example/.git/config"}, {"--runner", "guess", "example/tool"}, {"--cwd", "elsewhere", "example/tool"},
 		{"--ref=-oops", "example/tool"}, {"example/tool\\other"}, {"../file"},
 		{"example/"}, {"--command", "../outside", "example"},

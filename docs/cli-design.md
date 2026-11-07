@@ -46,6 +46,8 @@ Subcommand help, launches, errors, and version output never show the wordmark.
 Root help leads with a one-line purpose and three quick-start actions: find,
 inspect, run. Follow with commands, common options, argument forwarding, and
 pointers to focused help. Avoid repeating every execution detail at the root.
+Running `relops` without arguments shows root help and exits successfully.
+Execution commands and flags that omit a required target remain usage errors.
 
 - `relops catalog --help`: discovery and launch commands.
 - `relops catalog list --help`: listing syntax and channel guidance.
