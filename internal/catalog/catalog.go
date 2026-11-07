@@ -141,7 +141,7 @@ func (t Tool) Select(beta bool) (*Target, string, error) {
 	}
 	if target == nil {
 		if !beta && t.Beta != nil {
-			return nil, channel, fmt.Errorf("tool %q has no default target; launch its beta with relops c -b %s", t.ID, t.ID)
+			return nil, channel, fmt.Errorf("tool %q has no default target; launch its beta with relops run -b %s", t.ID, t.ID)
 		}
 		return nil, channel, fmt.Errorf("tool %q has no %s target", t.ID, channel)
 	}

@@ -47,12 +47,15 @@ Subcommand help, launches, errors, and version output never show the wordmark.
 ## Help hierarchy
 
 Root help leads with a one-line purpose and three quick-start actions: browse
-with `relops c`, read descriptions with `relops catalog`, and show task creator
-options with `relops c ct --help`. Keep this first tool example read-only; do
+with `relops run`, read descriptions with `relops catalog`, and show task creator
+options with `relops run ct --help`. Keep this first tool example read-only; do
 not submit tasks. Follow with commands, common options, argument forwarding, and
 pointers to focused help. Avoid repeating every execution detail at the root.
 Running `relops` without arguments shows root help and exits successfully.
-Bare `relops repo` likewise shows repository help successfully. Bare `relops c`
+Use `run` in help and examples, advertise `r` as its shortcut, and preserve `c`
+and `catalog launch` as compatibility aliases.
+Bare `relops repo` likewise shows repository help successfully. Bare `relops run`
+or `relops r`
 and `relops catalog launch` show one row per tool: its canonical name and aligned
 invocation, using its first alias when available and `-b` for beta targets.
 Use green `TOOLS` and `TOOLS (BETA)` headings, bold foreground names, normal
@@ -62,11 +65,11 @@ remain usage errors. Use `relops catalog` for descriptions and per-tool commands
 `catalog ls`, and `catalog info NAME` as compatibility aliases.
 
 - `relops catalog --help`: discovery quick start, explicit equivalence of
-  `relops c` and `relops catalog launch`, tool aliases, beta selection,
+  `relops run` and `relops r`, tool aliases, beta selection,
   argument forwarding, and launch help links.
 - `relops catalog list --help` / `relops catalog ls --help`: listing syntax and channel guidance.
 - `relops info --help` / `relops catalog info --help`: inspection syntax and an example.
-- `relops c --help` / `relops catalog launch --help`: catalog selection, common
+- `relops run --help` / `relops r --help`: catalog selection, common
   flags, source flags, release updates, examples, and execution rules.
 - `relops repo` / `relops repo --help`: repository introduction and quick start,
   source options, argument forwarding, and a short checkout cleanup note.

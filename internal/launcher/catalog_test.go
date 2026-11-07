@@ -9,6 +9,8 @@ import (
 
 func TestCatalogCLI(t *testing.T) {
 	for _, args := range [][]string{
+		{"run", "fr", "host-monitor", "--beta", "a b", ""},
+		{"r", "fr", "host-monitor", "--beta", "a b", ""},
 		{"c", "fr", "host-monitor", "--beta", "a b", ""},
 		{"catalog", "launch", "fleetroll", "host-monitor", "--beta", "a b", ""},
 	} {
@@ -52,12 +54,38 @@ func TestCatalogCLI(t *testing.T) {
 }
 
 func TestBareCatalogLaunch(t *testing.T) {
-	for _, args := range [][]string{{"c"}, {"catalog", "launch"}} {
+	for _, args := range [][]string{{"run"}, {"r"}, {"c"}, {"catalog", "launch"}} {
 		var out bytes.Buffer
 		_, done, err := parse(args, &out, "test")
 		text := out.String()
-		if err != nil || !done || !strings.Contains(text, "relops c fb") || !strings.Contains(text, "TOOLS (BETA)") || !strings.Contains(text, "relops c -b replay-tc-pool") || strings.Contains(text, "Run host benchmarks") || strings.Contains(text, "relops c --help") {
+		if err != nil || !done || !strings.Contains(text, "relops run fb") || !strings.Contains(text, "TOOLS (BETA)") || !strings.Contains(text, "relops run -b replay-tc-pool") || strings.Contains(text, "Run host benchmarks") || strings.Contains(text, "relops run --help") {
 			t.Fatalf("bare launch %v: done=%v err=%v output=%q", args, done, err, text)
+		}
+	}
+}
+
+func TestRunAliases(t *testing.T) {
+	for _, suffix := range [][]string{
+		{"--offline", "ct", "--ref", "tool-argument", "a b", ""},
+		{"-b", "replay-tc-pool", "--help"},
+		{"--ref", "my-feature", "fr", "--help"},
+		{"fb", "--version"},
+	} {
+		want, _, err := parse(append([]string{"c"}, suffix...), &bytes.Buffer{}, "test")
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, command := range []string{"run", "r"} {
+			got, done, err := parse(append([]string{command}, suffix...), &bytes.Buffer{}, "test")
+			if err != nil || done || !reflect.DeepEqual(got, want) {
+				t.Fatalf("alias %s %v: got=%+v want=%+v done=%v err=%v", command, suffix, got, want, done, err)
+			}
+		}
+	}
+	for _, command := range []string{"run", "r"} {
+		got, done, err := parse([]string{"--offline", command, "ct"}, &bytes.Buffer{}, "test")
+		if err != nil || done || !got.offline || got.catalogName != "create-tc-task" {
+			t.Fatalf("prefixed alias %s: %+v %v %v", command, got, done, err)
 		}
 	}
 }
@@ -110,7 +138,7 @@ func TestCatalogListAlias(t *testing.T) {
 }
 
 func TestExplicitRepositoryEscape(t *testing.T) {
-	for _, target := range []string{"c", "catalog", "info", "repo", "fleetbench"} {
+	for _, target := range []string{"run", "r", "c", "catalog", "info", "repo", "fleetbench"} {
 		o, _, err := parse([]string{"repo", "--ref", "branch", target, "--beta"}, &bytes.Buffer{}, "test")
 		if err != nil || o.repo != target || o.ref != "branch" || o.catalogName != "" || isReleaseTarget(o) || !reflect.DeepEqual(o.args, []string{"--beta"}) {
 			t.Fatalf("escape %s: %+v %v", target, o, err)
@@ -126,6 +154,8 @@ func TestCatalogExecutionAndOffline(t *testing.T) {
 	f.commit()
 	f.git("branch", "20261105-more_tool_development")
 	for _, args := range [][]string{
+		{"run", "ct", "a b", "--beta"},
+		{"r", "ct", "a b", "--beta"},
 		{"c", "create-tc-task", "a b", "--beta"},
 		{"c", "--offline", "create-tc-task", "a b", "--beta"},
 		{"c", "-b", "replay-tc-pool", "a b", "--beta"},

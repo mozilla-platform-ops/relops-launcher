@@ -72,7 +72,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 				err := catalogShort(out)
 				return o, true, err
 			}
-			return o, false, errors.New("expected a catalog tool name; use relops c --help")
+			return o, false, errors.New("expected a catalog tool name; use relops run --help")
 		}
 		if mode == "repo" {
 			return o, false, errors.New("expected <repo> or <repo>/<path>; use relops repo --help")
@@ -83,7 +83,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 		prefix := args[:len(args)-fs.NArg()]
 		rest := fs.Args()[1:]
 		switch fs.Arg(0) {
-		case "c":
+		case "run", "r", "c":
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "catalog")
 		case "repo":
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "repo")

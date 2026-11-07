@@ -40,7 +40,7 @@ func catalogShort(out io.Writer) error {
 			if len(t.Aliases) > 0 {
 				name = t.Aliases[0]
 			}
-			launch := "relops c "
+			launch := "relops run "
 			if beta {
 				launch += "-b "
 			}
@@ -95,7 +95,7 @@ func catalogDisplay(args []string, out io.Writer) error {
 				if len(t.Aliases) > 0 {
 					name = t.Aliases[0]
 				}
-				launch := "relops c "
+				launch := "relops run "
 				if beta {
 					launch += "-b "
 				}
@@ -163,7 +163,7 @@ func catalogDisplay(args []string, out io.Writer) error {
 			field("Prerequisites", target.Prerequisites)
 			field("Docs", target.Documentation)
 			field("Note", target.Note)
-			launch := "relops c "
+			launch := "relops run "
 			if beta {
 				launch += "-b "
 			}

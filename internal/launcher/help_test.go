@@ -16,6 +16,8 @@ func TestFocusedHelp(t *testing.T) {
 		{nil, "QUICK START", "ENVIRONMENTS"},
 		{[]string{"--help"}, "QUICK START", "ENVIRONMENTS"},
 		{[]string{"c", "--help"}, "CATALOG SELECTION", "--owner OWNER"},
+		{[]string{"run", "--help"}, "relops r [options]", "--owner OWNER"},
+		{[]string{"r", "--help"}, "relops run [options]", "--owner OWNER"},
 		{[]string{"catalog", "launch", "--help"}, "RELEASE UPDATES", "--owner OWNER"},
 		{[]string{"repo", "--help"}, "Temporary checkouts are removed on exit.", "ENVIRONMENTS"},
 		{[]string{"repo"}, "QUICK START", "\nEXECUTION\n"},
@@ -34,7 +36,7 @@ func TestFocusedHelp(t *testing.T) {
 }
 
 func TestMissingExecutionTarget(t *testing.T) {
-	for _, args := range [][]string{{"c", "--offline"}, {"c", "-b"}, {"catalog", "launch", "--ref", "main"}, {"repo", "--offline"}, {"repo", "--ref", "main"}, {"--offline"}, {"--ref", "main"}} {
+	for _, args := range [][]string{{"run", "--offline"}, {"r", "-b"}, {"c", "--offline"}, {"c", "-b"}, {"catalog", "launch", "--ref", "main"}, {"repo", "--offline"}, {"repo", "--ref", "main"}, {"--offline"}, {"--ref", "main"}} {
 		var out bytes.Buffer
 		_, done, err := parse(args, &out, "test")
 		if err == nil || done || out.Len() != 0 {
@@ -50,10 +52,10 @@ func TestCatalogReadableDetails(t *testing.T) {
 			t.Fatal(err)
 		}
 		text := out.String()
-		if strings.Contains(text, `=""`) || strings.Contains(text, "\x1b[") || !strings.Contains(text, "Launch: relops c ") {
+		if strings.Contains(text, `=""`) || strings.Contains(text, "\x1b[") || !strings.Contains(text, "Launch: relops run ") {
 			t.Fatal(text)
 		}
-		if name == "replay-tc-pool" && !strings.Contains(text, "Launch: relops c -b replay-tc-pool") {
+		if name == "replay-tc-pool" && !strings.Contains(text, "Launch: relops run -b replay-tc-pool") {
 			t.Fatal(text)
 		}
 		if name == "fleetbench" && (strings.Contains(text, "Runner:") || !strings.Contains(text, "latest stable release")) {
@@ -68,7 +70,7 @@ func TestNarrowHelp(t *testing.T) {
 	if err := writeHelp(&out, "root", "test"); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(out.String(), "  relops c\n    Browse tools and launch commands.") {
+	if !strings.Contains(out.String(), "  relops run\n    Browse tools and launch commands.") {
 		t.Fatal(out.String())
 	}
 }
