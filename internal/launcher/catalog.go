@@ -187,6 +187,7 @@ func catalogDisplay(args []string, out io.Writer) error {
 				field("Directory", cwd)
 			}
 			field("Prerequisites", target.Prerequisites)
+			field("Data files", strings.Join(target.DataFiles, ", "))
 			field("Docs", target.Documentation)
 			field("Note", target.Note)
 			launch := "relops run "

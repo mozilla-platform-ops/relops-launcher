@@ -40,6 +40,7 @@ type Target struct {
 	Cwd           string   `json:"cwd,omitempty"`
 	Args          []string `json:"example_args,omitempty"`
 	Prerequisites string   `json:"prerequisites,omitempty"`
+	DataFiles     []string `json:"data_files,omitempty"`
 	Documentation string   `json:"documentation,omitempty"`
 	Note          string   `json:"note,omitempty"`
 }

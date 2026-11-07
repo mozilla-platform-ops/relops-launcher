@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-07.3",
+  "revision": "2026-11-07.4",
   "tools": [
     {
       "id": "hangar",
@@ -83,7 +83,8 @@
         "owner": "mozilla-platform-ops",
         "repo": "android-tools",
         "path": "worker_health/create_tc_task.py",
-        "prerequisites": "Python 3 and Pipenv. Submitting tasks also needs Taskcluster credentials in ~/.tc_token with the required scopes.",
+        "prerequisites": "Python 3 and Pipenv. Submitting tasks also needs Taskcluster credentials with the required scopes.",
+        "data_files": ["~/.tc_token"],
         "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/create_tc_task.py",
         "example_args": [
           "-q",

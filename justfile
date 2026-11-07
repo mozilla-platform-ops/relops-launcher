@@ -130,3 +130,7 @@ publish: check-tools signed-site
 # Check live catalog refs and paths using GitHub SSH access; never runs tools.
 check-tools:
     {{ quote(go) }} run ./cmd/relops-site --check-tools
+
+# Inspect catalog sources for advisory compatibility and documentation warnings.
+inspect-tools:
+    {{ quote(go) }} run ./cmd/relops-site --inspect-tools

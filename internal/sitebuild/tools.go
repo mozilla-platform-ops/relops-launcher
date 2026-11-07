@@ -12,8 +12,8 @@ import (
 // tool is the website presentation of one catalog target.
 type tool struct {
 	ID, Name, Description, Owner, Repo, Path, Ref string
-	Shortcut, Kind, URL                           string
-	Args, Aliases                                 []string
+	Shortcut, Kind, URL, Cwd                      string
+	Args, Aliases, DataFiles                      []string
 	Channel, Prerequisites, Documentation, Note   string
 }
 
@@ -65,9 +65,9 @@ func readTools(path string) ([]tool, error) {
 			entries = append(entries, tool{
 				ID: id, Shortcut: entry.ID, Name: entry.Name, Description: entry.Description, Aliases: entry.Aliases,
 				Owner: target.Owner, Repo: target.Repo, Path: target.Path, Ref: target.Ref,
-				Kind: target.Kind, URL: target.URL,
+				Kind: target.Kind, URL: target.URL, Cwd: target.Cwd,
 				Args: target.Args, Channel: channel, Prerequisites: target.Prerequisites,
-				Documentation: target.Documentation, Note: target.Note,
+				Documentation: target.Documentation, Note: target.Note, DataFiles: target.DataFiles,
 			})
 		}
 	}

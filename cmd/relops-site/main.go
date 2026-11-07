@@ -18,12 +18,20 @@ func main() {
 		os.Exit(1)
 	}
 	cfg := sitebuild.Config{}
+	inspectTools := flag.Bool("inspect-tools", false, "inspect live catalog sources without executing them")
 	checkTools := flag.Bool("check-tools", false, "check live catalog refs and paths using Git SSH, without building the site")
 	flag.StringVar(&cfg.Source, "source", "quick_site", "site source directory")
 	flag.StringVar(&cfg.Binaries, "binaries", "dist", "directory containing release binaries; output is its site/ subdirectory")
 	flag.StringVar(&cfg.Version, "version", strings.TrimSpace(string(version)), "release version")
 	flag.BoolVar(&cfg.RequireNotarized, "require-notarized", false, "require Apple acceptance matching the exact macOS artifacts")
 	flag.Parse()
+	if *inspectTools {
+		if err := sitebuild.InspectTools(context.Background(), filepath.Join(cfg.Source, "tools.json"), os.Stdout); err != nil {
+			fmt.Fprintln(os.Stderr, "catalog inspection failed:", err)
+			os.Exit(1)
+		}
+		return
+	}
 	if *checkTools {
 		if err := sitebuild.CheckTools(context.Background(), filepath.Join(cfg.Source, "tools.json"), os.Stdout); err != nil {
 			fmt.Fprintln(os.Stderr, "catalog check failed:", err)

@@ -176,3 +176,13 @@ func TestCatalogExecutionAndOffline(t *testing.T) {
 		t.Fatalf("repository escape: %d %q %s", code, out, errOut)
 	}
 }
+
+func TestCatalogInfoShowsDataFiles(t *testing.T) {
+	var out bytes.Buffer
+	if err := catalogDisplay([]string{"info", "create-tc-task"}, &out); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "Data files: ~/.tc_token") {
+		t.Fatalf("missing data file in catalog info: %s", out.String())
+	}
+}

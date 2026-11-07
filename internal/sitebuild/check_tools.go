@@ -64,6 +64,10 @@ func checkTools(ctx context.Context, path string, out io.Writer, remote func(too
 }
 
 func checkTool(ctx context.Context, t tool, remote string) (string, error) {
+	return withCheckedTool(ctx, t, remote, nil)
+}
+
+func withCheckedTool(ctx context.Context, t tool, remote string, inspect func(string, string, string) error) (string, error) {
 	if !catalogRepoName.MatchString(t.Owner) || !catalogRepoName.MatchString(t.Repo) {
 		return "", errors.New("invalid repository owner or name")
 	}
@@ -130,6 +134,11 @@ func checkTool(ctx context.Context, t tool, remote string) (string, error) {
 			if kind, err := git("cat-file", "-t", sha+":"+prefix+file); err != nil || kind != "blob" {
 				return "", fmt.Errorf("project target requires committed %s", file)
 			}
+		}
+	}
+	if inspect != nil {
+		if err := inspect(dir, sha, kind); err != nil {
+			return "", err
 		}
 	}
 	return sha, nil
