@@ -36,18 +36,18 @@
           Run a tool or share what you’re working on. <code class="inline-command">relops</code> runs scripts from <a href="https://github.com/mozilla-platform-ops">mozilla-platform-ops</a> repositories and personal forks.
           Pick a branch, share a command.
         </p>
-        <p class="prose" style="margin-top: var(--space-6)"><span class="accent mark">1.</span> Download relops</p>
+        <p class="prose numbered-label" style="margin-top: var(--space-6)"><span class="accent mark">01</span><span>Download relops</span></p>
         <div class="hero-downloads">
           <a data-os="macos" data-platform="darwin-arm64" download="relops-darwin-arm64" href="downloads/v{{RELOPS_VERSION}}/relops-darwin-arm64">macOS · Apple silicon ↓</a>
           <a data-os="linux" data-platform="linux-amd64" download="relops-linux-amd64" href="downloads/v{{RELOPS_VERSION}}/relops-linux-amd64">Linux · amd64 ↓</a>
         </div>
-        <p class="prose" style="margin-top: var(--space-5)"><span class="accent mark">2.</span> Verify and install</p>
-        <div class="cmd cmd--hero" style="margin-top: var(--space-3); max-width: 40rem; min-width: 0">
+        <p class="prose numbered-label" style="margin-top: var(--space-5)"><span class="accent mark">02</span><span>Verify and install</span></p>
+        <div class="cmd" style="margin-top: var(--space-3); max-width: 40rem; min-width: 0">
           <code id="ex">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '{{RELOPS_SHA_DARWIN_ARM64}}' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code>
           <button type="button" data-copy="#ex">copy</button>
         </div>
-        <p class="prose" style="margin-top: var(--space-5)"><span class="accent mark">3.</span> Try a tool in development</p>
-        <div class="cmd cmd--hero" style="margin-top: var(--space-3); max-width: 40rem; min-width: 0">
+        <p class="prose numbered-label" style="margin-top: var(--space-5)"><span class="accent mark">03</span><span>Try a tool in development</span></p>
+        <div class="cmd" style="margin-top: var(--space-3); max-width: 40rem; min-width: 0">
           <code id="hero-tool">relops --owner aerickson --ref 20261105-more_tool_development android-tools/worker_health/replay_tc_pool.py -h</code>
           <button type="button" data-copy="#hero-tool">copy</button>
         </div>
@@ -71,7 +71,7 @@
 
   <section class="section" id="tools">
     <div class="wrap stack">
-      <p class="label"><b>01</b>tools</p>
+      <p class="label numbered-label"><b class="accent mark">01</b><span>tools</span></p>
       <h2 class="h-section">A few tools to get you started.</h2>
       <p class="prose">Run one of these, or bring your own. This list is just a starting point. <a href="#usage">See how to run any tool with <code class="inline-command">relops</code> →</a></p>
 {{RELOPS_TOOLS}}
@@ -81,7 +81,7 @@
 
   <section class="section" id="usage">
     <div class="wrap stack">
-      <p class="label"><b>02</b>usage</p>
+      <p class="label numbered-label"><b class="accent mark">02</b><span>usage</span></p>
       <h2 class="h-section">Your branch. One command.</h2>
       <p class="prose"><code class="inline-command">relops</code> options go before the script path. Arguments after it go to the tool.</p>
       <div class="grid grid--2 usage-examples">
@@ -147,7 +147,7 @@
   </section>
   <section class="section" id="install">
     <div class="wrap">
-      <p class="label"><b>03</b>manual installation</p>
+      <p class="label numbered-label"><b class="accent mark">03</b><span>manual installation</span></p>
       <h2 class="h-section">Install at your own pace.</h2>
       <p class="prose">Already installed? You're ready to run tools. For individual installation steps, start here. No Go or Quick CLI needed.</p>
       <div class="install-platform">
@@ -160,7 +160,7 @@
       <noscript><p class="prose">Commands below show macOS Apple silicon. For Linux amd64, substitute its filename and checksum from SHA256SUMS and use <code>sha256sum</code> instead of <code>shasum -a 256</code>.</p></noscript>
       <ol class="install-steps">
         <li class="install-step">
-          <h3 class="label"><b>1</b>download</h3>
+          <h3 class="label numbered-label"><span>01</span><span>download</span></h3>
           <div class="install-step__content">
             <div class="table-wrap">
               <table>
@@ -181,7 +181,7 @@
           </div>
         </li>
         <li class="install-step">
-          <h3 class="label"><b>2</b>verify</h3>
+          <h3 class="label numbered-label"><span>02</span><span>verify</span></h3>
           <div class="install-step__content">
             <p class="prose">Check the downloaded file. Continue only when the result says <code>OK</code>.</p>
             <div class="cmd cmd--wrap"><code id="verify">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '{{RELOPS_SHA_DARWIN_ARM64}}' 'relops-darwin-arm64' | shasum -a 256 -c -)</code><button type="button" data-copy="#verify">copy</button></div>
@@ -189,7 +189,7 @@
           </div>
         </li>
         <li class="install-step">
-          <h3 class="label"><b>3</b>install</h3>
+          <h3 class="label numbered-label"><span>03</span><span>install</span></h3>
           <div class="install-step__content">
             <p class="prose">Put the verified file in <code>~/.local/bin</code>.</p>
             <div class="cmd cmd--wrap"><code id="manual-install">mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 "$HOME/Downloads/relops-darwin-arm64" "$HOME/.local/bin/relops"</code><button type="button" data-copy="#manual-install">copy</button></div>
@@ -199,7 +199,7 @@
           </div>
         </li>
         <li class="install-step">
-          <h3 class="label"><b>4</b>ready</h3>
+          <h3 class="label numbered-label"><span>04</span><span>ready</span></h3>
           <div class="install-step__content">
             <p class="prose">You're ready to run tools. Each tool may need its own interpreter, credentials, or other command-line utilities; check its documentation for prerequisites.</p>
             <p class="prose install-note">Python projects with a <code>Pipfile</code> need <code>pipenv</code> on your PATH.</p>

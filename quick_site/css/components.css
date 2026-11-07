@@ -121,7 +121,6 @@ kbd { font-size: var(--text-xs); padding: 1px var(--space-2); background: var(--
 .cmd { display: flex; align-items: stretch; background: var(--bg-sunk); border: var(--border-w) solid var(--line-strong); font-size: var(--text-sm); }
 .cmd code { flex: 1; padding: var(--space-3) var(--space-4); overflow-x: auto; white-space: nowrap; }
 .cmd--wrap code { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
-.cmd--hero { border-left-color: var(--accent-fill); border-left-width: var(--space-1); }
 .hero-downloads { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); font-size: var(--text-sm); }
 details > summary { cursor: pointer; }
 .cmd code::before { content: "$ "; color: var(--accent); }
@@ -271,3 +270,7 @@ a[data-detected]::after { content: " ← you"; color: var(--fg-faint); }
     -webkit-box-decoration-break: clone; box-decoration-break: clone;
   }
 }
+
+/* Numbered labels share a real gap, independent of highlight margins. */
+.numbered-label { display: flex; align-items: baseline; gap: var(--space-2); }
+:root .numbered-label > :first-child { flex-shrink: 0; margin: 0; letter-spacing: normal; font-weight: 400; }
