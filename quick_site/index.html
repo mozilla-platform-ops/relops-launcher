@@ -75,7 +75,7 @@
       <h2 class="h-section">A catalog of tools, ready to run.</h2>
       <p class="prose">Use <code class="inline-command">relops run</code> to list tools and their launch commands. <a href="#usage">Run any tool with <code class="inline-command">relops repo</code> →</a></p>
 {{RELOPS_TOOLS}}
-      <p class="prose">Want a tool added? <a href="mailto:aerickson@mozilla.com">Email aerickson@mozilla.com</a>. Discover tools with <code class="inline-command">relops catalog list</code>, inspect a shortcut with <code class="inline-command">relops catalog info NAME</code>, and launch it with <code class="inline-command">relops c NAME</code>.</p>
+      <p class="prose">Want a tool added? <a href="mailto:aerickson@mozilla.com">Email aerickson@mozilla.com</a>. Discover tools with <code class="inline-command">relops catalog</code>, inspect one with <code class="inline-command">relops info NAME</code>, and launch it with <code class="inline-command">relops run NAME</code>.</p>
     </div>
   </section>
 
@@ -84,6 +84,7 @@
       <p class="label numbered-label"><b class="accent mark">02</b><span>beyond the catalog</span></p>
       <h2 class="h-section">Share your latest tool. Easily.</h2>
       <p class="prose">Run a tool straight from a repository or branch with <code class="inline-command">relops repo</code>.</p>
+      <p class="prose">Place relops options before the repository or script path; arguments after it go to the tool.</p>
       <div class="grid grid--2 usage-examples">
         <div class="usage-example">
           <h3 class="label">Run an organization tool</h3>
@@ -118,9 +119,9 @@
           <summary>Python and runners</summary>
           <div class="usage-detail__content">
             <p class="prose">Usually, just run the script. Relops follows its shebang or detects Python automatically.</p>
-            <p class="prose">For Pipenv projects, install <code>pipenv</code> first. Relops uses the committed <code>Pipfile.lock</code> to prepare and cache runtime dependencies. No outer <code>pipenv run</code> needed.</p>
+            <p class="prose">For Pipenv or uv projects, install <code>pipenv</code> or <code>uv</code> first. Relops uses the committed lockfile to prepare and cache runtime dependencies. No outer environment command is needed.</p>
             <div class="cmd cmd--wrap"><code id="usage-runner">relops repo --runner python3 REPO/path/to/tool.py</code><button type="button" data-copy="#usage-runner">copy</button></div>
-            <p class="prose usage-note">An explicit runner uses your own environment and skips Pipenv setup. You can also choose <code>bash</code> or <code>sh</code>.</p>
+            <p class="prose usage-note">An explicit runner uses your own environment and skips automatic project setup. You can also choose <code>bash</code> or <code>sh</code>.</p>
           </div>
         </details>
         <details class="usage-detail">
@@ -202,7 +203,7 @@
           <h3 class="label numbered-label"><span>04</span><span>ready</span></h3>
           <div class="install-step__content">
             <p class="prose">You're ready to run tools. Each tool may need its own interpreter, credentials, or other command-line utilities; check its documentation for prerequisites.</p>
-            <p class="prose install-note">Python projects with a <code>Pipfile</code> need <code>pipenv</code> on your PATH.</p>
+            <p class="prose install-note">Python projects with a <code>Pipfile</code> need <code>pipenv</code> on your PATH; locked uv projects need <code>uv</code>.</p>
           </div>
         </li>
       </ol>
