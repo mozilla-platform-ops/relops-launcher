@@ -93,7 +93,7 @@ func writeHelp(out io.Writer, mode, version string) error {
 		}
 		fmt.Fprintln(&b)
 		paragraph("RelOps tools. One command.")
-		rows("QUICK START", helpRow{"relops run", "Browse tools and launch commands."}, helpRow{"relops catalog", "Read tool descriptions (alias: c)."}, helpRow{"relops run ct --help", "Show task creator options."})
+		rows("QUICK START", helpRow{"relops run", "Browse tools and launch commands."}, helpRow{"relops catalog", "Read tool descriptions (alias: c)."}, helpRow{"relops run ct", "Run the Taskcluster task creator."})
 		rows("COMMANDS", helpRow{"run", "Browse tools and launch commands (alias: r)."}, helpRow{"run [options] NAME [args...]", "Run a catalog tool (alias: r)."}, helpRow{"catalog", "Read tool descriptions (alias: c)."}, helpRow{"info NAME", "Inspect requirements and targets (alias: i)."}, helpRow{"repo [options] REPO[/PATH] [args...]", "Run from a repository."})
 		rows("COMMON OPTIONS", common...)
 		heading("ARGUMENTS")
