@@ -15,7 +15,7 @@ default:
 # Build the native launcher with the release version.
 build:
     mkdir -p bin
-    CGO_ENABLED=0 {{ quote(go) }} build -trimpath -ldflags {{ quote("-X main.version=" + version) }} -o bin/relops ./cmd/relops
+    CGO_ENABLED=0 {{ quote(go) }} build -trimpath -ldflags {{ quote("-X main.version=relops-launcher-version:" + version + ":end") }} -o bin/relops ./cmd/relops
 
 # Run the Go integration tests.
 test:
@@ -37,7 +37,7 @@ release:
         target_os=${platform%/*}
         target_arch=${platform#*/}
         CGO_ENABLED=0 GOOS="$target_os" GOARCH="$target_arch" {{ quote(go) }} build -trimpath \
-            -ldflags {{ quote("-s -w -X main.version=" + version) }} \
+            -ldflags {{ quote("-s -w -X main.version=relops-launcher-version:" + version + ":end") }} \
             -o "dist/relops-$target_os-$target_arch" ./cmd/relops
     done
     cd dist

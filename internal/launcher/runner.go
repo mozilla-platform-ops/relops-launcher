@@ -137,14 +137,6 @@ func pipenvProject(root, script string) (string, error) {
 }
 
 func (a *app) pipenv(ctx context.Context, o options, c checkout, project string) (string, error) {
-	pipenv, err := exec.LookPath("pipenv")
-	if err != nil {
-		return "", errors.New("this tool uses Pipenv, but pipenv is not on PATH; install Pipenv and retry, or use --runner python3 if you manage dependencies yourself")
-	}
-	pipenv, err = filepath.Abs(pipenv)
-	if err != nil {
-		return "", err
-	}
 	root, err := filepath.EvalSymlinks(c.dir)
 	if err != nil {
 		return "", err
@@ -197,6 +189,14 @@ func (a *app) pipenv(ctx context.Context, o options, c checkout, project string)
 	}
 	if o.offline {
 		return "", errors.New("Pipenv environment is not cached for this commit/project; run once online first")
+	}
+	pipenv, err := exec.LookPath("pipenv")
+	if err != nil {
+		return "", errors.New("this tool uses Pipenv, but pipenv is not on PATH; install Pipenv and retry, or use --runner python3 if you manage dependencies yourself")
+	}
+	pipenv, err = filepath.Abs(pipenv)
+	if err != nil {
+		return "", err
 	}
 	env := os.Environ()
 	for _, key := range []string{"VIRTUAL_ENV", "PIPENV_ACTIVE", "PYTHONHOME", "__PYVENV_LAUNCHER__"} {

@@ -123,6 +123,10 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		marker := []byte("relops-launcher-version:" + cfg.Version + ":end")
+		if !bytes.Contains(data, marker) {
+			return "", fmt.Errorf("%s does not contain the requested launcher version %s; rebuild the release", name, cfg.Version)
+		}
 		// The web commands must resolve to the same entries in the downloaded launcher.
 		// go:embed retains the catalog bytes verbatim in each executable.
 		if !bytes.Contains(data, catalogData) {

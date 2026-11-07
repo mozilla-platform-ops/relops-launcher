@@ -23,7 +23,7 @@ trap 'exit 1' HUP INT TERM
 
 if [ "$mode" = dev ]; then
     (cd "$project_dir" && CGO_ENABLED=0 go build -trimpath \
-        -ldflags "-X main.version=$version" -o "$stage/relops" ./cmd/relops)
+        -ldflags "-X main.version=relops-launcher-version:$version:end" -o "$stage/relops" ./cmd/relops)
 else
     if [ "$(uname -s)" != Darwin ] || [ "$(uname -m)" != arm64 ]; then
         echo 'The notarized release is available for macOS arm64 only; use --dev for a local build.' >&2

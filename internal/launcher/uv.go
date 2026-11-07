@@ -158,14 +158,6 @@ func (a *app) uvEnvironment(ctx context.Context, o options, c checkout, project 
 			return "", meta, fmt.Errorf("automatic uv execution requires committed pyproject.toml and uv.lock in the project directory: %w", err)
 		}
 	}
-	uv, err := exec.LookPath("uv")
-	if err != nil {
-		return "", meta, errors.New("this tool uses uv, but uv is not on PATH; install uv and retry, or use --runner python3 with a script path if you manage dependencies yourself")
-	}
-	uv, err = filepath.Abs(uv)
-	if err != nil {
-		return "", meta, err
-	}
 	projectID := sha256.Sum256([]byte(filepath.ToSlash(rel)))
 	base := filepath.Join(a.cache, "envs", o.owner, o.repo, c.sha, hex.EncodeToString(projectID[:]), "uv-v1")
 	if err := os.MkdirAll(base, 0700); err != nil {
@@ -187,6 +179,14 @@ func (a *app) uvEnvironment(ctx context.Context, o options, c checkout, project 
 	}
 	if o.offline {
 		return "", meta, errors.New("uv environment is not cached for this commit/project; run once online first")
+	}
+	uv, err := exec.LookPath("uv")
+	if err != nil {
+		return "", meta, errors.New("this tool uses uv, but uv is not on PATH; install uv and retry, or use --runner python3 with a script path if you manage dependencies yourself")
+	}
+	uv, err = filepath.Abs(uv)
+	if err != nil {
+		return "", meta, err
 	}
 	env := os.Environ()
 	for _, key := range []string{"VIRTUAL_ENV", "PYTHONHOME", "__PYVENV_LAUNCHER__", "UV_PROJECT", "UV_WORKING_DIR", "UV_ENV_FILE", "UV_FROZEN", "UV_NO_INSTALL_PROJECT", "UV_NO_INSTALL_WORKSPACE", "UV_NO_INSTALL_LOCAL", "UV_NO_INSTALL_PACKAGE"} {

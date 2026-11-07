@@ -119,6 +119,18 @@ func TestUVProjectCacheOfflineCWDAndScripts(t *testing.T) {
 			t.Fatalf("reuse/override: %d %q %s", code, out, log)
 		}
 	}
+	manager := filepath.Join(f.caller, "uv-bin", "uv")
+	if err := os.Rename(manager, manager+"-removed"); err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range [][]string{{"repo", "example"}, {"repo", "--offline", "example"}} {
+		if code, _, log := f.run(args...); code != 0 {
+			t.Fatalf("cached uv without manager: %d %s", code, log)
+		}
+	}
+	if err := os.Rename(manager+"-removed", manager); err != nil {
+		t.Fatal(err)
+	}
 	// Python script targets share the project environment and retain caller cwd.
 	if code, out, log := f.run("repo", "example/tool.py", "script"); code != 0 || out != "script\n" {
 		t.Fatalf("uv script: %d %q %s", code, out, log)

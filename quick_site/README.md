@@ -9,7 +9,7 @@ just site-check
 just serve
 ```
 
-Open `http://localhost:8080`. `just site-check` requires Node for the download-selector/copy tests; `just site` requires just, Go, Git, and `shasum`. Go release builds use the compiler version recorded in `.go-version` in CI. For local reproduction, use that compiler version too. Override the release version with `just version=0.2.0 site` when needed.
+Open `http://localhost:8080`. `just site-check` requires Node for the download-selector/copy tests; `just site` requires just, Go, Git, and `shasum`. Go release builds use the compiler version recorded in `.go-version` in CI. For local reproduction, use that compiler version too. Override the release version with `just version=0.2.1 site` when needed.
 
 For automatic rebuilds and serving in one terminal, stop any existing `just serve` process and run `just dev`. This requires `watchexec` (`brew install watchexec` on macOS). It builds unsigned binaries and the site immediately, then rebuilds and restarts the server when site or launcher sources change; refresh the browser after editing. It checks for changes every second. If you prefer separate terminals, use `just watch-site` alongside `just serve`. These commands update the local preview only; publishing still uses `just publish-site`.
 
@@ -90,7 +90,7 @@ The site is published at <https://relops-launcher.quick.mozilla.cloud/>. For cop
 just publish-site
 ```
 
-This rebuilds the site from current web sources and retained `dist/releases/vVERSION/` downloads, verifies checksums and the notarization receipt, runs the download/install tests, and deploys `dist/releases/vVERSION/site`. It does not rebuild, sign, notarize, or fetch binaries. `just site-from-release` performs the same preparation and checks without deploying. If the retained release is missing, preparation fails with instructions to run `just signed-site`. To retain already-prepared signed binaries from the top-level `dist/` directory, run `just retain-release`.
+This rebuilds the site from current web sources and retained `dist/releases/vVERSION/` downloads, verifies checksums and the notarization receipt, runs the download/install tests, and deploys `dist/releases/vVERSION/site`. It does not rebuild, sign, notarize, or fetch binaries. `just site-from-release` performs the same preparation and checks without deploying. If the retained release is missing, preparation fails with instructions to run `just signed-site`. To retain already-prepared signed binaries from the top-level `dist/` directory, run `just retain-release`. Site assembly checks the version marker in each binary; retained releases before 0.2.1 lack this marker and cannot be assembled by the current builder.
 
 For a new binary release, update `VERSION`, commit source, then sign, notarize, test, retain, and publish with:
 

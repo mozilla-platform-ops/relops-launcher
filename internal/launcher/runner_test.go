@@ -123,6 +123,18 @@ func TestAutoPipenvSetupCacheOfflineAndOverride(t *testing.T) {
 			t.Fatalf("automatic Pipenv: %d %q %s", code, out, log)
 		}
 	}
+	manager := filepath.Join(f.caller, "fake-bin", "pipenv")
+	if err := os.Rename(manager, manager+"-removed"); err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range [][]string{{"repo", "example/nested/tool.py", "hello"}, {"repo", "--offline", "example/nested/tool.py", "hello"}} {
+		if code, _, log := f.run(args...); code != 0 {
+			t.Fatalf("cached Pipenv without manager: %d %s", code, log)
+		}
+	}
+	if err := os.Rename(manager+"-removed", manager); err != nil {
+		t.Fatal(err)
+	}
 	data, err := os.ReadFile(logFile)
 	if err != nil || strings.Count(string(data), "verify|") != 1 || strings.Count(string(data), "sync|") != 1 || strings.Contains(string(data), "|"+filepath.Join(f.source, "Pipfile")) || !strings.Contains(string(data), "/nested/Pipfile") {
 		t.Fatalf("nearest project setup must run once: %q %v", data, err)

@@ -37,7 +37,7 @@ func fixture(t *testing.T) (Config, func(string) (metadata, error)) {
 	}
 	for _, platform := range platforms {
 		name := "relops-" + platform.os + "-" + platform.arch
-		if err := os.WriteFile(filepath.Join(cfg.Binaries, name), append([]byte("artifact "+name+"\n"), catalogData...), 0755); err != nil {
+		if err := os.WriteFile(filepath.Join(cfg.Binaries, name), append([]byte("artifact "+name+" relops-launcher-version:0.1.0:end\n"), catalogData...), 0755); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -213,6 +213,39 @@ func TestBadArtifactsPreservePreviousSite(t *testing.T) {
 	}
 }
 
+func TestRejectMismatchedBinaryVersion(t *testing.T) {
+	cfg, inspect := fixture(t)
+	output, err := build(cfg, inspect)
+	if err != nil {
+		t.Fatal(err)
+	}
+	previous, err := os.ReadFile(filepath.Join(output, "releases.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, platform := range platforms {
+		file := filepath.Join(cfg.Binaries, "relops-"+platform.os+"-"+platform.arch)
+		original, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		wrong := strings.Replace(string(original), "relops-launcher-version:0.1.0:end", "relops-launcher-version:0.2.0:end", 1)
+		if err := os.WriteFile(file, []byte(wrong), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := build(cfg, inspect); err == nil || !strings.Contains(err.Error(), "requested launcher version") {
+			t.Fatalf("accepted wrong version for %s: %v", file, err)
+		}
+		after, err := os.ReadFile(filepath.Join(output, "releases.json"))
+		if err != nil || string(after) != string(previous) {
+			t.Fatal("failed build replaced previous site")
+		}
+		if err := os.WriteFile(file, original, 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestRejectUnsafeInputs(t *testing.T) {
 	cfg, inspect := fixture(t)
 	cfg.Version = "../../escape"
@@ -300,7 +333,7 @@ func TestSiteRejectsMissingOrDifferentEmbeddedCatalog(t *testing.T) {
 				t.Fatal(err)
 			}
 		} else {
-			if err := os.WriteFile(filepath.Join(cfg.Binaries, "relops-darwin-arm64"), []byte("old launcher without a catalog"), 0755); err != nil {
+			if err := os.WriteFile(filepath.Join(cfg.Binaries, "relops-darwin-arm64"), []byte("relops-launcher-version:0.1.0:end old launcher without a catalog"), 0755); err != nil {
 				t.Fatal(err)
 			}
 		}
