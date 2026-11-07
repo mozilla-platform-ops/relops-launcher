@@ -33,7 +33,7 @@ func (e interrupted) Error() string { return e.signal.String() }
 func Main(args []string, version string) int {
 	o, done, err := parse(args, os.Stdout, version)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "relops:", err)
+		writeError(os.Stderr, err)
 		return 2
 	}
 	if done {
@@ -41,12 +41,12 @@ func Main(args []string, version string) int {
 	}
 	cache, err := os.UserCacheDir()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "relops: locate user cache:", err)
+		writeError(os.Stderr, fmt.Errorf("locate user cache: %w", err))
 		return 1
 	}
 	caller, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "relops: locate caller directory:", err)
+		writeError(os.Stderr, fmt.Errorf("locate caller directory: %w", err))
 		return 1
 	}
 	a := app{
@@ -69,7 +69,7 @@ func Main(args []string, version string) int {
 	}()
 	code, err := a.run(ctx, o)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "relops:", err)
+		writeError(os.Stderr, err)
 	}
 	if cause, ok := context.Cause(ctx).(interrupted); ok {
 		return 128 + int(cause.signal)

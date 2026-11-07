@@ -2,30 +2,25 @@ package launcher
 
 import (
 	"fmt"
-	"os"
 	"strings"
-	"syscall"
 )
 
 // Color launcher diagnostics, leaving tool streams and redirected logs alone.
 func (a *app) provenancef(format string, args ...any) {
-	a.styledLine("36", format, args...)
+	a.styledLine(styleProvenance, format, args...)
 }
 
 func (a *app) statusf(format string, args ...any) {
-	a.styledLine("2", format, args...)
+	a.styledLine(styleMetadata, format, args...)
 }
 
 func (a *app) styledLine(style, format string, args ...any) {
 	line := fmt.Sprintf("relops: "+format, args...)
-	if file, ok := a.errOut.(*os.File); ok && os.Getenv("NO_COLOR") == "" && os.Getenv("TERM") != "dumb" {
-		var group int32
-		if terminalGroup(file, syscall.TIOCGPGRP, &group) == nil {
-			fmt.Fprintf(a.errOut, "\x1b[%sm%s\x1b[0m\n", style, line)
-			return
-		}
+	p := terminalPalette(a.errOut)
+	if p.enabled {
+		line = strings.ReplaceAll(line, "(beta)", "\x1b["+styleBeta+"m(beta)\x1b["+style+"m")
 	}
-	fmt.Fprintln(a.errOut, line)
+	fmt.Fprintln(a.errOut, p.text(style, line))
 }
 
 func launchName(o options) string {

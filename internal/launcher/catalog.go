@@ -13,31 +13,31 @@ func catalogDisplay(args []string, out io.Writer) error {
 	if err != nil {
 		return err
 	}
+	p := terminalPalette(out)
+	var b strings.Builder
 	switch args[0] {
 	case "list":
 		if len(args) != 1 {
 			return fmt.Errorf("usage: relops catalog list")
 		}
-		if _, err := fmt.Fprintf(out, "Bundled catalog %s\n", c.Revision); err != nil {
-			return err
-		}
+		fmt.Fprintln(&b, p.text(styleHeading, "TOOLS"))
 		for _, t := range c.Tools {
-			names := t.ID
+			names := p.text(styleCommand, t.ID)
 			if len(t.Aliases) > 0 {
-				names += " (" + strings.Join(t.Aliases, ", ") + ")"
+				names += " " + p.text(styleMetadata, "("+strings.Join(t.Aliases, ", ")+")")
 			}
 			channels := []string{}
 			if t.Default != nil {
 				channels = append(channels, "default")
 			}
 			if t.Beta != nil {
-				channels = append(channels, "beta")
+				channels = append(channels, p.text(styleBeta, "beta"))
 			}
-			if _, err := fmt.Fprintf(out, "%s [%s]\n  %s\n", names, strings.Join(channels, ", "), t.Description); err != nil {
-				return err
-			}
+			fmt.Fprintf(&b, "  %s [%s]\n", names, strings.Join(channels, ", "))
+			writeWrapped(&b, t.Description, "    ", terminalWidth(out))
 		}
-		return nil
+		fmt.Fprintln(&b, "\nRun: relops c NAME [args...]\nBeta-only tools require -b: relops c -b NAME [args...]\nDetails: relops catalog info NAME")
+		fmt.Fprintln(&b, p.text(styleMetadata, "\nBundled catalog "+c.Revision))
 	case "info":
 		if len(args) != 2 {
 			return fmt.Errorf("usage: relops catalog info NAME")
@@ -46,30 +46,86 @@ func catalogDisplay(args []string, out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintf(out, "%s — %s\n%s\nAliases: %s\nBundled catalog: %s\n", t.ID, t.Name, t.Description, strings.Join(t.Aliases, ", "), c.Revision); err != nil {
-			return err
+		fmt.Fprintf(&b, "%s — %s\n", p.text(styleHeading, t.ID), t.Name)
+		writeWrapped(&b, t.Description, "", terminalWidth(out))
+		if len(t.Aliases) > 0 {
+			fmt.Fprintln(&b, "Aliases: "+strings.Join(t.Aliases, ", "))
 		}
 		for _, beta := range []bool{false, true} {
 			target, channel, err := t.Select(beta)
 			if err != nil {
 				continue
 			}
-			ref := target.Ref
-			if ref == "" {
-				ref = "remote default branch"
+			style := styleHeading
+			if beta {
+				style = styleBeta
 			}
+			fmt.Fprintf(&b, "\n%s\n", p.text(style, strings.ToUpper(channel)))
+			field := func(label, value string) {
+				if value != "" {
+					writeWrapped(&b, label+": "+value, "  ", terminalWidth(out))
+				}
+			}
+			field("Source", target.Owner+"/"+target.Repo)
 			if target.Kind == "release" {
-				ref = "latest stable release"
+				field("Version", "latest stable release (verified checksum)")
+				field("Directory", "caller")
+			} else {
+				ref := target.Ref
+				if ref == "" {
+					ref = "remote default branch"
+				}
+				field("Revision", ref)
+				field("Path", target.Path)
+				command := target.Command
+				if command == "" && target.Path == "" {
+					command = "automatic console entry-point selection"
+				}
+				field("Command", command)
+				runner := target.Runner
+				if runner == "" {
+					runner = "auto"
+				}
+				field("Runner", runner)
+				cwd := target.Cwd
+				if cwd == "" {
+					cwd = "automatic: caller for scripts, project directory for projects"
+				}
+				field("Directory", cwd)
 			}
-			if _, err := fmt.Fprintf(out, "\n%s: %s %s/%s path=%q ref=%s\n", channel, target.Kind, target.Owner, target.Repo, target.Path, ref); err != nil {
-				return err
+			field("Prerequisites", target.Prerequisites)
+			field("Docs", target.Documentation)
+			field("Note", target.Note)
+			launch := "relops c "
+			if beta {
+				launch += "-b "
 			}
-			if _, err := fmt.Fprintf(out, "  command=%q runner=%q cwd=%q\n  Prerequisites: %s\n  Docs: %s\n  %s\n", target.Command, target.Runner, target.Cwd, target.Prerequisites, target.Documentation, target.Note); err != nil {
-				return err
-			}
+			launch += t.ID
+			fmt.Fprintf(&b, "  Launch: %s [args...]\n", p.text(styleCommand, launch))
 		}
-		return nil
+		fmt.Fprintln(&b, p.text(styleMetadata, "\nBundled catalog "+c.Revision))
 	default:
 		return fmt.Errorf("unknown catalog command %q; use list, info, or launch", args[0])
 	}
+	_, err = io.WriteString(out, b.String())
+	return err
+}
+
+// Keep URLs and identifiers intact; wrap prose at word boundaries.
+func writeWrapped(out io.Writer, text, indent string, width int) {
+	if width <= 0 {
+		width = 80
+	}
+	line := indent
+	for _, word := range strings.Fields(text) {
+		if line != indent && len(line)+1+len(word) > width {
+			fmt.Fprintln(out, line)
+			line = indent
+		}
+		if line != indent {
+			line += " "
+		}
+		line += word
+	}
+	fmt.Fprintln(out, line)
 }

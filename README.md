@@ -47,7 +47,7 @@ relops c fleetbench --version              # latest stable release binary
 
 Each entry has a unique shortcut ID and optional aliases, plus a default target, beta target, or both. Owners designate each target independently, including its GitHub owner, repository, path, and optional ref, console command, runner, and working directory. An omitted source ref follows the remote's default branch. Beta is a designated preview, not necessarily branch HEAD. Missing channels fail clearly; beta-only tools require `-b`. There is no fallback between channels. Launch diagnostics show the canonical shortcut, channel, catalog revision, and resolved source commit or release version.
 
-Normal launches show one compact header, such as `relops: fleetroll · main@24f451fe`, in cyan. Beta selections show `(beta)` and offline runs show `(cached)`. Environment setup adds a dim `relops: preparing environment…` line only when needed. Successful dependency setup output is hidden; failures show diagnostics. Use `-v` or `--verbose` for the catalog revision, full repository/ref/commit provenance, and live setup logs. Launcher verbose diagnostics are cyan too; dependency and tool output retain their own formatting. Set `NO_COLOR=1` to disable styling; `TERM=dumb` and redirected stderr also produce plain text.
+Normal launches show one compact header, such as `relops: fleetroll · main@24f451fe`, in green. Beta selections show `(beta)` and offline runs show `(cached)`. Environment setup adds a dim `relops: preparing environment…` line only when needed. Successful dependency setup output is hidden; failures show diagnostics. Use `-v` or `--verbose` for the catalog revision, full repository/ref/commit provenance, and live setup logs. Launcher verbose diagnostics are green too; dependency and tool output retain their own formatting. Set `NO_COLOR=1` to disable styling; `TERM=dumb` and redirected stderr also produce plain text.
 
 Launcher options go before the shortcut; all subsequent arguments belong to the tool. Website `example_args` are documentation only and are never injected into a launch. `--ref` can override the default source target but cannot be combined with `-b`/`--beta`. Catalog launches reject `--owner`; use repository execution for arbitrary forks. Release targets retain their existing option restrictions. `--command`, `--runner`, and `--cwd` override configured source defaults.
 
@@ -189,6 +189,12 @@ rmdir /CACHE/relops/runs/OWNER-REPO-ID
 ```
 
 Lock files persist intentionally; the OS releases their locks when the process exits. Do not delete a lock file to unblock a running invocation. A lock wait times out after 30 seconds with a retry diagnostic. Cache inspection/pruning commands are deferred.
+
+## CLI presentation
+
+Help, catalog discovery, and launcher diagnostics share a small ANSI palette.
+See [CLI design and color system](docs/cli-design.md) for color roles, terminal
+behavior, help structure, and the small-slant root-help ASCII wordmark.
 
 ## Development and validation
 

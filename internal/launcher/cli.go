@@ -12,58 +12,6 @@ import (
 	"github.com/mozilla-platform-ops/relops-launcher/internal/catalog"
 )
 
-const usage = `Usage:
-  relops catalog list
-  relops catalog info NAME
-  relops catalog launch [options] NAME [tool-arguments...]
-  relops c [options] NAME [tool-arguments...]
-  relops repo [options] <repo>[/<path>] [tool-arguments...]
-  relops [options] <repo>[/<path>] [tool-arguments...]
-
-c is shorthand for catalog launch. Catalog names and aliases share one namespace.
-Use -b or --beta before a catalog name to select its configured beta target.
-The bundled catalog works without a catalog download. Example arguments from the
-website are never added to a launch. Use repo to escape reserved command names.
-
-Run a repository tool using Git SSH access, or a supported release binary via HTTPS.
-Launcher options must precede the target. All following arguments go to the tool.
-
-Options:
-  -b, --beta        Select a catalog tool's beta target (catalog launches only)
-  --owner VALUE     GitHub user or organization (default: mozilla-platform-ops)
-  --ref VALUE       Pushed branch, tag, or full commit SHA (default: default branch)
-  --runner VALUE    auto, python3, bash, or sh (default: auto)
-  --command VALUE   Select a uv project's console entry point
-  --cwd VALUE       repo or caller (default: caller for scripts, project for projects)
-  --offline         Use cached code or the last resolved release; no network access
-  --refresh         Check the latest release now (still respects rate-limit cooldowns)
-  -v, --verbose     Show cache and worktree diagnostics on stderr
-  --version         Print launcher version
-  --help            Show this help
-
-Examples:
-  relops c fr --help
-  relops c -b replay-tc-pool -h
-  relops repo c/path/to/tool.sh --help
-  relops fleetbench cpu --mode quick --json
-  relops --ref my-feature relops-infra/path/to/check.sh --verbose
-  relops --cwd caller --runner python3 repo/check.py ./hosts.csv
-  relops fleetroll_mvp host-monitor configs/host-lists/linux/all.list
-  relops --command fr fleetroll_mvp -h
-
-The bare fleetbench target runs its latest stable GitHub release, verified against
-SHA256SUMS and cached locally. It requires no Git or Rust. Release targets run in
-the caller's directory and reject --ref, --command, --runner, and --cwd repo.
-Other online runs fetch before executing. Each uses a temporary checkout that is
-removed on exit. Save outputs outside that checkout. Tools run with your normal
-permissions; relops is not a sandbox. Auto detects shebangs and Python scripts;
-Python projects with a Pipfile use installed Pipenv to sync locked dependencies.
-Projects with pyproject.toml and uv.lock use installed uv. A repository or project
-directory target runs its console entry point matching the project name, or its
-sole distinct entry point. Use --command when selection is ambiguous.
-An explicit --runner bypasses project-environment detection.
-`
-
 const defaultOwner = "mozilla-platform-ops"
 
 type options struct {
@@ -105,7 +53,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 	showVersion := fs.Bool("version", false, "version")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
-			_, err = io.WriteString(out, usage)
+			err = writeHelp(out, mode, version)
 			return o, true, err
 		}
 		return o, false, err
@@ -127,7 +75,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "repo")
 		case "catalog":
 			if len(rest) == 0 || rest[0] == "--help" || rest[0] == "-h" {
-				_, err := io.WriteString(out, usage)
+				err := writeHelp(out, "catalog-index", version)
 				return o, true, err
 			}
 			if rest[0] == "launch" {
@@ -135,6 +83,10 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 			}
 			if len(prefix) != 0 {
 				return o, false, errors.New("launcher options only apply to catalog launch")
+			}
+			if (rest[0] == "list" || rest[0] == "info") && len(rest) == 2 && (rest[1] == "--help" || rest[1] == "-h") {
+				err := writeHelp(out, "catalog-"+rest[0], version)
+				return o, true, err
 			}
 			err := catalogDisplay(rest, out)
 			return o, err == nil, err

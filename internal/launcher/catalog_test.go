@@ -61,7 +61,7 @@ func TestCatalogDiscovery(t *testing.T) {
 	}
 	var out bytes.Buffer
 	_, _, err := parse([]string{"catalog", "info", "replay-tc-pool"}, &out, "test")
-	if err != nil || !strings.Contains(out.String(), "beta: source aerickson/android-tools") || strings.Contains(out.String(), "default: source") {
+	if err != nil || !strings.Contains(out.String(), "BETA\n  Source: aerickson/android-tools") || strings.Contains(out.String(), "DEFAULT\n") {
 		t.Fatalf("beta info: %s %v", out.String(), err)
 	}
 }
