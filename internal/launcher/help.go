@@ -93,8 +93,8 @@ func writeHelp(out io.Writer, mode, version string) error {
 		}
 		fmt.Fprintln(&b)
 		paragraph("RelOps tools. One command.")
-		rows("QUICK START", helpRow{"relops catalog list", "Find a tool."}, helpRow{"relops catalog info fr", "See requirements and details."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
-		rows("COMMANDS", helpRow{"c [options] NAME [args...]", "Run a catalog tool (alias: catalog launch)."}, helpRow{"catalog list", "List available tools (alias: catalog ls)."}, helpRow{"catalog info NAME", "Inspect a tool."}, helpRow{"repo [options] REPO[/PATH] [args...]", "Run from a repository."})
+		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog list", "Read tool descriptions."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
+		rows("COMMANDS", helpRow{"c", "Browse tools and launch commands."}, helpRow{"c [options] NAME [args...]", "Run a catalog tool (alias: catalog launch)."}, helpRow{"catalog list", "Read tool descriptions (alias: catalog ls)."}, helpRow{"catalog info NAME", "Inspect a tool."}, helpRow{"repo [options] REPO[/PATH] [args...]", "Run from a repository."})
 		rows("COMMON OPTIONS", common...)
 		heading("ARGUMENTS")
 		paragraph("  Launcher options go before the target; all later arguments go to the tool.\n  relops c --offline fr --help\n           launcher     tool")
@@ -103,12 +103,12 @@ func writeHelp(out io.Writer, mode, version string) error {
 	case "catalog-index":
 		heading("CATALOG")
 		paragraph("Find a tool, check its requirements, and run it by name or alias.")
-		rows("QUICK START", helpRow{"relops catalog ls", "Find a tool and its aliases."}, helpRow{"relops catalog info fr", "See Fleetroll's requirements and targets."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
+		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog ls", "Read tool descriptions."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
 		heading("RUN A TOOL")
-		paragraph("  relops c is shorthand for relops catalog launch. These are equivalent:")
+		paragraph("  Run relops c without a name to browse available tools.\n  With a name, relops c is shorthand for relops catalog launch:")
 		rows("", helpRow{"relops c fr --help", "Use the short form."}, helpRow{"relops catalog launch fr --help", "Use the full form."})
 		paragraph("  NAME accepts a tool's catalog name or alias: fr = fleetroll, fb = fleetbench.\n  Add -b before NAME for beta tools: relops c -b replay-tc-pool --help")
-		rows("COMMANDS", helpRow{"relops catalog list", "List tools and aliases (alias: ls)."}, helpRow{"relops catalog info NAME", "Inspect requirements and targets."}, helpRow{"relops c [options] NAME [args...]", "Run a tool from the catalog."})
+		rows("COMMANDS", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog list", "List tools and aliases (alias: ls)."}, helpRow{"relops catalog info NAME", "Inspect requirements and targets."}, helpRow{"relops c [options] NAME [args...]", "Run a tool from the catalog."})
 		heading("ARGUMENTS")
 		paragraph("  Launcher options go before NAME; all later arguments go to the tool.\n  relops c --offline fr --help\n           launcher     tool")
 		rows("MORE HELP", helpRow{"relops c --help", "Catalog selection and source/release options."}, helpRow{"relops --help", "All launcher commands."})
@@ -130,7 +130,7 @@ func writeHelp(out io.Writer, mode, version string) error {
 		}
 		heading("USAGE")
 		if mode == "catalog" {
-			paragraph("  relops c [options] NAME [tool-arguments...]\n  relops catalog launch [options] NAME [tool-arguments...]")
+			paragraph("  relops c [options] NAME [tool-arguments...]\n  relops catalog launch [options] NAME [tool-arguments...]\n\nRun without a name to browse available tools.")
 			rows("CATALOG SELECTION", helpRow{"-b, --beta", "Select the configured beta target; cannot combine with --ref."})
 		} else {
 			paragraph("  relops repo [options] REPO[/PATH] [tool-arguments...]\n\nUse repo to select source execution, including repositories named c, catalog,\nrepo, or fleetbench. Git with GitHub SSH access is required.")

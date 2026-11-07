@@ -67,7 +67,7 @@ func TestNarrowHelp(t *testing.T) {
 	if err := writeHelp(&out, "root", "test"); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(out.String(), "  relops catalog list\n    Find a tool.") {
+	if !strings.Contains(out.String(), "  relops c\n    Browse tools and launch commands.") {
 		t.Fatal(out.String())
 	}
 }
