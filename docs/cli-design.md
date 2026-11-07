@@ -17,7 +17,7 @@ background colors or assume a light or dark background.
 | --- | --- | --- |
 | Heading | `1;32` (bold green) | Section titles, root wordmark, tool info title |
 | Command | `1` (bold foreground) | Command names, option flags, launch commands |
-| Metadata | `2` (dim foreground) | Version, catalog revision, aliases, preparation status |
+| Metadata | `2` (dim foreground) | Version, catalog revision, list alias labels, preparation status |
 | Beta | `33` (yellow) | Explicit beta channel label and launch marker |
 | Error | `31` (red) | `error:` label; explanatory text remains normal |
 | Provenance | `32` (green) | Compact launch header and verbose launcher diagnostics |
@@ -70,13 +70,16 @@ that source checkouts are removed on exit and outputs should be saved elsewhere.
 
 ## Catalog presentation
 
-Use two-line entries with a blank line between tools. Show tool names in bold
-green, keep aliases secondary, and descriptions in the normal foreground.
-Group default targets under `TOOLS`, then beta targets under the yellow heading
-`BETA · requires -b`. Tools with both targets appear in both groups. Preserve
-catalog order within each group and omit empty groups. Avoid repetitive channel
-badges on individual entries. End lists with aligned Run, Inspect, and Beta
-hints; place the bundled revision last as metadata.
+Use three-line entries with a blank line between tools: name and explicit
+`alias:` / `aliases:` labels, description, then a launch command. Show names in
+bold terminal foreground, with dim alias labels beside them. Keep descriptions
+and launch commands at normal contrast. Prefer the first alias in launch commands when one exists, otherwise
+use the canonical name. Include `-b` in each beta launch command.
+Group default targets under a green `TOOLS` heading, then beta targets under a
+matching green `TOOLS (BETA)` heading. Tools with both targets appear in both groups.
+Preserve catalog order within each group and omit empty groups. Avoid per-tool
+color accents, channel badges, and repetitive generic launch instructions.
+End with an inspection hint and the dim bundled catalog revision.
 
 Tool details use readable labels, prerequisites, documentation links, and a
 copyable launch command for each channel. Omit empty optional values and show

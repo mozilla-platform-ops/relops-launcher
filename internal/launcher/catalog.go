@@ -28,26 +28,36 @@ func catalogDisplay(args []string, out io.Writer) error {
 				}
 				if !headed {
 					if beta {
-						fmt.Fprintln(&b, p.text(styleBeta, "BETA · requires -b"))
+						fmt.Fprintln(&b, p.text(styleHeading, "TOOLS (BETA)"))
 					} else {
 						fmt.Fprintln(&b, p.text(styleHeading, "TOOLS"))
 					}
 					fmt.Fprintln(&b)
 					headed = true
 				}
-				names := p.text(styleHeading, t.ID)
+				names := p.text(styleCommand, t.ID)
 				if len(t.Aliases) > 0 {
-					names += "  " + p.text(styleMetadata, "("+strings.Join(t.Aliases, ", ")+")")
+					label := "alias: "
+					if len(t.Aliases) > 1 {
+						label = "aliases: "
+					}
+					names += " " + p.text(styleMetadata, "· "+label+strings.Join(t.Aliases, ", "))
 				}
 				fmt.Fprintf(&b, "  %s\n", names)
 				writeWrapped(&b, t.Description, "    ", terminalWidth(out))
+				name := t.ID
+				if len(t.Aliases) > 0 {
+					name = t.Aliases[0]
+				}
+				launch := "relops c "
+				if beta {
+					launch += "-b "
+				}
+				fmt.Fprintf(&b, "    %s%s [args...]\n", launch, name)
 				fmt.Fprintln(&b)
 			}
 		}
-		fmt.Fprintf(&b, "Run      %s\nInspect  %s\nBeta     %s\n",
-			p.text(styleCommand, "relops c NAME [args...]"),
-			p.text(styleCommand, "relops catalog info NAME"),
-			p.text(styleCommand, "relops c -b NAME [args...]"))
+		fmt.Fprintln(&b, "Inspect a tool: relops catalog info NAME")
 		fmt.Fprintln(&b, p.text(styleMetadata, "\nBundled catalog "+c.Revision))
 	case "info":
 		if len(args) != 2 {
