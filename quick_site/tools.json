@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-06.1",
+  "revision": "2026-11-06.2",
   "tools": [
     {
       "id": "replay-tc-pool",
@@ -38,6 +38,7 @@
     },
     {
       "id": "create-tc-task",
+      "aliases": ["ct"],
       "name": "Taskcluster task creator",
       "description": "Submit test tasks to a worker queue to check workers. Can run custom commands.",
       "default": {
@@ -58,6 +59,7 @@
     },
     {
       "id": "quarantine-tool",
+      "aliases": ["qt"],
       "name": "Taskcluster worker quarantine",
       "description": "View quarantined workers, quarantine hosts, or lift their quarantine.",
       "default": {
@@ -129,6 +131,7 @@
     },
     {
       "id": "fleetbench",
+      "aliases": ["fb"],
       "name": "Fleetbench",
       "description": "Run host benchmarks using the latest stable Fleetbench release.",
       "default": {

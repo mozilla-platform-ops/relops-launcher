@@ -287,7 +287,15 @@ func TestSiteRejectsMissingOrDifferentEmbeddedCatalog(t *testing.T) {
 		if changed {
 			path := filepath.Join(cfg.Source, "tools.json")
 			data, _ := os.ReadFile(path)
-			data = []byte(strings.Replace(string(data), "2026-11-06.1", "changed-revision", 1))
+			var updated map[string]any
+			if err := json.Unmarshal(data, &updated); err != nil {
+				t.Fatal(err)
+			}
+			updated["revision"] = "changed-revision"
+			data, err = json.Marshal(updated)
+			if err != nil {
+				t.Fatal(err)
+			}
 			if err := os.WriteFile(path, data, 0644); err != nil {
 				t.Fatal(err)
 			}
