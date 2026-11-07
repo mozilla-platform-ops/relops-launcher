@@ -10,6 +10,19 @@
 - Stage only task-related files when preparing an approved commit.
 - Do not add `Co-Authored-By` trailers to commit messages.
 
+## Validation
+
+- During development, run focused tests and checks appropriate to the change.
+  Documentation-only changes generally need only `git diff --check`.
+- Run `just check` before release and when broader validation is warranted;
+  it is not required after every edit or session.
+- `just check` runs formatting checks, `go vet`, and the full race-enabled test
+  suite. Normal tests use local repositories and fake HTTP transports; they do
+  not consume GitHub API requests.
+- Live GitHub release tests are opt-in via `RELOPS_TEST_REAL_FLEETBENCH=1`.
+  Run them only during release preparation, not for routine edits or commits,
+  because they make real GitHub requests and download release assets.
+
 ## Website review and publishing
 
 - Prepare website changes on a staging or local preview site for the user to review.
@@ -65,7 +78,8 @@ br sync --status      # Check sync status
 
 Before ending a session:
 
-1. Run the checks appropriate to the changes (`just check` for Go changes).
+1. Run checks appropriate to the changes, following the validation guidance
+   above. Keep live release tests limited to release preparation.
 2. Run `br sync --flush-only` to export issue updates.
 3. Review `git diff --check` and `git status`.
 4. Summarize the changes, validation, and any outstanding work.
