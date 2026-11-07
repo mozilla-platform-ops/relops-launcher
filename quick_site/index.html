@@ -212,7 +212,14 @@
 </main>
 
 <footer class="footer">
-  <div class="wrap">~*~ relops · mozilla platform ops ~*~ · relops {{RELOPS_VERSION}} · source <a href="https://github.com/aerickson/df/commit/{{RELOPS_SOURCE_COMMIT}}">{{RELOPS_SOURCE_REVISION}}</a> · <a href="releases.json">Release metadata</a> · <a href="index.json">Artifact inventory</a></div>
+  <div class="wrap">
+    <span class="footer__brand">relops<span class="cursor" aria-hidden="true"></span></span>
+    <span class="footer__details">
+      <span>v{{RELOPS_VERSION}}</span><span aria-hidden="true">·</span>
+      <span title="Program source revision">{{RELOPS_SOURCE_REVISION}}</span><span aria-hidden="true">·</span>
+      <a href="releases.json">Details <span aria-hidden="true">↗</span></a>
+    </span>
+  </div>
 </footer>
 </body>
 </html>

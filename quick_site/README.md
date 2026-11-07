@@ -34,7 +34,7 @@ dist/site/
 
 `releases.json` records the actual embedded binary metadata, including whether the source checkout was dirty. Commit release source and rebuild before publishing so the source commit is reproducible and `source_dirty` is false. Release versions should identify fixed artifacts: bump `VERSION` for a changed published binary. Checksums detect corruption; they are not signatures. Quick's shared-write model still applies to the hosted files.
 
-The footer shows the program version and a linked seven-character source revision from this same binary metadata. It does not use the website checkout's HEAD, so site-only deployments continue to identify the downloadable program accurately. Dirty builds append `-dirty` to the displayed revision. Commit links point to the source repository, `aerickson/df`, and require those commits to have been pushed to GitHub.
+The footer places the lowercase relops wordmark with a static accent block on the left, with the program version, plain-text seven-character source revision, and a single Details link on the right. The version and revision come from the binary metadata rather than the website checkout's HEAD, so site-only deployments continue to identify the downloadable program accurately. Dirty builds append `-dirty` to the displayed revision. Details links to `releases.json`.
 
 Go's dirty flag also includes untracked files elsewhere in the Git repository. Build official releases from a clean checkout or detached worktree when unrelated files are present. Check `source_dirty` in the prepared `releases.json` before deployment. Keep existing published bytes unchanged when correcting release provenance; publish a new version instead.
 

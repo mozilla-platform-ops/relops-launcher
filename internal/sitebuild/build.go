@@ -154,7 +154,6 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 	page := strings.NewReplacer(
 		"{{RELOPS_TOOLS}}", tools,
 		"{{RELOPS_VERSION}}", cfg.Version,
-		"{{RELOPS_SOURCE_COMMIT}}", html.EscapeString(release.SourceCommit),
 		"{{RELOPS_SOURCE_REVISION}}", html.EscapeString(revision),
 		"{{RELOPS_RELEASE_JSON}}", string(manifest),
 		"{{RELOPS_SHA_DARWIN_ARM64}}", release.Artifacts[0].SHA256,
