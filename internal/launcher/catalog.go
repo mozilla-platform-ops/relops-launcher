@@ -64,7 +64,7 @@ func catalogDisplay(args []string, out io.Writer) error {
 	switch args[0] {
 	case "list", "ls":
 		if len(args) != 1 {
-			return fmt.Errorf("usage: relops catalog list")
+			return fmt.Errorf("usage: relops catalog")
 		}
 		for _, beta := range []bool{false, true} {
 			headed := false
@@ -103,11 +103,11 @@ func catalogDisplay(args []string, out io.Writer) error {
 				fmt.Fprintln(&b)
 			}
 		}
-		fmt.Fprintln(&b, "Inspect a tool: relops catalog info NAME")
+		fmt.Fprintln(&b, "Inspect a tool: relops info NAME")
 		fmt.Fprintln(&b, p.text(styleMetadata, "\nBundled catalog "+c.Revision))
 	case "info":
 		if len(args) != 2 {
-			return fmt.Errorf("usage: relops catalog info NAME")
+			return fmt.Errorf("usage: relops info NAME")
 		}
 		t, err := c.Lookup(args[1])
 		if err != nil {

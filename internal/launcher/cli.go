@@ -87,16 +87,30 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "catalog")
 		case "repo":
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "repo")
-		case "catalog":
-			if len(rest) == 0 || rest[0] == "--help" || rest[0] == "-h" {
-				err := writeHelp(out, "catalog-index", version)
+		case "info":
+			if len(prefix) != 0 {
+				return o, false, errors.New("launcher options do not apply to info; use relops info NAME")
+			}
+			if len(rest) == 1 && (rest[0] == "--help" || rest[0] == "-h") {
+				err := writeHelp(out, "catalog-info", version)
 				return o, true, err
 			}
-			if rest[0] == "launch" {
+			err := catalogDisplay(append([]string{"info"}, rest...), out)
+			return o, err == nil, err
+		case "catalog":
+			if len(rest) > 0 && rest[0] == "launch" {
 				return parseMode(append(append([]string{}, prefix...), rest[1:]...), out, version, "catalog")
 			}
 			if len(prefix) != 0 {
 				return o, false, errors.New("launcher options only apply to catalog launch")
+			}
+			if len(rest) == 0 {
+				err := catalogDisplay([]string{"list"}, out)
+				return o, err == nil, err
+			}
+			if rest[0] == "--help" || rest[0] == "-h" {
+				err := writeHelp(out, "catalog-index", version)
+				return o, true, err
 			}
 			if (rest[0] == "list" || rest[0] == "ls" || rest[0] == "info") && len(rest) == 2 && (rest[1] == "--help" || rest[1] == "-h") {
 				err := writeHelp(out, "catalog-"+rest[0], version)

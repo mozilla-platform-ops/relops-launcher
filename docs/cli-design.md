@@ -47,7 +47,7 @@ Subcommand help, launches, errors, and version output never show the wordmark.
 ## Help hierarchy
 
 Root help leads with a one-line purpose and three quick-start actions: browse
-with `relops c`, read descriptions with `relops catalog list`, and show tool help. Follow with commands, common options, argument forwarding, and
+with `relops c`, read descriptions with `relops catalog`, and show tool help. Follow with commands, common options, argument forwarding, and
 pointers to focused help. Avoid repeating every execution detail at the root.
 Running `relops` without arguments shows root help and exits successfully.
 Bare `relops repo` likewise shows repository help successfully. Bare `relops c`
@@ -55,13 +55,15 @@ and `relops catalog launch` show one row per tool: its canonical name and aligne
 invocation, using its first alias when available and `-b` for beta targets.
 Use green `TOOLS` and `TOOLS (BETA)` headings, bold foreground names, normal
 invocations, and no footer. No tools are launched or fetched. Launch flags without a target
-remain usage errors. Use `relops catalog ls` for descriptions and per-tool commands.
+remain usage errors. Use `relops catalog` for descriptions and per-tool commands.
+`relops info NAME` shows requirements and targets. Keep `catalog list`,
+`catalog ls`, and `catalog info NAME` as compatibility aliases.
 
 - `relops catalog --help`: discovery quick start, explicit equivalence of
   `relops c` and `relops catalog launch`, tool aliases, beta selection,
   argument forwarding, and launch help links.
 - `relops catalog list --help` / `relops catalog ls --help`: listing syntax and channel guidance.
-- `relops catalog info --help`: inspection syntax and an example.
+- `relops info --help` / `relops catalog info --help`: inspection syntax and an example.
 - `relops c --help` / `relops catalog launch --help`: catalog selection, common
   flags, source flags, release updates, examples, and execution rules.
 - `relops repo` / `relops repo --help`: repository introduction and quick start,

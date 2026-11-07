@@ -35,8 +35,9 @@ Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary d
 The launcher bundles a curated catalog from `quick_site/tools.json`; the website renders the same entries. Catalog lookup and discovery require no network access. Running a tool still fetches its source or checks its release normally, unless `--offline` is selected. Catalog updates currently require a new launcher build; remote catalog downloads are deferred.
 
 ```sh
-relops catalog list
-relops catalog info fr
+relops c                                    # compact tool directory
+relops catalog                              # descriptions and commands
+relops info fr
 relops catalog launch fleetroll --help
 relops c fr --help                         # c = catalog launch; fr = fleetroll
 relops c -b replay-tc-pool -h               # -b and --beta select the beta target
@@ -51,7 +52,7 @@ Normal launches show one compact header, such as `relops: fleetroll · main@24f4
 
 Launcher options go before the shortcut; all subsequent arguments belong to the tool. Website `example_args` are documentation only and are never injected into a launch. `--ref` can override the default source target but cannot be combined with `-b`/`--beta`. Catalog launches reject `--owner`; use repository execution for arbitrary forks. Release targets retain their existing option restrictions. `--command`, `--runner`, and `--cwd` override configured source defaults.
 
-Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `c` aliases execution specifically, `relops c list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog list` (alias: `relops catalog ls`).
+Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `c` aliases execution specifically, `relops c list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog`; `relops catalog list` and `relops catalog ls` remain aliases. Inspect requirements with `relops info NAME` (alias: `relops catalog info NAME`).
 
 Direct repository syntax remains supported. `relops repo` explicitly selects source execution and escapes launcher command names:
 
@@ -62,7 +63,7 @@ relops repo c/path/to/tool.sh --help        # repository named c
 relops repo fleetbench                     # source project, rather than release binary
 ```
 
-`c`, `catalog`, and `repo` are reserved as bare launcher commands. Paths such as `c/path/to/tool.sh` still select repositories directly. Flags may also precede the namespace, for example `relops --offline c fr --help`.
+`c`, `catalog`, `info`, and `repo` are reserved as bare launcher commands. Paths such as `c/path/to/tool.sh` still select repositories directly. Flags may also precede the namespace, for example `relops --offline c fr --help`.
 
 ## Use
 

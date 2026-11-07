@@ -131,7 +131,7 @@ func (c Catalog) Lookup(n string) (Tool, error) {
 			}
 		}
 	}
-	return Tool{}, fmt.Errorf("unknown catalog tool %q; use relops catalog list", n)
+	return Tool{}, fmt.Errorf("unknown catalog tool %q; use relops catalog", n)
 }
 
 func (t Tool) Select(beta bool) (*Target, string, error) {

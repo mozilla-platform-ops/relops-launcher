@@ -63,7 +63,7 @@ func TestBareCatalogLaunch(t *testing.T) {
 }
 
 func TestCatalogDiscovery(t *testing.T) {
-	for _, args := range [][]string{{"catalog", "list"}, {"catalog", "info", "fr"}} {
+	for _, args := range [][]string{{"catalog"}, {"info", "fr"}, {"catalog", "list"}, {"catalog", "info", "fr"}} {
 		var out bytes.Buffer
 		_, done, err := parse(args, &out, "test")
 		if err != nil || !done || !strings.Contains(out.String(), "fleetroll") || !strings.Contains(out.String(), "fr") {
@@ -74,6 +74,27 @@ func TestCatalogDiscovery(t *testing.T) {
 	_, _, err := parse([]string{"catalog", "info", "replay-tc-pool"}, &out, "test")
 	if err != nil || !strings.Contains(out.String(), "BETA\n  Source: aerickson/android-tools") || strings.Contains(out.String(), "DEFAULT\n") {
 		t.Fatalf("beta info: %s %v", out.String(), err)
+	}
+}
+
+func TestDirectDiscoveryAliases(t *testing.T) {
+	for _, pair := range []struct{ direct, alias []string }{
+		{[]string{"catalog"}, []string{"catalog", "list"}},
+		{[]string{"catalog"}, []string{"catalog", "ls"}},
+		{[]string{"info", "fb"}, []string{"catalog", "info", "fb"}},
+		{[]string{"info", "--help"}, []string{"catalog", "info", "--help"}},
+	} {
+		var direct, alias bytes.Buffer
+		_, done, err := parse(pair.direct, &direct, "test")
+		_, aliasDone, aliasErr := parse(pair.alias, &alias, "test")
+		if err != nil || aliasErr != nil || !done || !aliasDone || direct.String() != alias.String() {
+			t.Fatalf("discovery alias %v/%v: %v/%v", pair.direct, pair.alias, err, aliasErr)
+		}
+	}
+	for _, args := range [][]string{{"info"}, {"info", "unknown"}, {"info", "fr", "extra"}, {"--offline", "info", "fr"}, {"--offline", "catalog"}} {
+		if _, _, err := parse(args, &bytes.Buffer{}, "test"); err == nil {
+			t.Fatalf("accepted invalid discovery args %v", args)
+		}
 	}
 }
 
@@ -89,7 +110,7 @@ func TestCatalogListAlias(t *testing.T) {
 }
 
 func TestExplicitRepositoryEscape(t *testing.T) {
-	for _, target := range []string{"c", "catalog", "repo", "fleetbench"} {
+	for _, target := range []string{"c", "catalog", "info", "repo", "fleetbench"} {
 		o, _, err := parse([]string{"repo", "--ref", "branch", target, "--beta"}, &bytes.Buffer{}, "test")
 		if err != nil || o.repo != target || o.ref != "branch" || o.catalogName != "" || isReleaseTarget(o) || !reflect.DeepEqual(o.args, []string{"--beta"}) {
 			t.Fatalf("escape %s: %+v %v", target, o, err)

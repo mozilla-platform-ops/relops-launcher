@@ -93,8 +93,8 @@ func writeHelp(out io.Writer, mode, version string) error {
 		}
 		fmt.Fprintln(&b)
 		paragraph("RelOps tools. One command.")
-		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog list", "Read tool descriptions."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
-		rows("COMMANDS", helpRow{"c", "Browse tools and launch commands."}, helpRow{"c [options] NAME [args...]", "Run a catalog tool (alias: catalog launch)."}, helpRow{"catalog list", "Read tool descriptions (alias: catalog ls)."}, helpRow{"catalog info NAME", "Inspect a tool."}, helpRow{"repo [options] REPO[/PATH] [args...]", "Run from a repository."})
+		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog", "Read tool descriptions."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
+		rows("COMMANDS", helpRow{"c", "Browse tools and launch commands."}, helpRow{"c [options] NAME [args...]", "Run a catalog tool (alias: catalog launch)."}, helpRow{"catalog", "Read tool descriptions."}, helpRow{"info NAME", "Inspect requirements and targets."}, helpRow{"repo [options] REPO[/PATH] [args...]", "Run from a repository."})
 		rows("COMMON OPTIONS", common...)
 		heading("ARGUMENTS")
 		paragraph("  Launcher options go before the target; all later arguments go to the tool.\n  relops c --offline fr --help\n           launcher     tool")
@@ -103,22 +103,23 @@ func writeHelp(out io.Writer, mode, version string) error {
 	case "catalog-index":
 		heading("CATALOG")
 		paragraph("Find a tool, check its requirements, and run it by name or alias.")
-		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog ls", "Read tool descriptions."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
+		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog", "Read tool descriptions."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
 		heading("RUN A TOOL")
 		paragraph("  Run relops c without a name to browse available tools.\n  With a name, relops c is shorthand for relops catalog launch:")
 		rows("", helpRow{"relops c fr --help", "Use the short form."}, helpRow{"relops catalog launch fr --help", "Use the full form."})
 		paragraph("  NAME accepts a tool's catalog name or alias: fr = fleetroll, fb = fleetbench.\n  Add -b before NAME for beta tools: relops c -b replay-tc-pool --help")
-		rows("COMMANDS", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog list", "List tools and aliases (alias: ls)."}, helpRow{"relops catalog info NAME", "Inspect requirements and targets."}, helpRow{"relops c [options] NAME [args...]", "Run a tool from the catalog."})
+		rows("COMMANDS", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog", "Read tool descriptions."}, helpRow{"relops info NAME", "Inspect requirements and targets."}, helpRow{"relops c [options] NAME [args...]", "Run a tool from the catalog."})
 		heading("ARGUMENTS")
 		paragraph("  Launcher options go before NAME; all later arguments go to the tool.\n  relops c --offline fr --help\n           launcher     tool")
+		paragraph("Compatibility aliases: relops catalog list, relops catalog ls,\nand relops catalog info NAME.")
 		rows("MORE HELP", helpRow{"relops c --help", "Catalog selection and source/release options."}, helpRow{"relops --help", "All launcher commands."})
 		paragraph("Listing and inspecting the bundled catalog need no network access.\nLaunching a tool may fetch source or download a release unless --offline.")
 	case "catalog-list", "catalog-ls":
 		heading("USAGE")
-		paragraph("  relops catalog list\n  relops catalog ls\n\nList bundled tools, aliases, and channels without network access.\nRun a tool with relops c NAME [args...]; beta-only tools require -b.")
+		paragraph("  relops catalog\n  relops catalog list\n  relops catalog ls\n\nList bundled tools, aliases, and channels without network access.\nRun a tool with relops c NAME [args...]; beta-only tools require -b.")
 	case "catalog-info":
 		heading("USAGE")
-		paragraph("  relops catalog info NAME\n\nInspect a tool by name or alias, including requirements and launch commands.\nExample: relops catalog info fr")
+		paragraph("  relops info NAME\n  relops catalog info NAME (compatibility alias)\n\nInspect a tool by name or alias, including requirements and launch commands.\nExample: relops info fr")
 	case "catalog", "repo":
 		if mode == "repo" {
 			heading("REPOSITORY TOOLS")
@@ -133,7 +134,7 @@ func writeHelp(out io.Writer, mode, version string) error {
 			paragraph("  relops c [options] NAME [tool-arguments...]\n  relops catalog launch [options] NAME [tool-arguments...]\n\nRun without a name to browse available tools.")
 			rows("CATALOG SELECTION", helpRow{"-b, --beta", "Select the configured beta target; cannot combine with --ref."})
 		} else {
-			paragraph("  relops repo [options] REPO[/PATH] [tool-arguments...]\n\nUse repo to select source execution, including repositories named c, catalog,\nrepo, or fleetbench. Git with GitHub SSH access is required.")
+			paragraph("  relops repo [options] REPO[/PATH] [tool-arguments...]\n\nUse repo to select source execution, including repositories named c, catalog,\ninfo, repo, or fleetbench. Git with GitHub SSH access is required.")
 			rows("REPOSITORY", helpRow{"--owner OWNER", "GitHub user or organization; default: mozilla-platform-ops."})
 		}
 		rows("COMMON OPTIONS", common...)

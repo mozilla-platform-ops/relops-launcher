@@ -19,9 +19,10 @@ func TestFocusedHelp(t *testing.T) {
 		{[]string{"catalog", "launch", "--help"}, "RELEASE UPDATES", "--owner OWNER"},
 		{[]string{"repo", "--help"}, "Temporary checkouts are removed on exit.", "ENVIRONMENTS"},
 		{[]string{"repo"}, "QUICK START", "\nEXECUTION\n"},
-		{[]string{"catalog", "--help"}, "relops catalog info NAME", "SOURCE EXECUTION"},
+		{[]string{"catalog", "--help"}, "relops info NAME", "SOURCE EXECUTION"},
+		{[]string{"info", "--help"}, "Example: relops info fr", "SOURCE EXECUTION"},
 		{[]string{"catalog", "list", "--help"}, "beta-only tools require -b", "SOURCE EXECUTION"},
-		{[]string{"catalog", "info", "--help"}, "Example: relops catalog info fr", "SOURCE EXECUTION"},
+		{[]string{"catalog", "info", "--help"}, "Example: relops info fr", "SOURCE EXECUTION"},
 	} {
 		var out bytes.Buffer
 		_, done, err := parse(tc.args, &out, "test")
