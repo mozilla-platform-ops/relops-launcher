@@ -46,9 +46,9 @@
           <code id="ex">(cd "$HOME/Downloads" &amp;&amp; printf '%s  %s\n' '{{RELOPS_SHA_DARWIN_ARM64}}' 'relops-darwin-arm64' | shasum -a 256 -c - &amp;&amp; mkdir -p "$HOME/.local/bin" &amp;&amp; install -m 755 relops-darwin-arm64 "$HOME/.local/bin/relops") &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; relops --version</code>
           <button type="button" data-copy="#ex">copy</button>
         </div>
-        <p class="prose numbered-label" style="margin-top: var(--space-5)"><span class="accent mark">03</span><span>Try a tool in development</span></p>
+        <p class="prose numbered-label" style="margin-top: var(--space-5)"><span class="accent mark">03</span><span>Run a tool</span></p>
         <div class="cmd" style="margin-top: var(--space-3); max-width: 40rem; min-width: 0">
-          <code id="hero-tool">relops repo --owner aerickson --ref 20261105-more_tool_development android-tools/worker_health/replay_tc_pool.py -h</code>
+          <code id="hero-tool">relops run ct --help</code>
           <button type="button" data-copy="#hero-tool">copy</button>
         </div>
         <div class="hero__cta">
@@ -72,8 +72,8 @@
   <section class="section" id="tools">
     <div class="wrap stack">
       <p class="label numbered-label"><b class="accent mark">01</b><span>tools</span></p>
-      <h2 class="h-section">Explore the RelOps tool catalog.</h2>
-      <p class="prose">Run one of these, or bring your own. This list is just a starting point. <a href="#usage">See how to run any tool with <code class="inline-command">relops</code> →</a></p>
+      <h2 class="h-section">Run one of the tools below, or bring your own.</h2>
+      <p class="prose">Use <code class="inline-command">relops run</code> to list tools and their launch commands. <a href="#usage">Run any tool with <code class="inline-command">relops repo</code> →</a></p>
 {{RELOPS_TOOLS}}
       <p class="prose">Want a tool added? <a href="mailto:aerickson@mozilla.com">Email aerickson@mozilla.com</a>. Discover tools with <code class="inline-command">relops catalog list</code>, inspect a shortcut with <code class="inline-command">relops catalog info NAME</code>, and launch it with <code class="inline-command">relops c NAME</code>.</p>
     </div>
