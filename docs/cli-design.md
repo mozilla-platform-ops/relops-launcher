@@ -62,7 +62,7 @@ invocation, using its first alias when available and `-b` for beta targets.
 Use green `TOOLS` and `TOOLS (BETA)` headings, bold foreground names, normal
 invocations, and no footer. No tools are launched or fetched. Launch flags without a target
 remain usage errors. Use `relops catalog` for descriptions and per-tool commands.
-`relops info NAME` shows requirements and targets. Keep `catalog list`,
+`relops info NAME` (shortcut: `relops i NAME`) shows requirements and targets. Keep `catalog list`,
 `catalog ls`, and `catalog info NAME` as compatibility aliases.
 
 - `relops catalog --help`: discovery quick start, explicit equivalence of

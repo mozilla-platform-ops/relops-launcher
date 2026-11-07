@@ -87,7 +87,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "catalog")
 		case "repo":
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "repo")
-		case "info":
+		case "info", "i":
 			if len(prefix) != 0 {
 				return o, false, errors.New("launcher options do not apply to info; use relops info NAME")
 			}

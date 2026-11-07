@@ -55,7 +55,7 @@ Normal launches show one compact header, such as `relops: fleetroll · main@24f4
 
 Launcher options go before the shortcut; all subsequent arguments belong to the tool. Website `example_args` are documentation only and are never injected into a launch. `--ref` can override the default source target but cannot be combined with `-b`/`--beta`. Catalog launches reject `--owner`; use repository execution for arbitrary forks. Release targets retain their existing option restrictions. `--command`, `--runner`, and `--cwd` override configured source defaults.
 
-Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `run` selects execution specifically, `relops run list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog` or `relops c`; `relops catalog list` and `relops catalog ls` remain aliases. Inspect requirements with `relops info NAME` (alias: `relops catalog info NAME`).
+Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `run` selects execution specifically, `relops run list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog` or `relops c`; `relops catalog list` and `relops catalog ls` remain aliases. Inspect requirements with `relops info NAME` (shortcut: `relops i NAME`; compatibility alias: `relops catalog info NAME`).
 
 Source execution requires `relops repo`. Catalog tools, including release binaries, require `relops run` (shortcut: `r`). Bare targets are rejected with a suggested replacement:
 
@@ -66,7 +66,7 @@ relops repo c/path/to/tool.sh --help          # repository named c
 relops repo fleetbench                        # source project, rather than release binary
 ```
 
-`run`, `r`, `c`, `catalog`, `info`, and `repo` are reserved as bare launcher commands. Use `relops repo c/path/to/tool.sh` for a repository named c. Flags may also precede the namespace, for example `relops --offline run fr --help`.
+`run`, `r`, `c`, `catalog`, `info`, `i`, and `repo` are reserved as bare launcher commands. Use `relops repo c/path/to/tool.sh` for a repository named c. Flags may also precede the namespace, for example `relops --offline run fr --help`.
 
 ## Use
 

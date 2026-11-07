@@ -106,6 +106,9 @@ func TestCatalogDiscovery(t *testing.T) {
 
 func TestDirectDiscoveryAliases(t *testing.T) {
 	for _, pair := range []struct{ direct, alias []string }{
+		{[]string{"info", "ct"}, []string{"i", "ct"}},
+		{[]string{"info", "--help"}, []string{"i", "--help"}},
+		{[]string{"info", "-h"}, []string{"i", "-h"}},
 		{[]string{"catalog"}, []string{"c"}},
 		{[]string{"catalog", "--help"}, []string{"c", "--help"}},
 		{[]string{"catalog", "list"}, []string{"c", "list"}},
@@ -122,7 +125,7 @@ func TestDirectDiscoveryAliases(t *testing.T) {
 			t.Fatalf("discovery alias %v/%v: %v/%v", pair.direct, pair.alias, err, aliasErr)
 		}
 	}
-	for _, args := range [][]string{{"info"}, {"info", "unknown"}, {"info", "fr", "extra"}, {"--offline", "info", "fr"}, {"--offline", "catalog"}, {"c", "ct"}, {"c", "fr", "--help"}, {"--offline", "c"}} {
+	for _, args := range [][]string{{"i"}, {"i", "unknown"}, {"i", "fr", "extra"}, {"--offline", "i", "fr"}, {"info"}, {"info", "unknown"}, {"info", "fr", "extra"}, {"--offline", "info", "fr"}, {"--offline", "catalog"}, {"c", "ct"}, {"c", "fr", "--help"}, {"--offline", "c"}} {
 		if _, _, err := parse(args, &bytes.Buffer{}, "test"); err == nil {
 			t.Fatalf("accepted invalid discovery args %v", args)
 		}
@@ -141,7 +144,7 @@ func TestCatalogListAlias(t *testing.T) {
 }
 
 func TestExplicitRepositoryEscape(t *testing.T) {
-	for _, target := range []string{"run", "r", "c", "catalog", "info", "repo", "fleetbench"} {
+	for _, target := range []string{"run", "r", "c", "catalog", "info", "i", "repo", "fleetbench"} {
 		o, _, err := parse([]string{"repo", "--ref", "branch", target, "--beta"}, &bytes.Buffer{}, "test")
 		if err != nil || o.repo != target || o.ref != "branch" || o.catalogName != "" || isReleaseTarget(o) || !reflect.DeepEqual(o.args, []string{"--beta"}) {
 			t.Fatalf("escape %s: %+v %v", target, o, err)
