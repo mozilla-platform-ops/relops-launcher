@@ -49,7 +49,9 @@ pointers to focused help. Avoid repeating every execution detail at the root.
 Running `relops` without arguments shows root help and exits successfully.
 Execution commands and flags that omit a required target remain usage errors.
 
-- `relops catalog --help`: discovery and launch commands.
+- `relops catalog --help`: discovery quick start, explicit equivalence of
+  `relops c` and `relops catalog launch`, tool aliases, beta selection,
+  argument forwarding, and launch help links.
 - `relops catalog list --help` / `relops catalog ls --help`: listing syntax and channel guidance.
 - `relops catalog info --help`: inspection syntax and an example.
 - `relops c --help` / `relops catalog launch --help`: catalog selection, common
