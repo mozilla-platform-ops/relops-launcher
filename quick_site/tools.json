@@ -1,7 +1,22 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-06.2",
+  "revision": "2026-11-07.1",
   "tools": [
+    {
+      "id": "taskcluster-web-launcher",
+      "aliases": ["tcwl"],
+      "name": "Taskcluster Web Launcher",
+      "description": "Find Firefox CI worker pools and open their Taskcluster pages.",
+      "beta": {
+        "kind": "source",
+        "owner": "mozilla-platform-ops",
+        "repo": "relops-infra",
+        "path": "taskcluster_web_launcher/tcwl",
+        "ref": "20260805-tool_fixing",
+        "prerequisites": "Python 3 and a terminal. Opening a pool also requires a web browser.",
+        "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/taskcluster_web_launcher/README.md"
+      }
+    },
     {
       "id": "replay-tc-pool",
       "name": "Taskcluster pool replay",
