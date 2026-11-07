@@ -47,7 +47,9 @@ Subcommand help, launches, errors, and version output never show the wordmark.
 ## Help hierarchy
 
 Root help leads with a one-line purpose and three quick-start actions: browse
-with `relops c`, read descriptions with `relops catalog`, and show tool help. Follow with commands, common options, argument forwarding, and
+with `relops c`, read descriptions with `relops catalog`, and show task creator
+options with `relops c ct --help`. Keep this first tool example read-only; do
+not submit tasks. Follow with commands, common options, argument forwarding, and
 pointers to focused help. Avoid repeating every execution detail at the root.
 Running `relops` without arguments shows root help and exits successfully.
 Bare `relops repo` likewise shows repository help successfully. Bare `relops c`

@@ -93,7 +93,7 @@ func writeHelp(out io.Writer, mode, version string) error {
 		}
 		fmt.Fprintln(&b)
 		paragraph("RelOps tools. One command.")
-		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog", "Read tool descriptions."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
+		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog", "Read tool descriptions."}, helpRow{"relops c ct --help", "Show task creator options."})
 		rows("COMMANDS", helpRow{"c", "Browse tools and launch commands."}, helpRow{"c [options] NAME [args...]", "Run a catalog tool (alias: catalog launch)."}, helpRow{"catalog", "Read tool descriptions."}, helpRow{"info NAME", "Inspect requirements and targets."}, helpRow{"repo [options] REPO[/PATH] [args...]", "Run from a repository."})
 		rows("COMMON OPTIONS", common...)
 		heading("ARGUMENTS")
@@ -103,7 +103,7 @@ func writeHelp(out io.Writer, mode, version string) error {
 	case "catalog-index":
 		heading("CATALOG")
 		paragraph("Find a tool, check its requirements, and run it by name or alias.")
-		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog", "Read tool descriptions."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
+		rows("QUICK START", helpRow{"relops c", "Browse tools and launch commands."}, helpRow{"relops catalog", "Read tool descriptions."}, helpRow{"relops c ct --help", "Show task creator options."})
 		heading("RUN A TOOL")
 		paragraph("  Run relops c without a name to browse available tools.\n  With a name, relops c is shorthand for relops catalog launch:")
 		rows("", helpRow{"relops c fr --help", "Use the short form."}, helpRow{"relops catalog launch fr --help", "Use the full form."})
