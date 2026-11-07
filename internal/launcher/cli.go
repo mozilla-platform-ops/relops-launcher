@@ -36,6 +36,7 @@ Options:
   --command VALUE   Select a uv project's console entry point
   --cwd VALUE       repo or caller (default: caller for scripts, project for projects)
   --offline         Use cached code or the last resolved release; no network access
+  --refresh         Check the latest release now (still respects rate-limit cooldowns)
   --verbose         Show cache and worktree diagnostics on stderr
   --version         Print launcher version
   --help            Show this help
@@ -72,7 +73,7 @@ type options struct {
 	sourceTarget                                 bool
 	cwdSet                                       bool
 	args                                         []string
-	offline, verbose                             bool
+	offline, verbose, refresh                    bool
 }
 
 var repoName = regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9._-]*$`)
@@ -94,6 +95,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 	fs.StringVar(&o.commandName, "command", "", "console entry point")
 	fs.StringVar(&o.cwd, "cwd", "caller", "working directory")
 	fs.BoolVar(&o.offline, "offline", false, "offline")
+	fs.BoolVar(&o.refresh, "refresh", false, "refresh release")
 	fs.BoolVar(&o.verbose, "verbose", false, "verbose")
 	if mode == "catalog" {
 		fs.BoolVar(&beta, "beta", false, "select beta target")
@@ -215,6 +217,9 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 		return o, false, errors.New("invalid revision")
 	}
 	o.args = fs.Args()[1:]
+	if o.refresh && (o.offline || !isReleaseTarget(o)) {
+		return o, false, errors.New("--refresh requires an online release target and cannot be combined with --offline")
+	}
 	if isReleaseTarget(o) {
 		var invalid string
 		fs.Visit(func(f *flag.Flag) {

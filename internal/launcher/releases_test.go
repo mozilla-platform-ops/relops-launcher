@@ -34,11 +34,14 @@ type releaseFixture struct {
 	missing    string
 	sums       *string
 	status     int
+	etag       string
 	requests   map[string]int
 }
 
 func newReleaseFixture(t *testing.T) *releaseFixture {
 	t.Helper()
+	t.Setenv("GH_TOKEN", "")
+	t.Setenv("GITHUB_TOKEN", "")
 	if _, err := fleetbenchAsset("", runtime.GOOS, runtime.GOARCH); err != nil {
 		t.Skip(err)
 	}
@@ -58,8 +61,15 @@ func (f *releaseFixture) transport(r *http.Request) (*http.Response, error) {
 	}
 	asset, _ := fleetbenchAsset(f.tag, runtime.GOOS, runtime.GOARCH)
 	var body string
+	headers := make(http.Header)
 	switch r.URL.String() {
 	case "https://api.github.com/repos/" + defaultOwner + "/fleetbench/releases/latest":
+		if f.etag != "" {
+			headers.Set("ETag", f.etag)
+			if r.Header.Get("If-None-Match") == f.etag && status == 200 {
+				status = http.StatusNotModified
+			}
+		}
 		if r.Header.Get("Accept") != "application/vnd.github+json" || r.Header.Get("User-Agent") == "" {
 			f.t.Error("missing GitHub request headers")
 		}
@@ -87,7 +97,7 @@ func (f *releaseFixture) transport(r *http.Request) (*http.Response, error) {
 		f.t.Errorf("unexpected request: %s", r.URL)
 		status = 404
 	}
-	return &http.Response{StatusCode: status, Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header)}, nil
+	return &http.Response{StatusCode: status, Body: io.NopCloser(strings.NewReader(body)), Header: headers}, nil
 }
 
 func (f *releaseFixture) app(out, log *bytes.Buffer) *app {
@@ -164,12 +174,12 @@ exit 7
 	asset, _ := fleetbenchAsset(f.tag, runtime.GOOS, runtime.GOARCH)
 	binaryURL := releaseAssetURL(o, f.tag, asset)
 	code, _, logText := f.run("fleetbench")
-	if code != 7 || f.requests[binaryURL] != 1 || f.requests["https://api.github.com/repos/"+defaultOwner+"/fleetbench/releases/latest"] != 2 {
+	if code != 7 || f.requests[binaryURL] != 1 || f.requests["https://api.github.com/repos/"+defaultOwner+"/fleetbench/releases/latest"] != 1 {
 		t.Fatalf("online reuse: %d %s requests=%v", code, logText, f.requests)
 	}
 	count := len(f.requests)
 	f.status = 503
-	code, output, logText := f.run("fleetbench")
+	code, output, logText := f.run("--refresh", "fleetbench")
 	if code != 1 || output != "" || !strings.Contains(logText, "use --offline") {
 		t.Fatalf("online failure ran cached binary: %d %q %s", code, output, logText)
 	}
@@ -193,7 +203,7 @@ func TestReleaseUpdateFailureAndRepair(t *testing.T) {
 	f.tag = "v0.4.7"
 	f.binary = "#!/bin/sh\nprintf 'updated\\n'\n"
 	f.badBinary = true
-	code, out, log := f.run("fleetbench")
+	code, out, log := f.run("--refresh", "fleetbench")
 	if code != 1 || out != "" || !strings.Contains(log, "SHA-256 mismatch") {
 		t.Fatalf("bad download: %d %q %s", code, out, log)
 	}
@@ -202,7 +212,7 @@ func TestReleaseUpdateFailureAndRepair(t *testing.T) {
 		t.Fatalf("failed update lost last good release: %d %q %s", code, out, log)
 	}
 	f.badBinary = false
-	code, out, log = f.run("fleetbench")
+	code, out, log = f.run("--refresh", "fleetbench")
 	if code != 0 || out != "updated\n" || !strings.Contains(log, "release=v0.4.7") {
 		t.Fatalf("update: %d %q %s", code, out, log)
 	}
@@ -290,6 +300,9 @@ func TestConcurrentReleasePreparation(t *testing.T) {
 		}()
 	}
 	wg.Wait()
+	if n := f.requests["https://api.github.com/repos/"+defaultOwner+"/fleetbench/releases/latest"]; n != 1 {
+		t.Fatalf("resolved latest %d times", n)
+	}
 	asset, _ := fleetbenchAsset(f.tag, runtime.GOOS, runtime.GOARCH)
 	if n := f.requests[releaseAssetURL(options{owner: defaultOwner, repo: "fleetbench"}, f.tag, asset)]; n != 1 {
 		t.Fatalf("downloaded binary %d times", n)
