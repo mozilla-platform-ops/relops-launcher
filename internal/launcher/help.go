@@ -73,18 +73,18 @@ func writeHelp(out io.Writer, mode, version string) error {
 		}
 		paragraph("Run your team's tools.  " + p.text(styleMetadata, "Version "+version))
 		rows("QUICK START", helpRow{"relops catalog list", "Find a tool."}, helpRow{"relops catalog info fr", "See requirements and details."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
-		rows("COMMANDS", helpRow{"c [options] NAME [args...]", "Run a catalog tool (alias: catalog launch)."}, helpRow{"catalog list", "List available tools."}, helpRow{"catalog info NAME", "Inspect a tool."}, helpRow{"repo [options] REPO[/PATH] [args...]", "Run from a repository."})
+		rows("COMMANDS", helpRow{"c [options] NAME [args...]", "Run a catalog tool (alias: catalog launch)."}, helpRow{"catalog list", "List available tools (alias: catalog ls)."}, helpRow{"catalog info NAME", "Inspect a tool."}, helpRow{"repo [options] REPO[/PATH] [args...]", "Run from a repository."})
 		rows("COMMON OPTIONS", common...)
 		heading("ARGUMENTS")
 		paragraph("  Launcher options go before the target; all later arguments go to the tool.\n  relops c --offline fr --help\n           launcher     tool")
 		heading("MORE HELP")
 		paragraph("  relops c --help       Catalog selection and source/release options.\n  relops repo --help    Repository execution and environment rules.\n  relops catalog --help Catalog discovery.\n\n  Direct execution also works: relops [options] REPO[/PATH] [args...]\n  Bare fleetbench runs its latest stable release; use repo for its source.")
 	case "catalog-index":
-		rows("CATALOG", helpRow{"relops catalog list", "List tools, aliases, and channels."}, helpRow{"relops catalog info NAME", "See targets, requirements, and launch commands."}, helpRow{"relops catalog launch [options] NAME [args...]", "Run a tool (shorthand: relops c)."})
+		rows("CATALOG", helpRow{"relops catalog list", "List tools, aliases, and channels (alias: ls)."}, helpRow{"relops catalog info NAME", "See targets, requirements, and launch commands."}, helpRow{"relops catalog launch [options] NAME [args...]", "Run a tool (shorthand: relops c)."})
 		paragraph("The bundled catalog is available offline. Use relops c --help for launch options.")
-	case "catalog-list":
+	case "catalog-list", "catalog-ls":
 		heading("USAGE")
-		paragraph("  relops catalog list\n\nList bundled tools, aliases, and channels without network access.\nRun a tool with relops c NAME [args...]; beta-only tools require -b.")
+		paragraph("  relops catalog list\n  relops catalog ls\n\nList bundled tools, aliases, and channels without network access.\nRun a tool with relops c NAME [args...]; beta-only tools require -b.")
 	case "catalog-info":
 		heading("USAGE")
 		paragraph("  relops catalog info NAME\n\nInspect a tool by name or alias, including requirements and launch commands.\nExample: relops catalog info fr")

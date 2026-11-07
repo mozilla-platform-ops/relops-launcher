@@ -50,7 +50,7 @@ Running `relops` without arguments shows root help and exits successfully.
 Execution commands and flags that omit a required target remain usage errors.
 
 - `relops catalog --help`: discovery and launch commands.
-- `relops catalog list --help`: listing syntax and channel guidance.
+- `relops catalog list --help` / `relops catalog ls --help`: listing syntax and channel guidance.
 - `relops catalog info --help`: inspection syntax and an example.
 - `relops c --help` / `relops catalog launch --help`: catalog selection, common
   flags, source flags, release updates, examples, and execution rules.

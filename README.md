@@ -51,7 +51,7 @@ Normal launches show one compact header, such as `relops: fleetroll · main@24f4
 
 Launcher options go before the shortcut; all subsequent arguments belong to the tool. Website `example_args` are documentation only and are never injected into a launch. `--ref` can override the default source target but cannot be combined with `-b`/`--beta`. Catalog launches reject `--owner`; use repository execution for arbitrary forks. Release targets retain their existing option restrictions. `--command`, `--runner`, and `--cwd` override configured source defaults.
 
-Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `c` aliases execution specifically, `relops c list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog list`.
+Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `c` aliases execution specifically, `relops c list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog list` (alias: `relops catalog ls`).
 
 Direct repository syntax remains supported. `relops repo` explicitly selects source execution and escapes launcher command names:
 

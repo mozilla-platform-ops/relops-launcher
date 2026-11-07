@@ -16,7 +16,7 @@ func catalogDisplay(args []string, out io.Writer) error {
 	p := terminalPalette(out)
 	var b strings.Builder
 	switch args[0] {
-	case "list":
+	case "list", "ls":
 		if len(args) != 1 {
 			return fmt.Errorf("usage: relops catalog list")
 		}
@@ -105,7 +105,7 @@ func catalogDisplay(args []string, out io.Writer) error {
 		}
 		fmt.Fprintln(&b, p.text(styleMetadata, "\nBundled catalog "+c.Revision))
 	default:
-		return fmt.Errorf("unknown catalog command %q; use list, info, or launch", args[0])
+		return fmt.Errorf("unknown catalog command %q; use list (alias: ls), info, or launch", args[0])
 	}
 	_, err = io.WriteString(out, b.String())
 	return err

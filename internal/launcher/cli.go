@@ -91,7 +91,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 			if len(prefix) != 0 {
 				return o, false, errors.New("launcher options only apply to catalog launch")
 			}
-			if (rest[0] == "list" || rest[0] == "info") && len(rest) == 2 && (rest[1] == "--help" || rest[1] == "-h") {
+			if (rest[0] == "list" || rest[0] == "ls" || rest[0] == "info") && len(rest) == 2 && (rest[1] == "--help" || rest[1] == "-h") {
 				err := writeHelp(out, "catalog-"+rest[0], version)
 				return o, true, err
 			}

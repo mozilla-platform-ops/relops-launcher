@@ -66,6 +66,17 @@ func TestCatalogDiscovery(t *testing.T) {
 	}
 }
 
+func TestCatalogListAlias(t *testing.T) {
+	for _, suffix := range [][]string{nil, {"--help"}, {"-h"}, {"extra"}} {
+		var list, ls bytes.Buffer
+		_, listDone, listErr := parse(append([]string{"catalog", "list"}, suffix...), &list, "test")
+		_, lsDone, lsErr := parse(append([]string{"catalog", "ls"}, suffix...), &ls, "test")
+		if list.String() != ls.String() || listDone != lsDone || (listErr == nil) != (lsErr == nil) {
+			t.Fatalf("list/ls differ for %v: list=%q/%v/%v ls=%q/%v/%v", suffix, list.String(), listDone, listErr, ls.String(), lsDone, lsErr)
+		}
+	}
+}
+
 func TestExplicitRepositoryEscape(t *testing.T) {
 	for _, target := range []string{"c", "catalog", "repo", "fleetbench"} {
 		o, _, err := parse([]string{"repo", "--ref", "branch", target, "--beta"}, &bytes.Buffer{}, "test")
