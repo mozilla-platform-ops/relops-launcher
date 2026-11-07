@@ -17,6 +17,9 @@ import (
 //go:embed inspect_python.py
 var pythonInspector string
 
+//go:embed inspect_shell.py
+var shellInspector string
+
 type pythonInput struct {
 	Path         string   `json:"path"`
 	Source       string   `json:"source"`
@@ -49,7 +52,7 @@ func inspectTools(ctx context.Context, catalogPath string, out io.Writer, remote
 		var results []string
 		sha, err := withCheckedTool(toolCtx, t, remote(t), func(dir, sha, kind string) error {
 			var err error
-			results, err = inspectPython(toolCtx, dir, sha, kind, t)
+			results, err = inspectSources(toolCtx, dir, sha, kind, t)
 			return err
 		})
 		cancel()
@@ -66,7 +69,7 @@ func inspectTools(ctx context.Context, catalogPath string, out io.Writer, remote
 	return errors.Join(failures...)
 }
 
-func inspectPython(ctx context.Context, dir, sha, kind string, t tool) ([]string, error) {
+func inspectSources(ctx context.Context, dir, sha, kind string, t tool) ([]string, error) {
 	git := func(args ...string) ([]byte, error) {
 		cmd := exec.CommandContext(ctx, "git", append([]string{"-c", "core.hooksPath=/dev/null", "-C", dir}, args...)...)
 		var stderr bytes.Buffer
@@ -88,7 +91,7 @@ func inspectPython(ctx context.Context, dir, sha, kind string, t tool) ([]string
 			return nil, err
 		}
 		for _, file := range strings.Split(string(data), "\x00") {
-			if strings.HasSuffix(strings.ToLower(file), ".py") {
+			if strings.HasSuffix(strings.ToLower(file), ".py") || strings.HasSuffix(strings.ToLower(file), ".sh") {
 				files = append(files, file)
 			}
 		}
@@ -98,41 +101,79 @@ func inspectPython(ctx context.Context, dir, sha, kind string, t tool) ([]string
 			return nil, err
 		}
 		first, _, _ := strings.Cut(string(data), "\n")
-		if strings.HasSuffix(strings.ToLower(t.Path), ".py") || (strings.HasPrefix(first, "#!") && strings.Contains(first, "python")) {
+		if strings.HasSuffix(strings.ToLower(t.Path), ".py") || strings.HasSuffix(strings.ToLower(t.Path), ".sh") || (strings.HasPrefix(first, "#!") && (strings.Contains(first, "python") || shellShebang(first))) {
 			files = append(files, t.Path)
 		}
 	}
 	if len(files) == 0 {
-		return []string{"  SKIP: no Python files selected (other languages are not yet inspected)"}, nil
+		return []string{"  SKIP: no Python or shell files selected (other languages are not yet inspected)"}, nil
 	}
-	var inputs []pythonInput
+	var pythonInputs, shellInputs []pythonInput
 	for _, file := range files {
 		data, err := git("show", sha+":"+file)
 		if err != nil {
 			return nil, err
 		}
 		if len(data) > 2*1024*1024 {
-			return nil, fmt.Errorf("Python file %s exceeds 2 MiB", file)
+			return nil, fmt.Errorf("source file %s exceeds 2 MiB", file)
 		}
-		inputs = append(inputs, pythonInput{Path: file, Source: string(data), DataFiles: t.DataFiles, TemporaryCwd: t.Cwd == "repo" || (kind == "tree" && t.Cwd != "caller")})
+		input := pythonInput{Path: file, Source: string(data), DataFiles: t.DataFiles, TemporaryCwd: t.Cwd == "repo" || (kind == "tree" && t.Cwd != "caller")}
+		first, _, _ := strings.Cut(string(data), "\n")
+		if strings.HasSuffix(strings.ToLower(file), ".sh") || (!strings.HasSuffix(strings.ToLower(file), ".py") && shellShebang(first)) {
+			shellInputs = append(shellInputs, input)
+		} else {
+			pythonInputs = append(pythonInputs, input)
+		}
 	}
+	var results []string
+	for _, group := range []struct {
+		name, script string
+		inputs       []pythonInput
+	}{{"Python", pythonInspector, pythonInputs}, {"Shell", shellInspector, shellInputs}} {
+		if len(group.inputs) == 0 {
+			continue
+		}
+		lines, err := runInspector(ctx, group.name, group.script, group.inputs)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, lines...)
+	}
+	return results, nil
+}
+
+func shellShebang(first string) bool {
+	if !strings.HasPrefix(first, "#!") {
+		return false
+	}
+	fields := strings.Fields(strings.TrimPrefix(first, "#!"))
+	for _, field := range fields {
+		switch path.Base(field) {
+		case "sh", "bash", "dash", "zsh", "ksh":
+			return true
+		}
+	}
+	return false
+}
+
+func runInspector(ctx context.Context, name, script string, inputs []pythonInput) ([]string, error) {
 	payload, err := json.Marshal(inputs)
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.CommandContext(ctx, "python3", "-I", "-c", pythonInspector)
+	cmd := exec.CommandContext(ctx, "python3", "-I", "-c", script)
 	cmd.Stdin = bytes.NewReader(payload)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	data, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("Python inspector: %w: %s", err, strings.TrimSpace(stderr.String()))
+		return nil, fmt.Errorf("%s inspector: %w: %s", name, err, strings.TrimSpace(stderr.String()))
 	}
 	var findings [][]finding
 	if err := json.Unmarshal(data, &findings); err != nil || len(findings) != len(inputs) {
-		return nil, fmt.Errorf("invalid Python inspector output: %v", err)
+		return nil, fmt.Errorf("invalid %s inspector output: %v", name, err)
 	}
-	results := []string{fmt.Sprintf("  Python: scanned %d file(s)", len(files))}
+	results := []string{fmt.Sprintf("  %s: scanned %d file(s)", name, len(inputs))}
 	for i, group := range findings {
 		for _, f := range group {
 			results = append(results, fmt.Sprintf("  WARN %s:%d [%s] %s", path.Clean(inputs[i].Path), f.Line, f.Rule, f.Detail))

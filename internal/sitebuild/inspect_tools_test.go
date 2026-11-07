@@ -34,7 +34,7 @@ Path(__file__).with_name("result").write_text("x")
 open("results.txt", "w")
 raise RuntimeError("must never execute")
 `
-	for name, content := range map[string]string{"tool.py": source, "pyproject.toml": "", "uv.lock": ""} {
+	for name, content := range map[string]string{"tool.py": source, "tool.sh": "#!/bin/sh\necho data > output.txt\n", "runner": "#!/usr/bin/env bash\necho data > output.txt\n", "pyproject.toml": "", "uv.lock": ""} {
 		if err := os.WriteFile(filepath.Join(repo, name), []byte(content), 0600); err != nil {
 			t.Fatal(err)
 		}
@@ -43,6 +43,7 @@ raise RuntimeError("must never execute")
 	git("-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false", "commit", "-m", "fixture")
 	c := catalog.Catalog{SchemaVersion: 1, Revision: "test", Tools: []catalog.Tool{
 		{ID: "example", Name: "Example", Description: "Example", Default: &catalog.Target{Kind: "source", Owner: "owner", Repo: "repo", DataFiles: []string{"~/.documented"}}},
+		{ID: "shell", Name: "Shell", Description: "Shell", Default: &catalog.Target{Kind: "source", Owner: "owner", Repo: "repo", Path: "runner", Cwd: "repo"}},
 		{ID: "web", Name: "Web", Description: "Web", Default: &catalog.Target{Kind: "web", URL: "https://example.com"}},
 	}}
 	data, err := json.Marshal(c)
@@ -58,7 +59,7 @@ raise RuntimeError("must never execute")
 		t.Fatal(err)
 	}
 	got := out.String()
-	for _, want := range []string{"INSPECT example-default", "commit=", "tool.py:2 [undocumented-data-file]", "tool.py:4 [checkout-write]", "tool.py:5 [relative-write]", "SKIP web-default"} {
+	for _, want := range []string{"INSPECT example-default", "commit=", "tool.py:2 [undocumented-data-file]", "tool.py:4 [checkout-write]", "tool.py:5 [relative-write]", "tool.sh:2 [relative-write]", "INSPECT shell-default", "runner:2 [relative-write]", "SKIP web-default"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("missing %q in %s", want, got)
 		}
@@ -93,5 +94,37 @@ func TestPythonInspectorWorkingDirectoryAndParseErrors(t *testing.T) {
 	}
 	if len(results) != 3 || len(results[0]) != 0 || len(results[1]) != 1 || results[1][0].Rule != "relative-write" || len(results[2]) != 1 || results[2][0].Rule != "python-parse" {
 		t.Fatalf("unexpected findings: %+v", results)
+	}
+}
+
+func TestShellInspectorCheckoutWrites(t *testing.T) {
+	if _, err := exec.LookPath("python3"); err != nil {
+		t.Skip("python3 not available")
+	}
+	source := `#!/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(git rev-parse --show-toplevel)"
+echo data > "$SCRIPT_DIR/output.txt"
+cp input "$ROOT/copied.txt"
+echo data > relative.txt
+printf '%s\n' 'not > a redirect'
+# echo data > ignored.txt
+echo data > /tmp/safe.txt
+`
+	inputs := []pythonInput{{Path: "tool.sh", Source: source, TemporaryCwd: true}, {Path: "caller.sh", Source: source}}
+	results, err := runInspector(context.Background(), "Shell", shellInspector, inputs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := strings.Join(results, "\n")
+	for _, want := range []string{"tool.sh:4 [checkout-write]", "tool.sh:5 [checkout-write]", "tool.sh:6 [relative-write]", "caller.sh:4 [checkout-write]", "caller.sh:5 [checkout-write]"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("missing %q in %s", want, got)
+		}
+	}
+	for _, unwanted := range []string{"caller.sh:6", ":7 [", ":8 [", ":9 ["} {
+		if strings.Contains(got, unwanted) {
+			t.Errorf("unexpected %q in %s", unwanted, got)
+		}
 	}
 }
