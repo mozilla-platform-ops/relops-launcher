@@ -83,7 +83,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 		prefix := args[:len(args)-fs.NArg()]
 		rest := fs.Args()[1:]
 		switch fs.Arg(0) {
-		case "run", "r", "c":
+		case "run", "r":
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "catalog")
 		case "repo":
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "repo")
@@ -97,7 +97,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 			}
 			err := catalogDisplay(append([]string{"info"}, rest...), out)
 			return o, err == nil, err
-		case "catalog":
+		case "catalog", "c":
 			if len(rest) > 0 && rest[0] == "launch" {
 				return parseMode(append(append([]string{}, prefix...), rest[1:]...), out, version, "catalog")
 			}

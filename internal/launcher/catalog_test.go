@@ -11,7 +11,6 @@ func TestCatalogCLI(t *testing.T) {
 	for _, args := range [][]string{
 		{"run", "fr", "host-monitor", "--beta", "a b", ""},
 		{"r", "fr", "host-monitor", "--beta", "a b", ""},
-		{"c", "fr", "host-monitor", "--beta", "a b", ""},
 		{"catalog", "launch", "fleetroll", "host-monitor", "--beta", "a b", ""},
 	} {
 		o, done, err := parse(args, &bytes.Buffer{}, "test")
@@ -20,16 +19,16 @@ func TestCatalogCLI(t *testing.T) {
 		}
 	}
 	for _, flag := range []string{"-b", "--beta"} {
-		o, _, err := parse([]string{"c", flag, "replay-tc-pool"}, &bytes.Buffer{}, "test")
+		o, _, err := parse([]string{"run", flag, "replay-tc-pool"}, &bytes.Buffer{}, "test")
 		if err != nil || o.owner != "aerickson" || o.catalogChannel != "beta" || len(o.args) != 0 {
 			t.Fatalf("beta: %+v %v", o, err)
 		}
 	}
 	for _, args := range [][]string{
-		{"c", "unknown"}, {"c", "list"}, {"c", "beta"},
-		{"c", "-b", "fr"}, {"c", "replay-tc-pool"},
-		{"c", "-b", "--ref", "another", "replay-tc-pool"},
-		{"c", "--owner", "someone", "fr"}, {"c", "--ref", "main", "fleetbench"},
+		{"run", "unknown"}, {"run", "list"}, {"run", "beta"},
+		{"run", "-b", "fr"}, {"run", "replay-tc-pool"},
+		{"run", "-b", "--ref", "another", "replay-tc-pool"},
+		{"run", "--owner", "someone", "fr"}, {"run", "--ref", "main", "fleetbench"},
 		{"catalog", "unknown"}, {"catalog", "list", "extra"}, {"catalog", "info"},
 		{"catalog", "info", "unknown"}, {"repo", "-b", "example/tool.sh"},
 	} {
@@ -37,24 +36,24 @@ func TestCatalogCLI(t *testing.T) {
 			t.Errorf("accepted %q", args)
 		}
 	}
-	for _, args := range [][]string{{"--offline", "c", "fr"}, {"c", "--offline", "fr"}, {"catalog", "launch", "--offline", "fr"}} {
+	for _, args := range [][]string{{"--offline", "run", "fr"}, {"run", "--offline", "fr"}, {"catalog", "launch", "--offline", "fr"}} {
 		o, _, err := parse(args, &bytes.Buffer{}, "test")
 		if err != nil || !o.offline {
 			t.Fatalf("global option %v: %+v %v", args, o, err)
 		}
 	}
-	o, _, err := parse([]string{"c", "--ref", "test-branch", "fr"}, &bytes.Buffer{}, "test")
+	o, _, err := parse([]string{"run", "--ref", "test-branch", "fr"}, &bytes.Buffer{}, "test")
 	if err != nil || o.ref != "test-branch" {
 		t.Fatalf("ref override: %+v %v", o, err)
 	}
-	o, _, err = parse([]string{"c", "fleetbench", "--version"}, &bytes.Buffer{}, "test")
+	o, _, err = parse([]string{"run", "fleetbench", "--version"}, &bytes.Buffer{}, "test")
 	if err != nil || !isReleaseTarget(o) || !reflect.DeepEqual(o.args, []string{"--version"}) {
 		t.Fatalf("release: %+v %v", o, err)
 	}
 }
 
 func TestBareCatalogLaunch(t *testing.T) {
-	for _, args := range [][]string{{"run"}, {"r"}, {"c"}, {"catalog", "launch"}} {
+	for _, args := range [][]string{{"run"}, {"r"}, {"catalog", "launch"}} {
 		var out bytes.Buffer
 		_, done, err := parse(args, &out, "test")
 		text := out.String()
@@ -71,11 +70,11 @@ func TestRunAliases(t *testing.T) {
 		{"--ref", "my-feature", "fr", "--help"},
 		{"fb", "--version"},
 	} {
-		want, _, err := parse(append([]string{"c"}, suffix...), &bytes.Buffer{}, "test")
+		want, _, err := parse(append([]string{"run"}, suffix...), &bytes.Buffer{}, "test")
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, command := range []string{"run", "r"} {
+		for _, command := range []string{"r"} {
 			got, done, err := parse(append([]string{command}, suffix...), &bytes.Buffer{}, "test")
 			if err != nil || done || !reflect.DeepEqual(got, want) {
 				t.Fatalf("alias %s %v: got=%+v want=%+v done=%v err=%v", command, suffix, got, want, done, err)
@@ -107,6 +106,10 @@ func TestCatalogDiscovery(t *testing.T) {
 
 func TestDirectDiscoveryAliases(t *testing.T) {
 	for _, pair := range []struct{ direct, alias []string }{
+		{[]string{"catalog"}, []string{"c"}},
+		{[]string{"catalog", "--help"}, []string{"c", "--help"}},
+		{[]string{"catalog", "list"}, []string{"c", "list"}},
+		{[]string{"info", "fr"}, []string{"c", "info", "fr"}},
 		{[]string{"catalog"}, []string{"catalog", "list"}},
 		{[]string{"catalog"}, []string{"catalog", "ls"}},
 		{[]string{"info", "fb"}, []string{"catalog", "info", "fb"}},
@@ -119,7 +122,7 @@ func TestDirectDiscoveryAliases(t *testing.T) {
 			t.Fatalf("discovery alias %v/%v: %v/%v", pair.direct, pair.alias, err, aliasErr)
 		}
 	}
-	for _, args := range [][]string{{"info"}, {"info", "unknown"}, {"info", "fr", "extra"}, {"--offline", "info", "fr"}, {"--offline", "catalog"}} {
+	for _, args := range [][]string{{"info"}, {"info", "unknown"}, {"info", "fr", "extra"}, {"--offline", "info", "fr"}, {"--offline", "catalog"}, {"c", "ct"}, {"c", "fr", "--help"}, {"--offline", "c"}} {
 		if _, _, err := parse(args, &bytes.Buffer{}, "test"); err == nil {
 			t.Fatalf("accepted invalid discovery args %v", args)
 		}
@@ -156,9 +159,9 @@ func TestCatalogExecutionAndOffline(t *testing.T) {
 	for _, args := range [][]string{
 		{"run", "ct", "a b", "--beta"},
 		{"r", "ct", "a b", "--beta"},
-		{"c", "create-tc-task", "a b", "--beta"},
-		{"c", "--offline", "create-tc-task", "a b", "--beta"},
-		{"c", "-b", "replay-tc-pool", "a b", "--beta"},
+		{"run", "create-tc-task", "a b", "--beta"},
+		{"run", "--offline", "create-tc-task", "a b", "--beta"},
+		{"run", "-b", "replay-tc-pool", "a b", "--beta"},
 	} {
 		code, out, errOut := f.run(args...)
 		if code != 19 || out != "a b\n--beta\n" || !strings.Contains(errOut, " · ") || strings.Count(errOut, "\n") != 1 || strings.Contains(errOut, "catalog=") {

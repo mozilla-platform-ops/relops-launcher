@@ -87,8 +87,8 @@ func TestBundleDownloadsInventoryAndLinks(t *testing.T) {
 		t.Fatal("unrendered or stale release information")
 	}
 	for _, command := range []string{
-		"relops c -b replay-tc-pool -h",
-		"relops c fleetroll --help",
+		"relops run -b replay-tc-pool -h",
+		"relops run fleetroll --help",
 	} {
 		if !strings.Contains(string(page), command) {
 			t.Errorf("missing catalog command: %s", command)

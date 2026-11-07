@@ -47,7 +47,7 @@ relops run --ref my-branch fr --help          # override a default source target
 relops run fleetbench --version               # latest stable release binary
 ```
 
-`run` is the primary launch command; `r` is its shortcut. `c` and `catalog launch` remain compatibility aliases. Bare `run` or `r` shows the compact tool directory.
+`run` is the primary launch command; `r` is its shortcut. `c` is the shortcut for `catalog`. `catalog launch` remains a compatibility alias for `run`. Bare `run` or `r` shows the compact tool directory.
 
 Each entry has a unique shortcut ID and optional aliases, plus a default target, beta target, or both. Owners designate each target independently, including its GitHub owner, repository, path, and optional ref, console command, runner, and working directory. An omitted source ref follows the remote's default branch. Beta is a designated preview, not necessarily branch HEAD. Missing channels fail clearly; beta-only tools require `-b`. There is no fallback between channels. Launch diagnostics show the canonical shortcut, channel, catalog revision, and resolved source commit or release version.
 
@@ -55,7 +55,7 @@ Normal launches show one compact header, such as `relops: fleetroll · main@24f4
 
 Launcher options go before the shortcut; all subsequent arguments belong to the tool. Website `example_args` are documentation only and are never injected into a launch. `--ref` can override the default source target but cannot be combined with `-b`/`--beta`. Catalog launches reject `--owner`; use repository execution for arbitrary forks. Release targets retain their existing option restrictions. `--command`, `--runner`, and `--cwd` override configured source defaults.
 
-Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `run` selects execution specifically, `relops run list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog`; `relops catalog list` and `relops catalog ls` remain aliases. Inspect requirements with `relops info NAME` (alias: `relops catalog info NAME`).
+Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `run` selects execution specifically, `relops run list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog` or `relops c`; `relops catalog list` and `relops catalog ls` remain aliases. Inspect requirements with `relops info NAME` (alias: `relops catalog info NAME`).
 
 Direct repository syntax remains supported. `relops repo` explicitly selects source execution and escapes launcher command names:
 

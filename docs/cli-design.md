@@ -52,8 +52,9 @@ options with `relops run ct --help`. Keep this first tool example read-only; do
 not submit tasks. Follow with commands, common options, argument forwarding, and
 pointers to focused help. Avoid repeating every execution detail at the root.
 Running `relops` without arguments shows root help and exits successfully.
-Use `run` in help and examples, advertise `r` as its shortcut, and preserve `c`
-and `catalog launch` as compatibility aliases.
+Use `run` in help and examples and advertise `r` as its shortcut.
+`c` aliases `catalog` discovery, not execution. Keep `catalog launch` as a
+compatibility alias for `run`; old `c NAME` launches must use `r NAME` instead.
 Bare `relops repo` likewise shows repository help successfully. Bare `relops run`
 or `relops r`
 and `relops catalog launch` show one row per tool: its canonical name and aligned

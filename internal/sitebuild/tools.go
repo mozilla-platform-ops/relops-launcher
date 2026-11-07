@@ -28,7 +28,7 @@ func (t tool) ChannelLabel() string {
 }
 
 func (t tool) Command() string {
-	words := []string{"relops", "c"}
+	words := []string{"relops", "run"}
 	if t.Channel == "preview" {
 		words = append(words, "-b")
 	}

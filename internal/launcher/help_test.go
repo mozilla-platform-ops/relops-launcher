@@ -15,7 +15,7 @@ func TestFocusedHelp(t *testing.T) {
 	}{
 		{nil, "QUICK START", "ENVIRONMENTS"},
 		{[]string{"--help"}, "QUICK START", "ENVIRONMENTS"},
-		{[]string{"c", "--help"}, "CATALOG SELECTION", "--owner OWNER"},
+		{[]string{"c", "--help"}, "Read tool descriptions (alias: c).", "SOURCE EXECUTION"},
 		{[]string{"run", "--help"}, "relops r [options]", "--owner OWNER"},
 		{[]string{"r", "--help"}, "relops run [options]", "--owner OWNER"},
 		{[]string{"catalog", "launch", "--help"}, "RELEASE UPDATES", "--owner OWNER"},
