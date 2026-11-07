@@ -205,7 +205,7 @@ just site-from-release     # rebuild/test website using retained signed download
 just publish-site          # publish website changes without rebuilding binaries
 ```
 
-Build recipes read the version from `VERSION` (currently `0.1.4`) and embed it in the executable; `relops --version` prints it. Override with `just version=... signed-site` when needed. Direct `go build`/`go run` without the justfile report `dev`. Only `just publish` and `just publish-site` deploy; other recipes prepare artifacts locally. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
+Build recipes read the version from `VERSION` and embed it in the executable; `relops --version` prints it. Override with `just version=... signed-site` when needed. Direct `go build`/`go run` without the justfile report `dev`. Only `just publish` and `just publish-site` deploy; other recipes prepare artifacts locally. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
 
 For shared macOS downloads, use `just signed-site` or `just publish`, on a Mac with Xcode tools and a Developer ID Application identity. `just site` is for unsigned previews and rebuilds ordinary binaries; do not run it after signing and then publish that preview. See the [macOS release workflow](quick_site/README.md#macos-signing-and-notarization) for credential setup, retries, and publisher overrides. `0.1.1` introduces this workflow; the already-published `0.1.0` files are left unchanged.
 
