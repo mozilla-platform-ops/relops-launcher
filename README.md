@@ -20,14 +20,13 @@ Prerequisites for source targets: Git with working GitHub SSH access, plus the t
 git ls-remote git@github.com:mozilla-platform-ops/REPOSITORY.git HEAD
 ```
 
-For a local source install, install `just` and Go 1.23 or newer (release builds use the version pinned in `.go-version`):
+For a personal macOS Apple silicon install, use the retained signed and notarized release for the version in `VERSION`:
 
 ```sh
-cd scripts/relops-launcher
-just build
-mkdir -p ~/.local/bin
-install -m 755 bin/relops ~/.local/bin/relops
+./install-local.sh
 ```
+
+The script checks the retained release checksum and Apple notarization before installing it to `~/.local/bin/relops`. It uses `dist/releases/vVERSION` from this checkout; if missing, prepare it with `just signed-site`. It does not download updates. To install a development build from the current checkout, including uncommitted changes, use `./install-local.sh --dev` (requires Go 1.23 or newer). Run the script again after updating the release or source.
 
 Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary do not need Go. The download site is published at <https://relops-launcher.quick.mozilla.cloud/> behind Mozilla SSO. Download the appropriate artifact in your browser, then use the site's checksum-and-install command from any terminal directory. It reads from `~/Downloads` and sets PATH for the current terminal; the site also explains persistent PATH setup. Terminal downloads without authentication return Google sign-in HTML. Generate the site with `just site`; see the [publishing instructions](quick_site/README.md#publishing) for the account-specific Quick deployment command. Live download verification, minimum OS versions, and real coworker installation trials remain release checks.
 
