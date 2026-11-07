@@ -107,6 +107,9 @@ func catalogDisplay(args []string, out io.Writer) error {
 				}
 				fmt.Fprintf(&b, "  %s\n", names)
 				writeWrapped(&b, t.Description, "    ", terminalWidth(out))
+				if target, _, err := t.Select(beta); err == nil && target.Kind == "web" {
+					fmt.Fprintf(&b, "    %s\n", p.text(styleMetadata, target.URL))
+				}
 				name := t.ID
 				if len(t.Aliases) > 0 {
 					name = t.Aliases[0]
