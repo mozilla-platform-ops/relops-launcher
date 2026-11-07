@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -146,9 +147,15 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("render tools: %w", err)
 	}
+	revision := release.SourceCommit[:min(7, len(release.SourceCommit))]
+	if release.SourceDirty {
+		revision += "-dirty"
+	}
 	page := strings.NewReplacer(
 		"{{RELOPS_TOOLS}}", tools,
 		"{{RELOPS_VERSION}}", cfg.Version,
+		"{{RELOPS_SOURCE_COMMIT}}", html.EscapeString(release.SourceCommit),
+		"{{RELOPS_SOURCE_REVISION}}", html.EscapeString(revision),
 		"{{RELOPS_RELEASE_JSON}}", string(manifest),
 		"{{RELOPS_SHA_DARWIN_ARM64}}", release.Artifacts[0].SHA256,
 		"{{RELOPS_MACOS_STATUS}}", macOSStatus,
