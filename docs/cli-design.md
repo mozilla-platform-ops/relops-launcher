@@ -4,6 +4,9 @@ RelOps should make the next action easy to find, keep repeated launches compact,
 and show enough context to understand what will run. ASCII art adds team identity
 at the entrance. Root help uses the selected `small_slant` wordmark in green. Its artwork can be
 refined independently of the help layout.
+The tagline is “RelOps tools. One command.” Dim version metadata sits three
+spaces to the right of the wordmark's last full lettering row, above the p's
+descender. It moves below the art if space is limited, or beside the plain title.
 
 ## Color roles
 
@@ -47,7 +50,8 @@ Root help leads with a one-line purpose and three quick-start actions: find,
 inspect, run. Follow with commands, common options, argument forwarding, and
 pointers to focused help. Avoid repeating every execution detail at the root.
 Running `relops` without arguments shows root help and exits successfully.
-Execution commands and flags that omit a required target remain usage errors.
+Bare `relops repo` likewise shows repository help successfully. Execution flags
+without a target and catalog launch commands without a name remain usage errors.
 
 - `relops catalog --help`: discovery quick start, explicit equivalence of
   `relops c` and `relops catalog launch`, tool aliases, beta selection,
@@ -56,7 +60,8 @@ Execution commands and flags that omit a required target remain usage errors.
 - `relops catalog info --help`: inspection syntax and an example.
 - `relops c --help` / `relops catalog launch --help`: catalog selection, common
   flags, source flags, release updates, examples, and execution rules.
-- `relops repo --help`: source options, examples, environment selection, cleanup.
+- `relops repo` / `relops repo --help`: repository introduction and quick start,
+  source options, argument forwarding, environment selection, and cleanup.
 
 Launcher options go before the target. Every argument after the target belongs
 to the tool, including `--help`. Examples must preserve that boundary. Explain
@@ -64,9 +69,13 @@ that source checkouts are removed on exit and outputs should be saved elsewhere.
 
 ## Catalog presentation
 
-Use two-line entries for names and descriptions. Emphasize names, keep aliases
-secondary, and label available channels in text. End lists with launch and
-inspection hints; place the bundled revision last as metadata.
+Use two-line entries with a blank line between tools. Show tool names in bold
+green, keep aliases secondary, and descriptions in the normal foreground.
+Group default targets under `TOOLS`, then beta targets under the yellow heading
+`BETA · requires -b`. Tools with both targets appear in both groups. Preserve
+catalog order within each group and omit empty groups. Avoid repetitive channel
+badges on individual entries. End lists with aligned Run, Inspect, and Beta
+hints; place the bundled revision last as metadata.
 
 Tool details use readable labels, prerequisites, documentation links, and a
 copyable launch command for each channel. Omit empty optional values and show

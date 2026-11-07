@@ -24,7 +24,7 @@ func TestCatalogCLI(t *testing.T) {
 		}
 	}
 	for _, args := range [][]string{
-		{"c"}, {"repo"}, {"c", "unknown"}, {"c", "list"}, {"c", "beta"},
+		{"c"}, {"c", "unknown"}, {"c", "list"}, {"c", "beta"},
 		{"c", "-b", "fr"}, {"c", "replay-tc-pool"},
 		{"c", "-b", "--ref", "another", "replay-tc-pool"},
 		{"c", "--owner", "someone", "fr"}, {"c", "--ref", "main", "fleetbench"},

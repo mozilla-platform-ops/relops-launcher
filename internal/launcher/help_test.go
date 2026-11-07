@@ -18,6 +18,7 @@ func TestFocusedHelp(t *testing.T) {
 		{[]string{"c", "--help"}, "CATALOG SELECTION", "--owner OWNER"},
 		{[]string{"catalog", "launch", "--help"}, "RELEASE UPDATES", "--owner OWNER"},
 		{[]string{"repo", "--help"}, "ENVIRONMENTS", "--refresh"},
+		{[]string{"repo"}, "QUICK START", "--refresh"},
 		{[]string{"catalog", "--help"}, "relops catalog info NAME", "SOURCE EXECUTION"},
 		{[]string{"catalog", "list", "--help"}, "beta-only tools require -b", "SOURCE EXECUTION"},
 		{[]string{"catalog", "info", "--help"}, "Example: relops catalog info fr", "SOURCE EXECUTION"},
@@ -32,7 +33,7 @@ func TestFocusedHelp(t *testing.T) {
 }
 
 func TestMissingExecutionTarget(t *testing.T) {
-	for _, args := range [][]string{{"c"}, {"catalog", "launch"}, {"repo"}, {"--offline"}, {"--ref", "main"}} {
+	for _, args := range [][]string{{"c"}, {"catalog", "launch"}, {"repo", "--offline"}, {"repo", "--ref", "main"}, {"--offline"}, {"--ref", "main"}} {
 		var out bytes.Buffer
 		_, done, err := parse(args, &out, "test")
 		if err == nil || done || out.Len() != 0 {

@@ -20,23 +20,34 @@ func catalogDisplay(args []string, out io.Writer) error {
 		if len(args) != 1 {
 			return fmt.Errorf("usage: relops catalog list")
 		}
-		fmt.Fprintln(&b, p.text(styleHeading, "TOOLS"))
-		for _, t := range c.Tools {
-			names := p.text(styleCommand, t.ID)
-			if len(t.Aliases) > 0 {
-				names += " " + p.text(styleMetadata, "("+strings.Join(t.Aliases, ", ")+")")
+		for _, beta := range []bool{false, true} {
+			headed := false
+			for _, t := range c.Tools {
+				if (!beta && t.Default == nil) || (beta && t.Beta == nil) {
+					continue
+				}
+				if !headed {
+					if beta {
+						fmt.Fprintln(&b, p.text(styleBeta, "BETA · requires -b"))
+					} else {
+						fmt.Fprintln(&b, p.text(styleHeading, "TOOLS"))
+					}
+					fmt.Fprintln(&b)
+					headed = true
+				}
+				names := p.text(styleHeading, t.ID)
+				if len(t.Aliases) > 0 {
+					names += "  " + p.text(styleMetadata, "("+strings.Join(t.Aliases, ", ")+")")
+				}
+				fmt.Fprintf(&b, "  %s\n", names)
+				writeWrapped(&b, t.Description, "    ", terminalWidth(out))
+				fmt.Fprintln(&b)
 			}
-			channels := []string{}
-			if t.Default != nil {
-				channels = append(channels, "default")
-			}
-			if t.Beta != nil {
-				channels = append(channels, p.text(styleBeta, "beta"))
-			}
-			fmt.Fprintf(&b, "  %s [%s]\n", names, strings.Join(channels, ", "))
-			writeWrapped(&b, t.Description, "    ", terminalWidth(out))
 		}
-		fmt.Fprintln(&b, "\nRun: relops c NAME [args...]\nBeta-only tools require -b: relops c -b NAME [args...]\nDetails: relops catalog info NAME")
+		fmt.Fprintf(&b, "Run      %s\nInspect  %s\nBeta     %s\n",
+			p.text(styleCommand, "relops c NAME [args...]"),
+			p.text(styleCommand, "relops catalog info NAME"),
+			p.text(styleCommand, "relops c -b NAME [args...]"))
 		fmt.Fprintln(&b, p.text(styleMetadata, "\nBundled catalog "+c.Revision))
 	case "info":
 		if len(args) != 2 {

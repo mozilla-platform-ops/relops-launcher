@@ -63,12 +63,15 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 		return o, true, err
 	}
 	if fs.NArg() == 0 {
-		if mode == "root" && len(args) == 0 {
+		if (mode == "root" || mode == "repo") && len(args) == 0 {
 			err := writeHelp(out, mode, version)
 			return o, true, err
 		}
 		if mode == "catalog" {
 			return o, false, errors.New("expected a catalog tool name; use relops c --help")
+		}
+		if mode == "repo" {
+			return o, false, errors.New("expected <repo> or <repo>/<path>; use relops repo --help")
 		}
 		return o, false, errors.New("expected <repo> or <repo>/<path>; use relops --help")
 	}

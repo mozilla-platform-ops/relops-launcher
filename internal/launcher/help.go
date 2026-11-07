@@ -68,12 +68,31 @@ func writeHelp(out io.Writer, mode, version string) error {
 	switch mode {
 	case "root":
 		width := terminalWidth(out)
+		versionLabel := p.text(styleMetadata, "v"+version)
 		if isTerminal(out) && os.Getenv("TERM") != "dumb" && (width == 0 || width >= 40) {
-			paragraph(p.text(styleHeading, wordmark))
+			lines := strings.Split(wordmark, "\n")
+			logoWidth := 0
+			for _, line := range lines {
+				if len(line) > logoWidth {
+					logoWidth = len(line)
+				}
+			}
+			for i, line := range lines {
+				fmt.Fprint(&b, p.text(styleHeading, line))
+				// The final row is the p's descender; align with the lettering above it.
+				if i == len(lines)-2 && (width == 0 || logoWidth+4+len(version) <= width) {
+					fmt.Fprint(&b, strings.Repeat(" ", logoWidth-len(line)+3), versionLabel)
+				}
+				fmt.Fprintln(&b)
+			}
+			if width > 0 && logoWidth+4+len(version) > width {
+				fmt.Fprintln(&b, versionLabel)
+			}
 		} else {
-			heading("relops")
+			fmt.Fprintln(&b, p.text(styleHeading, "relops")+"   "+versionLabel)
 		}
-		paragraph("Run your team's tools.  " + p.text(styleMetadata, "Version "+version))
+		fmt.Fprintln(&b)
+		paragraph("RelOps tools. One command.")
 		rows("QUICK START", helpRow{"relops catalog list", "Find a tool."}, helpRow{"relops catalog info fr", "See requirements and details."}, helpRow{"relops c fr --help", "Show Fleetroll's help."})
 		rows("COMMANDS", helpRow{"c [options] NAME [args...]", "Run a catalog tool (alias: catalog launch)."}, helpRow{"catalog list", "List available tools (alias: catalog ls)."}, helpRow{"catalog info NAME", "Inspect a tool."}, helpRow{"repo [options] REPO[/PATH] [args...]", "Run from a repository."})
 		rows("COMMON OPTIONS", common...)
@@ -101,6 +120,14 @@ func writeHelp(out io.Writer, mode, version string) error {
 		heading("USAGE")
 		paragraph("  relops catalog info NAME\n\nInspect a tool by name or alias, including requirements and launch commands.\nExample: relops catalog info fr")
 	case "catalog", "repo":
+		if mode == "repo" {
+			heading("REPOSITORY TOOLS")
+			paragraph("Run a script or Python project directly from a GitHub repository.")
+			rows("QUICK START",
+				helpRow{"relops repo android-tools/worker_health/create_tc_task.py --help", "Show a repository script's help."},
+				helpRow{"relops repo fleetroll_mvp --help", "Run a Python project's console command."},
+				helpRow{"relops repo --ref my-feature REPO/PATH --help", "Try a pushed branch, tag, or commit."})
+		}
 		heading("USAGE")
 		if mode == "catalog" {
 			paragraph("  relops c [options] NAME [tool-arguments...]\n  relops catalog launch [options] NAME [tool-arguments...]")
@@ -116,12 +143,16 @@ func writeHelp(out io.Writer, mode, version string) error {
 			paragraph("Release targets reject --ref, --runner, --command, and --cwd repo.\n--refresh requires an online release target. Catalog launches reject --owner.\nMissing channels fail; beta selection never falls back to default.")
 			rows("EXAMPLES", helpRow{"relops c fr --help", "Show tool help."}, helpRow{"relops c -b replay-tc-pool -h", "Select a beta tool."}, helpRow{"relops c --ref my-feature fr --help", "Try a pushed source branch."}, helpRow{"relops c fleetbench cpu --mode quick --json", "Run a verified release binary."})
 		} else {
-			rows("EXAMPLES", helpRow{"relops repo --ref my-feature relops-infra/path/to/check.sh --verbose", "Pass --verbose to the tool."}, helpRow{"relops repo --runner python3 example/check.py ./hosts.csv", "Use caller-relative input."})
+			heading("ARGUMENTS")
+			paragraph("  Launcher options go before REPO[/PATH]; later arguments go to the tool.\n  relops repo --offline fleetroll_mvp --help\n              launcher               tool\n\n  Scripts use your current directory by default; project targets use their\n  project directory. Use --cwd caller or --cwd repo to override this.")
 			heading("ENVIRONMENTS")
 			paragraph("Auto detects shebangs and Python scripts. Pipfile projects use installed\nPipenv; pyproject.toml + uv.lock projects use installed uv. Locked runtime\ndependencies are synced automatically. An explicit --runner bypasses setup.\nProject targets select the matching or sole console entry point; use\n--command when selection is ambiguous.")
 		}
 		heading("EXECUTION")
-		paragraph("Launcher options must precede the target. All following arguments go to\nthe tool, including --help. Source runs fetch before execution unless --offline.\nEach source checkout is removed on exit: save outputs outside it. Release\nbinaries run in the caller's directory. Tools run with your normal permissions.")
+		paragraph("Launcher options must precede the target. All following arguments go to\nthe tool, including --help. Source runs fetch before execution unless --offline.\nEach source checkout is removed on exit: save outputs outside it.\nTools run with your normal permissions.")
+		if mode == "repo" {
+			rows("MORE HELP", helpRow{"relops catalog", "Find tools you can run by name or alias."}, helpRow{"relops --help", "All launcher commands."})
+		}
 	}
 	_, err := io.WriteString(out, b.String())
 	return err
