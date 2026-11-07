@@ -1,9 +1,10 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-07.2",
+  "revision": "2026-11-07.3",
   "tools": [
     {
       "id": "hangar",
+      "aliases": ["h"],
       "name": "Hangar",
       "description": "Open Hangar in your browser.",
       "default": {

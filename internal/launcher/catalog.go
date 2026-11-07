@@ -119,7 +119,7 @@ func catalogDisplay(args []string, out io.Writer) error {
 				if target, _, err := t.Select(beta); err == nil && target.Kind == "web" {
 					args = ""
 				}
-				fmt.Fprintf(&b, "    %s%s%s\n", launch, name, args)
+				fmt.Fprintf(&b, "    %s\n", p.text(styleMetadata, "$ "+launch+name+args))
 				fmt.Fprintln(&b)
 			}
 		}
