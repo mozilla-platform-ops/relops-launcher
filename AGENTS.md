@@ -1,7 +1,13 @@
 # Agent notes
 
-## Commits
+## Git operations
 
+- Leave completed changes uncommitted for user review.
+- Do not run `git commit` or `git push` without explicit user permission.
+  Permission to implement changes does not authorize either action.
+- When ready, summarize the changes and validation, and suggest a commit
+  message. Include the relevant bead ID when applicable.
+- Stage only task-related files when preparing an approved commit.
 - Do not add `Co-Authored-By` trailers to commit messages.
 
 ## Website review and publishing
@@ -57,15 +63,16 @@ br sync --status      # Check sync status
 
 ### Session Protocol
 
-**Before ending any session, run this checklist:**
+Before ending a session:
 
-```bash
-git status              # Check what changed
-git add <files>         # Stage code changes
-br sync --flush-only    # Export beads changes to JSONL
-git commit -m "..."     # Commit everything
-git push                # Push to remote
-```
+1. Run the checks appropriate to the changes (`just check` for Go changes).
+2. Run `br sync --flush-only` to export issue updates.
+3. Review `git diff --check` and `git status`.
+4. Summarize the changes, validation, and any outstanding work.
+5. Suggest a commit message when changes are ready.
+
+Leave changes uncommitted unless the user explicitly authorizes committing.
+Push only when the user explicitly authorizes pushing.
 
 ### Best Practices
 
