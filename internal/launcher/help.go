@@ -145,13 +145,14 @@ func writeHelp(out io.Writer, mode, version string) error {
 		} else {
 			heading("ARGUMENTS")
 			paragraph("  Launcher options go before REPO[/PATH]; later arguments go to the tool.\n  relops repo --offline fleetroll_mvp --help\n              launcher               tool\n\n  Scripts use your current directory by default; project targets use their\n  project directory. Use --cwd caller or --cwd repo to override this.")
-			heading("ENVIRONMENTS")
-			paragraph("Auto detects shebangs and Python scripts. Pipfile projects use installed\nPipenv; pyproject.toml + uv.lock projects use installed uv. Locked runtime\ndependencies are synced automatically. An explicit --runner bypasses setup.\nProject targets select the matching or sole console entry point; use\n--command when selection is ambiguous.")
 		}
-		heading("EXECUTION")
-		paragraph("Launcher options must precede the target. All following arguments go to\nthe tool, including --help. Source runs fetch before execution unless --offline.\nEach source checkout is removed on exit: save outputs outside it.\nTools run with your normal permissions.")
 		if mode == "repo" {
+			heading("NOTE")
+			paragraph("  Temporary checkouts are removed on exit. Save outputs outside them.")
 			rows("MORE HELP", helpRow{"relops catalog", "Find tools you can run by name or alias."}, helpRow{"relops --help", "All launcher commands."})
+		} else {
+			heading("EXECUTION")
+			paragraph("Launcher options must precede the target. All following arguments go to\nthe tool, including --help. Source runs fetch before execution unless --offline.\nEach source checkout is removed on exit: save outputs outside it.\nTools run with your normal permissions.")
 		}
 	}
 	_, err := io.WriteString(out, b.String())

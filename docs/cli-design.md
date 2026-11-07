@@ -61,7 +61,8 @@ without a target and catalog launch commands without a name remain usage errors.
 - `relops c --help` / `relops catalog launch --help`: catalog selection, common
   flags, source flags, release updates, examples, and execution rules.
 - `relops repo` / `relops repo --help`: repository introduction and quick start,
-  source options, argument forwarding, environment selection, and cleanup.
+  source options, argument forwarding, and a short checkout cleanup note.
+  Keep detailed environment selection and execution rules in the README.
 
 Launcher options go before the target. Every argument after the target belongs
 to the tool, including `--help`. Examples must preserve that boundary. Explain
