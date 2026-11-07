@@ -20,7 +20,7 @@ type tool struct {
 func (t tool) ChannelLabel() string {
 	switch t.Channel {
 	case "preview":
-		return "Preview"
+		return "Beta"
 	case "release":
 		return t.Ref
 	}
@@ -105,7 +105,7 @@ func renderTools(path string) (string, error) {
 {{if .Standard}}{{template "list" .Standard}}{{end}}
 {{if .Preview}}
       <div class="tool-preview-intro">
-        <h3 class="label">Tools in preview</h3>
+        <h3 class="label">Tools in beta</h3>
         <p class="prose">These tools use their owners’ designated beta targets. Try them out and share feedback in Slack’s #relops channel.</p>
       </div>
       {{template "list" .Preview}}
