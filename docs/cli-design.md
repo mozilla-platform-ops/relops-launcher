@@ -50,8 +50,12 @@ Root help leads with a one-line purpose and three quick-start actions: find,
 inspect, run. Follow with commands, common options, argument forwarding, and
 pointers to focused help. Avoid repeating every execution detail at the root.
 Running `relops` without arguments shows root help and exits successfully.
-Bare `relops repo` likewise shows repository help successfully. Execution flags
-without a target and catalog launch commands without a name remain usage errors.
+Bare `relops repo` likewise shows repository help successfully. Bare `relops c`
+and `relops catalog launch` show one row per tool: its canonical name and aligned
+invocation, using its first alias when available and `-b` for beta targets.
+Use green `TOOLS` and `TOOLS (BETA)` headings, bold foreground names, normal
+invocations, and no footer. No tools are launched or fetched. Launch flags without a target
+remain usage errors. Use `relops catalog ls` for descriptions and per-tool commands.
 
 - `relops catalog --help`: discovery quick start, explicit equivalence of
   `relops c` and `relops catalog launch`, tool aliases, beta selection,

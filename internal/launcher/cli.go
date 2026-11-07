@@ -68,6 +68,10 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 			return o, true, err
 		}
 		if mode == "catalog" {
+			if len(args) == 0 {
+				err := catalogShort(out)
+				return o, true, err
+			}
 			return o, false, errors.New("expected a catalog tool name; use relops c --help")
 		}
 		if mode == "repo" {

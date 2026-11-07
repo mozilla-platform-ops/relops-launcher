@@ -33,7 +33,7 @@ func TestFocusedHelp(t *testing.T) {
 }
 
 func TestMissingExecutionTarget(t *testing.T) {
-	for _, args := range [][]string{{"c"}, {"catalog", "launch"}, {"repo", "--offline"}, {"repo", "--ref", "main"}, {"--offline"}, {"--ref", "main"}} {
+	for _, args := range [][]string{{"c", "--offline"}, {"c", "-b"}, {"catalog", "launch", "--ref", "main"}, {"repo", "--offline"}, {"repo", "--ref", "main"}, {"--offline"}, {"--ref", "main"}} {
 		var out bytes.Buffer
 		_, done, err := parse(args, &out, "test")
 		if err == nil || done || out.Len() != 0 {

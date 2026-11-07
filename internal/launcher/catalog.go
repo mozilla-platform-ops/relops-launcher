@@ -8,6 +8,52 @@ import (
 	"github.com/mozilla-platform-ops/relops-launcher/internal/catalog"
 )
 
+// Show a compact chooser without fetching or launching any tool.
+func catalogShort(out io.Writer) error {
+	c, err := catalog.Bundled()
+	if err != nil {
+		return err
+	}
+	p := terminalPalette(out)
+	var b strings.Builder
+	nameWidth := 0
+	for _, t := range c.Tools {
+		if len(t.ID) > nameWidth {
+			nameWidth = len(t.ID)
+		}
+	}
+	for _, beta := range []bool{false, true} {
+		headed := false
+		for _, t := range c.Tools {
+			if (!beta && t.Default == nil) || (beta && t.Beta == nil) {
+				continue
+			}
+			if !headed {
+				title := "TOOLS"
+				if beta {
+					title = "TOOLS (BETA)"
+				}
+				fmt.Fprintln(&b, p.text(styleHeading, title))
+				headed = true
+			}
+			name := t.ID
+			if len(t.Aliases) > 0 {
+				name = t.Aliases[0]
+			}
+			launch := "relops c "
+			if beta {
+				launch += "-b "
+			}
+			fmt.Fprintf(&b, "  %s%s  %s%s\n", p.text(styleCommand, t.ID), strings.Repeat(" ", nameWidth-len(t.ID)), launch, name)
+		}
+		if headed {
+			fmt.Fprintln(&b)
+		}
+	}
+	_, err = io.WriteString(out, b.String())
+	return err
+}
+
 func catalogDisplay(args []string, out io.Writer) error {
 	c, err := catalog.Bundled()
 	if err != nil {

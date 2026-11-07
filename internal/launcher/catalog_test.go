@@ -24,7 +24,7 @@ func TestCatalogCLI(t *testing.T) {
 		}
 	}
 	for _, args := range [][]string{
-		{"c"}, {"c", "unknown"}, {"c", "list"}, {"c", "beta"},
+		{"c", "unknown"}, {"c", "list"}, {"c", "beta"},
 		{"c", "-b", "fr"}, {"c", "replay-tc-pool"},
 		{"c", "-b", "--ref", "another", "replay-tc-pool"},
 		{"c", "--owner", "someone", "fr"}, {"c", "--ref", "main", "fleetbench"},
@@ -48,6 +48,17 @@ func TestCatalogCLI(t *testing.T) {
 	o, _, err = parse([]string{"c", "fleetbench", "--version"}, &bytes.Buffer{}, "test")
 	if err != nil || !isReleaseTarget(o) || !reflect.DeepEqual(o.args, []string{"--version"}) {
 		t.Fatalf("release: %+v %v", o, err)
+	}
+}
+
+func TestBareCatalogLaunch(t *testing.T) {
+	for _, args := range [][]string{{"c"}, {"catalog", "launch"}} {
+		var out bytes.Buffer
+		_, done, err := parse(args, &out, "test")
+		text := out.String()
+		if err != nil || !done || !strings.Contains(text, "relops c fb") || !strings.Contains(text, "TOOLS (BETA)") || !strings.Contains(text, "relops c -b replay-tc-pool") || strings.Contains(text, "Run host benchmarks") || strings.Contains(text, "relops c --help") {
+			t.Fatalf("bare launch %v: done=%v err=%v output=%q", args, done, err, text)
+		}
 	}
 }
 
