@@ -34,6 +34,8 @@ dist/site/
 
 `releases.json` records the actual embedded binary metadata, including whether the source checkout was dirty. Commit release source and rebuild before publishing so the source commit is reproducible and `source_dirty` is false. Release versions should identify fixed artifacts: bump `VERSION` for a changed published binary. Checksums detect corruption; they are not signatures. Quick's shared-write model still applies to the hosted files.
 
+Go's dirty flag also includes untracked files elsewhere in the Git repository. Build official releases from a clean checkout or detached worktree when unrelated files are present. Check `source_dirty` in the prepared `releases.json` before deployment. Keep existing published bytes unchanged when correcting release provenance; publish a new version instead.
+
 ## macOS signing and notarization
 
 Use a Mac with Xcode command-line tools and an available Developer ID Application identity. The configured publisher is `Developer ID Application: Andrew Erickson (W5BHZ9R8A3)`; private keys remain in Keychain. Ordinary builds and CI do not access signing credentials.
