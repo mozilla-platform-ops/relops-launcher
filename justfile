@@ -53,15 +53,15 @@ serve:
 
 # Rebuild the local preview on source changes (run alongside just serve).
 watch-site:
-    watchexec --poll 1s --shell=none -w quick_site -w internal/sitebuild -w cmd/relops-site -w VERSION -w go.mod -- {{ quote(go) }} run ./cmd/relops-site
+    watchexec --poll 1s --shell=none -w quick_site -w internal -w cmd/relops -w cmd/relops-site -w VERSION -w go.mod -w justfile -- just site
 
 # Watch, rebuild, and serve the local preview in one terminal.
 dev:
-    watchexec --poll 1s --restart --shell=none -w quick_site -w internal/sitebuild -w cmd/relops-site -w VERSION -w go.mod -- just _serve-preview
+    watchexec --poll 1s --restart --shell=none -w quick_site -w internal -w cmd/relops -w cmd/relops-site -w VERSION -w go.mod -w justfile -- just _serve-preview
 
 [private]
 _serve-preview:
-    {{ quote(go) }} run ./cmd/relops-site
+    just site
     just serve
 
 # Build the site and test download selection and copying (requires Node).

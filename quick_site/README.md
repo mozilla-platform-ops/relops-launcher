@@ -11,7 +11,7 @@ just serve
 
 Open `http://localhost:8080`. `just site-check` requires Node for the download-selector/copy tests; `just site` requires just, Go, Git, and `shasum`. Go release builds use the compiler version recorded in `.go-version` in CI. For local reproduction, use that compiler version too. Override the release version with `just version=0.2.0 site` when needed.
 
-For automatic rebuilds and serving in one terminal, stop any existing `just serve` process and run `just dev`. This requires `watchexec` (`brew install watchexec` on macOS). It rebuilds immediately and restarts the server whenever site sources or the site builder change; refresh the browser after editing. It checks for changes every second and uses existing binaries in `dist/`. Run `just site` once if those binaries are missing. If you prefer separate terminals, use `just watch-site` alongside `just serve`. These commands update the local preview only; publishing still uses `just publish-site`.
+For automatic rebuilds and serving in one terminal, stop any existing `just serve` process and run `just dev`. This requires `watchexec` (`brew install watchexec` on macOS). It builds unsigned binaries and the site immediately, then rebuilds and restarts the server when site or launcher sources change; refresh the browser after editing. It checks for changes every second. If you prefer separate terminals, use `just watch-site` alongside `just serve`. These commands update the local preview only; publishing still uses `just publish-site`.
 
 Press Ctrl-C to stop the watcher and its server.
 
