@@ -76,6 +76,9 @@ remain usage errors. Use `relops catalog` for descriptions and per-tool commands
   source options, argument forwarding, and a short checkout cleanup note.
   Keep detailed environment selection and execution rules in the README.
 
+Execution requires an explicit command: `repo` for source and `run`/`r` for
+catalog tools (including releases). Reject bare targets before fetching or
+launching, with a shell-quoted replacement that preserves options and arguments.
 Launcher options go before the target. Every argument after the target belongs
 to the tool, including `--help`. Examples must preserve that boundary. Explain
 that source checkouts are removed on exit and outputs should be saved elsewhere.

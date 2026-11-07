@@ -99,7 +99,7 @@ func writeHelp(out io.Writer, mode, version string) error {
 		heading("ARGUMENTS")
 		paragraph("  Launcher options go before the target; all later arguments go to the tool.\n  relops run --offline fr --help\n             launcher     tool")
 		heading("MORE HELP")
-		paragraph("  relops run --help     Catalog selection and source/release options.\n  relops repo --help    Repository execution and environment rules.\n  relops catalog --help Catalog discovery.\n\n  Direct execution also works: relops [options] REPO[/PATH] [args...]")
+		paragraph("  relops run --help     Catalog selection and source/release options.\n  relops repo --help    Repository execution and environment rules.\n  relops catalog --help Catalog discovery.")
 	case "catalog-index":
 		heading("CATALOG")
 		paragraph("Find a tool, check its requirements, and run it by name or alias.")

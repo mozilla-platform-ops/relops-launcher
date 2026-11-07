@@ -101,7 +101,7 @@ func TestUVProjectCacheOfflineCWDAndScripts(t *testing.T) {
 	f := newFixture(t)
 	uvFiles(f)
 	logFile := fakeUV(t, f)
-	code, out, log := f.run("example", "host-monitor", "-h")
+	code, out, log := f.run("repo", "example", "host-monitor", "-h")
 	if code != 0 || !strings.HasPrefix(out, "host-monitor -h\ncwd=") || strings.Contains(out, "setup diagnostics") || !strings.Contains(out, "caller="+f.caller) || strings.Contains(log, "setup diagnostics") || !strings.Contains(log, "preparing environment…") {
 		t.Fatalf("project command: %d %q %s", code, out, log)
 	}
@@ -114,28 +114,28 @@ func TestUVProjectCacheOfflineCWDAndScripts(t *testing.T) {
 		{"--offline", "--command", "alias", "--cwd", "caller", "example", "-h"},
 		{"--verbose", "--cwd", "caller", "example", "-h"},
 	} {
-		code, out, log := f.run(args...)
+		code, out, log := f.run(append([]string{"repo"}, args...)...)
 		if code != 0 || !strings.Contains(out, "cwd="+f.caller) {
 			t.Fatalf("reuse/override: %d %q %s", code, out, log)
 		}
 	}
 	// Python script targets share the project environment and retain caller cwd.
-	if code, out, log := f.run("example/tool.py", "script"); code != 0 || out != "script\n" {
+	if code, out, log := f.run("repo", "example/tool.py", "script"); code != 0 || out != "script\n" {
 		t.Fatalf("uv script: %d %q %s", code, out, log)
 	}
 	data, _ := os.ReadFile(logFile)
 	if strings.Count(string(data), "sync ") != 1 || strings.Count(string(data), "version ") != 1 {
 		t.Fatalf("environment was rebuilt: %s", data)
 	}
-	if code, _, log := f.run("--command", "missing", "example"); code != 1 || !strings.Contains(log, "unknown console command") {
+	if code, _, log := f.run("repo", "--command", "missing", "example"); code != 1 || !strings.Contains(log, "unknown console command") {
 		t.Fatalf("unknown command: %d %s", code, log)
 	}
 	f.write("changed", "new commit", 0644)
 	f.commit()
-	if code, _, log := f.run("example/tool.sh"); code != 0 {
+	if code, _, log := f.run("repo", "example/tool.sh"); code != 0 {
 		t.Fatal(log)
 	}
-	if code, _, log := f.run("--offline", "example"); code != 1 || !strings.Contains(log, "uv environment is not cached") {
+	if code, _, log := f.run("repo", "--offline", "example"); code != 1 || !strings.Contains(log, "uv environment is not cached") {
 		t.Fatalf("new commit reused environment: %d %s", code, log)
 	}
 	f.assertClean()
@@ -146,15 +146,15 @@ func TestUVFailureRetryAndExplicitBypass(t *testing.T) {
 	uvFiles(f)
 	logFile := fakeUV(t, f)
 	t.Setenv("RELOPS_TEST_UV_FAIL", "sync")
-	if code, out, log := f.run("example", "-h"); code != 1 || out != "" || !strings.Contains(log, "uv sync failed") {
+	if code, out, log := f.run("repo", "example", "-h"); code != 1 || out != "" || !strings.Contains(log, "uv sync failed") {
 		t.Fatalf("setup failure: %d %q %s", code, out, log)
 	}
 	t.Setenv("RELOPS_TEST_UV_FAIL", "")
-	if code, _, log := f.run("example", "-h"); code != 0 {
+	if code, _, log := f.run("repo", "example", "-h"); code != 0 {
 		t.Fatal(log)
 	}
 	before, _ := os.ReadFile(logFile)
-	if code, out, log := f.run("--runner", "python3", "example/tool.py", "explicit"); code != 0 || out != "explicit\n" {
+	if code, out, log := f.run("repo", "--runner", "python3", "example/tool.py", "explicit"); code != 0 || out != "explicit\n" {
 		t.Fatalf("override: %d %q %s", code, out, log)
 	}
 	after, _ := os.ReadFile(logFile)
@@ -166,7 +166,7 @@ func TestUVFailureRetryAndExplicitBypass(t *testing.T) {
 
 func TestUVRequiredFilesAndMissingExecutable(t *testing.T) {
 	f := newFixture(t)
-	if code, _, log := f.run("example"); code != 1 || !strings.Contains(log, "requires committed pyproject.toml and uv.lock") {
+	if code, _, log := f.run("repo", "example"); code != 1 || !strings.Contains(log, "requires committed pyproject.toml and uv.lock") {
 		t.Fatalf("missing project: %d %s", code, log)
 	}
 	uvFiles(f)
@@ -182,7 +182,7 @@ func TestUVRequiredFilesAndMissingExecutable(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Setenv("PATH", bin)
-	if code, _, log := f.run("example"); code != 1 || !strings.Contains(log, "uv is not on PATH; install uv") {
+	if code, _, log := f.run("repo", "example"); code != 1 || !strings.Contains(log, "uv is not on PATH; install uv") {
 		t.Fatalf("missing uv: %d %s", code, log)
 	}
 	f.assertClean()
@@ -196,7 +196,7 @@ func TestUVProjectBoundariesAndContainment(t *testing.T) {
 	f.write("nested/uv.lock", "version=1\n", 0644)
 	f.write("nested/tool.py", "print('nested')\n", 0644)
 	f.commit()
-	if code, out, log := f.run("example/nested", "-h"); code != 0 || !strings.Contains(out, "/checkout/nested\n") {
+	if code, out, log := f.run("repo", "example/nested", "-h"); code != 0 || !strings.Contains(out, "/checkout/nested\n") {
 		t.Fatalf("nested project: %d %q %s", code, out, log)
 	}
 	if err := os.Remove(filepath.Join(f.source, "nested/uv.lock")); err != nil {
@@ -209,7 +209,7 @@ func TestUVProjectBoundariesAndContainment(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.commit()
-	if code, _, log := f.run("example/nested/tool.py"); code != 1 || !strings.Contains(log, "symlink escapes") {
+	if code, _, log := f.run("repo", "example/nested/tool.py"); code != 1 || !strings.Contains(log, "symlink escapes") {
 		t.Fatalf("external lock: %d %s", code, log)
 	}
 	f.assertClean()
@@ -224,7 +224,7 @@ func TestUVConcurrentSetup(t *testing.T) {
 		workers.Add(1)
 		go func() {
 			defer workers.Done()
-			if code, out, log := f.run("example", "-h"); code != 0 || !strings.HasPrefix(out, "-h\n") {
+			if code, out, log := f.run("repo", "example", "-h"); code != 0 || !strings.HasPrefix(out, "-h\n") {
 				t.Errorf("concurrent command: %d %q %s", code, out, log)
 			}
 		}()

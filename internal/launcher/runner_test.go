@@ -20,16 +20,16 @@ func TestAutoShebangAndExplicitOverride(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(f.caller, "input.txt"), []byte("caller default"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	if code, out, log := f.run("example/nonexec.sh"); code != 1 || out != "" {
+	if code, out, log := f.run("repo", "example/nonexec.sh"); code != 1 || out != "" {
 		t.Fatalf("non-executable shebang flags: %d %q %s", code, out, log)
 	}
-	if code, out, log := f.run("--runner", "sh", "example/override.sh"); code != 0 || out != "override\n" {
+	if code, out, log := f.run("repo", "--runner", "sh", "example/override.sh"); code != 0 || out != "override\n" {
 		t.Fatalf("explicit override: %d %q %s", code, out, log)
 	}
-	if code, out, log := f.run("example/env-script"); code != 0 || out != "env\n" {
+	if code, out, log := f.run("repo", "example/env-script"); code != 0 || out != "env\n" {
 		t.Fatalf("env shebang: %d %q %s", code, out, log)
 	}
-	if code, out, log := f.run("example/cwd.sh"); code != 0 || out != "caller default" {
+	if code, out, log := f.run("repo", "example/cwd.sh"); code != 0 || out != "caller default" {
 		t.Fatalf("default caller cwd: %d %q %s", code, out, log)
 	}
 	f.assertClean()
@@ -110,7 +110,7 @@ func TestAutoPipenvSetupCacheOfflineAndOverride(t *testing.T) {
 	f := newFixture(t)
 	pipenvFiles(f)
 	logFile := fakePipenv(t, f)
-	if code, _, log := f.run("--offline", "example/nested/tool.py", "hello"); code != 1 {
+	if code, _, log := f.run("repo", "--offline", "example/nested/tool.py", "hello"); code != 1 {
 		t.Fatalf("uncached offline run: %d %s", code, log)
 	}
 	for _, args := range [][]string{
@@ -118,7 +118,7 @@ func TestAutoPipenvSetupCacheOfflineAndOverride(t *testing.T) {
 		{"--offline", "example/nested/tool.py", "hello"},
 		{"--verbose", "example/nested/tool.py", "hello"},
 	} {
-		code, out, log := f.run(args...)
+		code, out, log := f.run(append([]string{"repo"}, args...)...)
 		if code != 0 || !strings.HasPrefix(out, "hello\n"+filepath.Join(f.cache, "envs", defaultOwner, "example")) || strings.Contains(out, "dependency setup") {
 			t.Fatalf("automatic Pipenv: %d %q %s", code, out, log)
 		}
@@ -130,7 +130,7 @@ func TestAutoPipenvSetupCacheOfflineAndOverride(t *testing.T) {
 	// An explicit runner skips Pipenv entirely, even when a Pipfile is present.
 	f.write("nested/plain.py", "print('explicit')\n", 0644)
 	f.commit()
-	if code, out, log := f.run("--runner", "python3", "example/nested/plain.py"); code != 0 || out != "explicit\n" {
+	if code, out, log := f.run("repo", "--runner", "python3", "example/nested/plain.py"); code != 0 || out != "explicit\n" {
 		t.Fatalf("explicit bypass: %d %q %s", code, out, log)
 	}
 	after, _ := os.ReadFile(logFile)
@@ -138,10 +138,10 @@ func TestAutoPipenvSetupCacheOfflineAndOverride(t *testing.T) {
 		t.Fatal("explicit runner invoked Pipenv")
 	}
 	// A new commit has a separate environment, including for offline lookup.
-	if code, _, log := f.run("example/tool.sh"); code != 0 {
+	if code, _, log := f.run("repo", "example/tool.sh"); code != 0 {
 		t.Fatal(log)
 	}
-	if code, _, log := f.run("--offline", "example/nested/tool.py", "hello"); code != 1 || !strings.Contains(log, "environment is not cached") {
+	if code, _, log := f.run("repo", "--offline", "example/nested/tool.py", "hello"); code != 1 || !strings.Contains(log, "environment is not cached") {
 		t.Fatalf("new commit reused an old environment: %d %s", code, log)
 	}
 	f.assertClean()
@@ -154,7 +154,7 @@ func TestAutoPythonWithoutPipfile(t *testing.T) {
 	f := newFixture(t)
 	f.write("tool.py", "print('detected')\n", 0644)
 	f.commit()
-	if code, out, log := f.run("example/tool.py"); code != 0 || out != "detected\n" {
+	if code, out, log := f.run("repo", "example/tool.py"); code != 0 || out != "detected\n" {
 		t.Fatalf("Python extension detection: %d %q %s", code, out, log)
 	}
 	f.assertClean()
@@ -165,12 +165,12 @@ func TestPipenvSetupFailureDoesNotExecuteTool(t *testing.T) {
 	pipenvFiles(f)
 	fakePipenv(t, f)
 	t.Setenv("RELOPS_TEST_PIPENV_FAIL", "sync")
-	code, out, log := f.run("example/nested/tool.py", "must not run")
+	code, out, log := f.run("repo", "example/nested/tool.py", "must not run")
 	if code != 1 || out != "" || !strings.Contains(log, "pipenv sync failed") {
 		t.Fatalf("failed setup: %d %q %s", code, out, log)
 	}
 	t.Setenv("RELOPS_TEST_PIPENV_FAIL", "")
-	code, out, log = f.run("example/nested/tool.py", "recovered")
+	code, out, log = f.run("repo", "example/nested/tool.py", "recovered")
 	if code != 0 || !strings.HasPrefix(out, "recovered\n") {
 		t.Fatalf("retry after setup failure: %d %q %s", code, out, log)
 	}
@@ -195,7 +195,7 @@ func TestMissingPipenvAndInvalidLock(t *testing.T) {
 	}
 	oldPath := os.Getenv("PATH")
 	t.Setenv("PATH", bin)
-	code, out, log := f.run("example/nested/tool.py", "unused")
+	code, out, log := f.run("repo", "example/nested/tool.py", "unused")
 	if code != 1 || out != "" || !strings.Contains(log, "pipenv is not on PATH") {
 		t.Fatalf("missing Pipenv: %d %q %s", code, out, log)
 	}
@@ -203,7 +203,7 @@ func TestMissingPipenvAndInvalidLock(t *testing.T) {
 	fakePipenv(t, f)
 	f.write("nested/Pipfile.lock", `{"default":{"local":{"editable":true}}}`, 0644)
 	f.commit()
-	code, _, log = f.run("example/nested/tool.py", "unused")
+	code, _, log = f.run("repo", "example/nested/tool.py", "unused")
 	if code != 1 || !strings.Contains(log, "editable runtime dependency") {
 		t.Fatalf("editable dependency: %d %s", code, log)
 	}
@@ -239,7 +239,7 @@ func TestRealPipenv(t *testing.T) {
 	f.write("tool-env-nonexec.py", "#!/usr/bin/env python3\n"+program, 0644)
 	f.commit()
 	for _, args := range [][]string{{"example/tool.py"}, {"--offline", "example/tool-env.py"}, {"--offline", "example/tool-env-nonexec.py"}} {
-		code, out, log := f.run(args...)
+		code, out, log := f.run(append([]string{"repo"}, args...)...)
 		if code != 0 || out != "real pipenv\n" {
 			t.Fatalf("real Pipenv: %d %q %s", code, out, log)
 		}

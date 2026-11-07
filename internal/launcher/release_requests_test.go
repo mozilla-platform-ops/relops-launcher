@@ -39,7 +39,7 @@ func (f *releaseFixture) expireMetadata(t *testing.T) {
 func TestReleaseFreshnessAndETag(t *testing.T) {
 	f := newReleaseFixture(t)
 	f.etag = `"release-1"`
-	if code, _, log := f.run("fleetbench"); code != 0 {
+	if code, _, log := f.run("run", "fleetbench"); code != 0 {
 		t.Fatal(log)
 	}
 	first, err := os.ReadFile(f.metadataFile())
@@ -48,7 +48,7 @@ func TestReleaseFreshnessAndETag(t *testing.T) {
 	}
 	// A fresh invocation must not request even checksums, or extend freshness.
 	f.status = 503
-	if code, _, log := f.run("fleetbench"); code != 0 {
+	if code, _, log := f.run("run", "fleetbench"); code != 0 {
 		t.Fatal(log)
 	}
 	second, _ := os.ReadFile(f.metadataFile())
@@ -65,10 +65,10 @@ func TestReleaseFreshnessAndETag(t *testing.T) {
 	// The fixture returns 304 only for the matching ETag. Altering the JSON
 	// would otherwise be rejected, demonstrating reuse of validated metadata.
 	f.draft = true
-	if code, _, log := f.run("fleetbench"); code != 0 {
+	if code, _, log := f.run("run", "fleetbench"); code != 0 {
 		t.Fatal(log)
 	}
-	if code, _, log := f.run("--refresh", "fleetbench"); code != 0 {
+	if code, _, log := f.run("run", "--refresh", "fleetbench"); code != 0 {
 		t.Fatal(log)
 	}
 	api := "https://api.github.com/repos/" + defaultOwner + "/fleetbench/releases/latest"
@@ -83,7 +83,7 @@ func TestReleaseFreshnessAndETag(t *testing.T) {
 
 func TestReleaseCooldownAcrossLaunches(t *testing.T) {
 	f := newReleaseFixture(t)
-	if code, _, log := f.run("fleetbench"); code != 0 {
+	if code, _, log := f.run("run", "fleetbench"); code != 0 {
 		t.Fatal(log)
 	}
 	f.expireMetadata(t)
@@ -108,12 +108,17 @@ func TestReleaseCooldownAcrossLaunches(t *testing.T) {
 	}
 	// f.run constructs a new app each time. Cooldown also covers --refresh and
 	// another owner; any network access would fail through the fixture.
-	for _, args := range [][]string{{"fleetbench"}, {"--refresh", "fleetbench"}, {"--owner", "another-owner", "fleetbench"}} {
-		if code, output, log := f.run(args...); code != 1 || output != "" || !strings.Contains(log, "requests paused until") {
+	for _, args := range [][]string{{"fleetbench"}, {"--refresh", "fleetbench"}} {
+		if code, output, log := f.run(append([]string{"run"}, args...)...); code != 1 || output != "" || !strings.Contains(log, "requests paused until") {
 			t.Fatalf("cooldown %v: %d %q %s", args, code, output, log)
 		}
 	}
-	if code, _, log := f.run("--offline", "fleetbench"); code != 0 {
+	var ownerOut, ownerLog bytes.Buffer
+	_, _, ownerErr := f.app(&ownerOut, &ownerLog).prepareRelease(context.Background(), options{owner: "another-owner", repo: "fleetbench"})
+	if ownerErr == nil || !strings.Contains(ownerErr.Error(), "requests paused until") {
+		t.Fatalf("cross-owner cooldown: %v", ownerErr)
+	}
+	if code, _, log := f.run("run", "--offline", "fleetbench"); code != 0 {
 		t.Fatal(log)
 	}
 	// Expired cooldown allows another request.
@@ -121,7 +126,7 @@ func TestReleaseCooldownAcrossLaunches(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(f.cache, "releases", "cooldown.json"), data, 0600); err != nil {
 		t.Fatal(err)
 	}
-	if code, _, log := f.run("fleetbench"); code != 0 {
+	if code, _, log := f.run("run", "fleetbench"); code != 0 {
 		t.Fatal(log)
 	}
 }
@@ -186,12 +191,12 @@ func TestReleaseAuthentication(t *testing.T) {
 }
 
 func TestReleaseRefreshCLI(t *testing.T) {
-	for _, args := range [][]string{{"--refresh", "--offline", "fleetbench"}, {"--refresh", "example/tool.sh"}, {"repo", "--refresh", "fleetbench"}} {
+	for _, args := range [][]string{{"run", "--refresh", "--offline", "fleetbench"}, {"repo", "--refresh", "example/tool.sh"}, {"repo", "--refresh", "fleetbench"}} {
 		if _, _, err := parse(args, &bytes.Buffer{}, "test"); err == nil {
 			t.Fatalf("accepted incompatible refresh: %v", args)
 		}
 	}
-	o, _, err := parse([]string{"fleetbench", "--refresh"}, &bytes.Buffer{}, "test")
+	o, _, err := parse([]string{"run", "fleetbench", "--refresh"}, &bytes.Buffer{}, "test")
 	if err != nil || o.refresh || len(o.args) != 1 || o.args[0] != "--refresh" {
 		t.Fatalf("tool flag boundary: %+v %v", o, err)
 	}
@@ -200,11 +205,11 @@ func TestReleaseRefreshCLI(t *testing.T) {
 func TestReleaseReplacedAssetOn304(t *testing.T) {
 	f := newReleaseFixture(t)
 	f.etag = `"unchanged"`
-	if code, _, log := f.run("fleetbench"); code != 0 {
+	if code, _, log := f.run("run", "fleetbench"); code != 0 {
 		t.Fatal(log)
 	}
 	f.binary = "#!/bin/sh\nprintf 'replacement\\n'\n"
-	if code, out, log := f.run("--refresh", "fleetbench"); code != 0 || out != "replacement\n" {
+	if code, out, log := f.run("run", "--refresh", "fleetbench"); code != 0 || out != "replacement\n" {
 		t.Fatalf("replaced asset: %d %q %s", code, out, log)
 	}
 }
@@ -213,7 +218,7 @@ func TestReleaseLegacyAndFutureCacheRefresh(t *testing.T) {
 	for _, name := range []string{"legacy", "future"} {
 		t.Run(name, func(t *testing.T) {
 			f := newReleaseFixture(t)
-			if code, _, log := f.run("fleetbench"); code != 0 {
+			if code, _, log := f.run("run", "fleetbench"); code != 0 {
 				t.Fatal(log)
 			}
 			data, err := os.ReadFile(f.metadataFile())
@@ -233,7 +238,7 @@ func TestReleaseLegacyAndFutureCacheRefresh(t *testing.T) {
 				t.Fatal(err)
 			}
 			f.tag = "v0.4.7"
-			if code, _, log := f.run("fleetbench"); code != 0 || !strings.Contains(log, "· v0.4.7") {
+			if code, _, log := f.run("run", "fleetbench"); code != 0 || !strings.Contains(log, "· v0.4.7") {
 				t.Fatalf("refresh: %d %s", code, log)
 			}
 		})

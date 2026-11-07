@@ -77,7 +77,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 		if mode == "repo" {
 			return o, false, errors.New("expected <repo> or <repo>/<path>; use relops repo --help")
 		}
-		return o, false, errors.New("expected <repo> or <repo>/<path>; use relops --help")
+		return o, false, errors.New("expected a command; use relops --help")
 	}
 	if mode == "root" {
 		prefix := args[:len(args)-fs.NArg()]
@@ -119,6 +119,15 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 			err := catalogDisplay(rest, out)
 			return o, err == nil, err
 		}
+		target := fs.Arg(0)
+		replacement := append([]string{"relops", "repo"}, prefix...)
+		if target == "fleetbench" {
+			replacement = append(append([]string{"relops", "run"}, prefix...), "fb")
+			replacement = append(replacement, rest...)
+			return o, false, fmt.Errorf("release tools require run; use: %s", commandHint(replacement))
+		}
+		replacement = append(replacement, fs.Args()...)
+		return o, false, fmt.Errorf("unknown command %q; source targets require repo; use: %s", target, commandHint(replacement))
 	}
 	fs.Visit(func(f *flag.Flag) {
 		if f.Name == "cwd" {
@@ -209,11 +218,24 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 			}
 		})
 		if invalid != "" {
-			return o, false, fmt.Errorf("%s is not supported for release target %s; use the bare target to run the latest stable binary (branch builds are not supported)", invalid, o.repo)
+			return o, false, fmt.Errorf("%s is not supported for release target %s; use relops run %s for the latest stable binary, or relops repo %s for source", invalid, o.repo, o.catalogName, o.repo)
 		}
 		if o.cwd == "repo" {
 			return o, false, errors.New("--cwd repo is not supported for release targets; binaries run in the caller's directory")
 		}
 	}
 	return o, false, nil
+}
+
+// Quote each argument so migration hints can be copied without changing tool input.
+func commandHint(args []string) string {
+	words := make([]string, len(args))
+	for i, arg := range args {
+		if arg != "" && strings.Trim(arg, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./:@%+=,-") == "" {
+			words[i] = arg
+		} else {
+			words[i] = "'" + strings.ReplaceAll(arg, "'", "'\"'\"'") + "'"
+		}
+	}
+	return strings.Join(words, " ")
 }

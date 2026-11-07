@@ -48,7 +48,7 @@
         </div>
         <p class="prose numbered-label" style="margin-top: var(--space-5)"><span class="accent mark">03</span><span>Try a tool in development</span></p>
         <div class="cmd" style="margin-top: var(--space-3); max-width: 40rem; min-width: 0">
-          <code id="hero-tool">relops --owner aerickson --ref 20261105-more_tool_development android-tools/worker_health/replay_tc_pool.py -h</code>
+          <code id="hero-tool">relops repo --owner aerickson --ref 20261105-more_tool_development android-tools/worker_health/replay_tc_pool.py -h</code>
           <button type="button" data-copy="#hero-tool">copy</button>
         </div>
         <div class="hero__cta">
@@ -87,28 +87,28 @@
       <div class="grid grid--2 usage-examples">
         <div class="usage-example">
           <h3 class="label">Run an organization tool</h3>
-          <div class="cmd"><code id="usage-org">relops REPO/path/to/tool.py --help</code><button type="button" data-copy="#usage-org">copy</button></div>
+          <div class="cmd"><code id="usage-org">relops repo REPO/path/to/tool.py --help</code><button type="button" data-copy="#usage-org">copy</button></div>
           <p class="prose">Replace <code>REPO/path/to/tool.py</code> with your script. The default owner is <code>mozilla-platform-ops</code>.</p>
         </div>
         <div class="usage-example">
           <h3 class="label">Run from a personal fork</h3>
-          <div class="cmd cmd--wrap"><code id="usage-fork">relops --owner YOUR_USERNAME --ref my-feature REPO/path/to/tool.py --help</code><button type="button" data-copy="#usage-fork">copy</button></div>
+          <div class="cmd cmd--wrap"><code id="usage-fork">relops repo --owner YOUR_USERNAME --ref my-feature REPO/path/to/tool.py --help</code><button type="button" data-copy="#usage-fork">copy</button></div>
           <p class="prose">Replace the owner, branch, and script path with your fork's details.</p>
         </div>
         <div class="usage-example">
           <h3 class="label">Share your pushed branch</h3>
-          <div class="cmd cmd--wrap"><code id="usage-branch">relops --ref my-feature REPO/path/to/tool.py</code><button type="button" data-copy="#usage-branch">copy</button></div>
+          <div class="cmd cmd--wrap"><code id="usage-branch">relops repo --ref my-feature REPO/path/to/tool.py</code><button type="button" data-copy="#usage-branch">copy</button></div>
           <p class="prose">Replace the branch and script path, then send the command to a coworker.</p>
           <p class="prose"><strong>Same command. Latest code.</strong> Each online run fetches the latest revision of the selected branch or tag. Use a full commit SHA to run a fixed revision.</p>
         </div>
         <div class="usage-example">
           <h3 class="label">Pass a local file to a tool</h3>
-          <div class="cmd cmd--wrap"><code id="usage-file">relops REPO/path/to/tool.py ./hosts.csv</code><button type="button" data-copy="#usage-file">copy</button></div>
+          <div class="cmd cmd--wrap"><code id="usage-file">relops repo REPO/path/to/tool.py ./hosts.csv</code><button type="button" data-copy="#usage-file">copy</button></div>
           <p class="prose">Use a tool that accepts a file argument. <code>./hosts.csv</code> resolves from your current directory.</p>
         </div>
         <div class="usage-example">
           <h3 class="label">Run from the repository root</h3>
-          <div class="cmd"><code id="usage-cwd">relops --cwd repo REPO/path/to/tool.py</code><button type="button" data-copy="#usage-cwd">copy</button></div>
+          <div class="cmd"><code id="usage-cwd">relops repo --cwd repo REPO/path/to/tool.py</code><button type="button" data-copy="#usage-cwd">copy</button></div>
           <p class="prose">Use this for tools that expect repository-relative files. By default, tools run in your terminal's current directory.</p>
         </div>
       </div>
@@ -119,7 +119,7 @@
           <div class="usage-detail__content">
             <p class="prose">Usually, just run the script. Relops follows its shebang or detects Python automatically.</p>
             <p class="prose">For Pipenv projects, install <code>pipenv</code> first. Relops uses the committed <code>Pipfile.lock</code> to prepare and cache runtime dependencies. No outer <code>pipenv run</code> needed.</p>
-            <div class="cmd cmd--wrap"><code id="usage-runner">relops --runner python3 REPO/path/to/tool.py</code><button type="button" data-copy="#usage-runner">copy</button></div>
+            <div class="cmd cmd--wrap"><code id="usage-runner">relops repo --runner python3 REPO/path/to/tool.py</code><button type="button" data-copy="#usage-runner">copy</button></div>
             <p class="prose usage-note">An explicit runner uses your own environment and skips Pipenv setup. You can also choose <code>bash</code> or <code>sh</code>.</p>
           </div>
         </details>
@@ -127,7 +127,7 @@
           <summary>Revisions and offline use</summary>
           <div class="usage-detail__content">
             <p class="prose">Online runs fetch the latest branch or tag and print the exact commit on stderr. To share a fixed revision, pass a full commit SHA with <code>--ref</code>.</p>
-            <div class="cmd cmd--wrap"><code id="usage-offline">relops --offline --ref my-feature REPO/path/to/tool.py</code><button type="button" data-copy="#usage-offline">copy</button></div>
+            <div class="cmd cmd--wrap"><code id="usage-offline">relops repo --offline --ref my-feature REPO/path/to/tool.py</code><button type="button" data-copy="#usage-offline">copy</button></div>
             <p class="prose usage-note">Run that revision online first. Offline use needs cached code and an already-prepared environment.</p>
           </div>
         </details>

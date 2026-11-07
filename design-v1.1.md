@@ -13,7 +13,7 @@
 A developer pushes a tool to a branch and gives a coworker one command to try it:
 
 ```sh
-relops --ref my-feature relops-infra/path/to/check.sh --verbose
+relops repo --ref my-feature relops-infra/path/to/check.sh --verbose
 ```
 
 The coworker has installed `relops`, has Git access to the repository, and has the tool's runtime prerequisites. They do not need to clone the repository, change branches, or find the script locally. The branch must be pushed; local uncommitted changes are not shared.
@@ -25,7 +25,7 @@ Examples use illustrative repository and script names.
 ## V1 scope
 
 - Execute an explicit `repo/path` or a uv project at `repo` in `mozilla-platform-ops`, or select another GitHub owner with `--owner`.
-- Execute the bare `fleetbench` target using its latest stable release binary over public HTTPS, without Git or Rust.
+- Execute `relops run fb` using its latest stable release binary over public HTTPS, without Git or Rust.
 - Resolve the repository's actual default branch, or an explicit branch, tag, or commit.
 - Cache Git objects while giving each invocation a separate writable checkout.
 - Preserve tool arguments, interactive input, output, exit status, and interruption behavior.
@@ -40,30 +40,30 @@ The original V1 scope did not include aliases or registry editing. It also exclu
 
 ```sh
 # Repository's default branch
-relops relops-infra/path/to/check.sh --verbose
+relops repo relops-infra/path/to/check.sh --verbose
 
 # Share a pushed branch; launcher flags precede the target
-relops --ref my-feature relops-infra/path/to/check.sh --verbose
+relops repo --ref my-feature relops-infra/path/to/check.sh --verbose
 
 # Share a branch from a personal fork; auto detects Python and Pipenv
-relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py
+relops repo --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py
 
 # Share an exact revision for reproducibility
-relops --ref <full-commit-sha> relops-infra/path/to/check.sh
+relops repo --ref <full-commit-sha> relops-infra/path/to/check.sh
 
 # Select an interpreter for a script without an executable shebang
-relops --runner python3 --ref my-feature relops-infra/path/to/check.py
+relops repo --runner python3 --ref my-feature relops-infra/path/to/check.py
 
 # Caller-relative file arguments work by default
-relops --ref my-feature relops-infra/path/to/check.sh ./hosts.csv
+relops repo --ref my-feature relops-infra/path/to/check.sh ./hosts.csv
 
 # Reuse cached refs and objects without attempting network access
-relops --offline --ref my-feature relops-infra/path/to/check.sh
+relops repo --offline --ref my-feature relops-infra/path/to/check.sh
 ```
 
-Syntax: `relops [launcher-options] <repo>[/<path>] [tool-arguments...]`. The bare `fleetbench` target runs a release binary. Other repository or directory targets run a uv project's console command; a file target runs a script.
+Syntax: `relops repo [launcher-options] <repo>[/<path>] [tool-arguments...]`. The `relops run fb` command runs a release binary. Other repository or directory targets run a uv project's console command; a file target runs a script.
 
-The first positional argument ends launcher option parsing. Everything after it is passed unchanged to the tool, including `--help`, `--ref`, and `--`. `relops --help` describes the launcher; `relops repo/tool --help` asks the tool for help. Launcher errors exit with status 1 and a diagnostic on stderr; usage errors exit with status 2. Once launched, the tool's exit status is preserved. A signal-terminated tool uses the conventional `128 + signal` status.
+Within `repo` or `run`, the target ends launcher option parsing. Everything after it is passed unchanged to the tool, including `--help`, `--ref`, and `--`. `relops --help` describes the launcher; `relops repo REPO/tool --help` asks the tool for help. Launcher errors exit with status 1 and a diagnostic on stderr; usage errors exit with status 2. Once launched, the tool's exit status is preserved. A signal-terminated tool uses the conventional `128 + signal` status.
 
 Initial options:
 
@@ -213,13 +213,13 @@ Manually verify the three real trial tools, SSH access, binary installation, and
 
 The canonical catalog is `quick_site/tools.json`, shared by the website and launcher. Schema version 1 has an explicit catalog revision and tools with unique IDs, optional aliases, and independent optional `default` and `beta` targets. Names and aliases share one namespace. A tool must have at least one target. First accepted names are claimed through Git review; established names should not be reassigned to unrelated tools.
 
-- Discovery: `relops catalog list` and `relops catalog info NAME` (aliases resolve to canonical entries).
+- Discovery: `relops catalog` (`c`) and `relops info NAME` (aliases resolve to canonical entries).
 - Execution: `relops run [options] NAME [tool-arguments...]` (`r` shortcut); `catalog launch` remains an execution alias. `relops c` aliases catalog discovery.
 - `-b` and `--beta` select beta. A missing beta or default fails without fallback. Beta-only prototypes are supported. A beta target can differ in owner, repository, path, ref, command, runner, and cwd.
 - Source targets may follow the remote default branch or specify a branch, tag, or commit. Beta means the owner-designated preview, not necessarily HEAD. Release targets explicitly select supported release binaries (initially Fleetbench).
 - Launcher options precede the shortcut; all subsequent arguments belong to the tool. Website example arguments are never execution defaults. Explicit `--ref` overrides a default source ref; combining it with beta selection is rejected. `--owner` is rejected for catalog launches; arbitrary forks remain available through repository execution. Other source flags override configured defaults. Release option restrictions remain unchanged.
 - Diagnostics identify catalog revision, canonical shortcut, channel, and resolved commit or release version. List/info are local operations without cache setup or network access.
-- `relops repo [options] REPO[/PATH]` explicitly selects repository source execution, including repositories named `c`, `catalog`, or `repo`. Existing direct repository/path syntax remains supported; bare launcher command names are reserved. The direct bare `fleetbench` target retains release behavior, while `relops repo fleetbench` selects source.
+- `relops repo [options] REPO[/PATH]` explicitly selects repository source execution, including repositories named `c`, `catalog`, or `repo`. Bare targets are rejected with a replacement hint. Use `relops run fb` for Fleetbench releases and `relops repo fleetbench` for its source.
 - The versioned catalog is embedded at build time. Updates currently require rebuilding the launcher. Network updates, independent hosting, atomic catalog caching, and additional channels are deferred. If additional channels are needed, `--channel NAME` can be introduced while retaining `-b`/`--beta`.
 
 The website renders from the same validated schema. Catalog-based website commands must ship with a launcher release that supports them, rather than older retained binaries.

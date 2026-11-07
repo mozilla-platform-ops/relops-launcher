@@ -3,12 +3,12 @@
 Give a coworker one command to run a tool from your pushed branch:
 
 ```sh
-relops --ref my-feature relops-infra/path/to/check.sh --verbose
+relops repo --ref my-feature relops-infra/path/to/check.sh --verbose
 ```
 
 `relops` fetches the repository from `mozilla-platform-ops` by default, resolves the revision to a commit, and runs the script in its own temporary checkout. Use `--owner USER_OR_ORG` for a fork or another GitHub organization. Online runs fetch every time. Git objects are cached per owner/repository; separate invocations never share a writable checkout. The repository and script above are illustrative.
 
-For supported binary tools, relops can instead download and run the latest stable GitHub release. The first supported tool is fleetbench: `relops fleetbench cpu --mode quick --json`. No Git checkout or Rust toolchain is needed for this target.
+For supported binary tools, relops can instead download and run the latest stable GitHub release. The first supported tool is fleetbench: `relops run fb cpu --mode quick --json`. No Git checkout or Rust toolchain is needed for this target.
 
 Published binaries target macOS Apple silicon (arm64) and Linux amd64. It has no Go package dependencies. See [design v1.1](design-v1.1.md) for the contract and release roadmap, or the [original design](../../product-specs/relops-launcher-design.md) for background.
 
@@ -57,55 +57,55 @@ Launcher options go before the shortcut; all subsequent arguments belong to the 
 
 Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `run` selects execution specifically, `relops run list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog` or `relops c`; `relops catalog list` and `relops catalog ls` remain aliases. Inspect requirements with `relops info NAME` (alias: `relops catalog info NAME`).
 
-Direct repository syntax remains supported. `relops repo` explicitly selects source execution and escapes launcher command names:
+Source execution requires `relops repo`. Catalog tools, including release binaries, require `relops run` (shortcut: `r`). Bare targets are rejected with a suggested replacement:
 
 ```sh
-relops android-tools/worker_health/create_tc_task.py --help
+relops repo android-tools/worker_health/create_tc_task.py --help
 relops repo --ref my-branch android-tools/worker_health/create_tc_task.py --help
 relops repo c/path/to/tool.sh --help          # repository named c
 relops repo fleetbench                        # source project, rather than release binary
 ```
 
-`run`, `r`, `c`, `catalog`, `info`, and `repo` are reserved as bare launcher commands. Paths such as `c/path/to/tool.sh` still select repositories directly. Flags may also precede the namespace, for example `relops --offline run fr --help`.
+`run`, `r`, `c`, `catalog`, `info`, and `repo` are reserved as bare launcher commands. Use `relops repo c/path/to/tool.sh` for a repository named c. Flags may also precede the namespace, for example `relops --offline run fr --help`.
 
 ## Use
 
 ```sh
 # Latest stable fleetbench release for this machine; options after the target
 # belong to fleetbench, including --mode and --json
-relops fleetbench cpu --mode quick --json
+relops run fb cpu --mode quick --json
 
 # Default branch, discovered from the remote
-relops repo/path/to/tool.sh --help
+relops repo repo/path/to/tool.sh --help
 
 # Run a uv project's default console command, with arguments
-relops fleetroll_mvp host-monitor configs/host-lists/linux/all.list -h
+relops repo fleetroll_mvp host-monitor configs/host-lists/linux/all.list -h
 
 # Select another console command or alias from the same project
-relops --command fr fleetroll_mvp host-monitor -h
+relops repo --command fr fleetroll_mvp host-monitor -h
 
 # Branch names can include slashes
-relops --ref feature/my-change repo/path/to/tool.sh arg1
+relops repo --ref feature/my-change repo/path/to/tool.sh arg1
 
 # Use a branch pushed to a personal fork
-relops --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py
+relops repo --owner aerickson --ref 022526-tool_tweaks android-tools/worker_health/replay_tc_pool.py
 
 # Exact commit (full 40-character SHA); tags work too
-relops --ref FULL_COMMIT_SHA repo/path/to/tool.sh
-relops --ref refs/tags/v1.0 repo/path/to/tool.sh
+relops repo --ref FULL_COMMIT_SHA repo/path/to/tool.sh
+relops repo --ref refs/tags/v1.0 repo/path/to/tool.sh
 
 # Override automatic detection and manage the Python environment yourself
-relops --runner python3 repo/path/to/tool.py
-relops --runner bash repo/path/to/tool.sh
+relops repo --runner python3 repo/path/to/tool.py
+relops repo --runner bash repo/path/to/tool.sh
 
 # Relative files resolve from the caller's directory by default
-relops repo/path/to/tool.sh ./hosts.csv
+relops repo repo/path/to/tool.sh ./hosts.csv
 
 # Opt into running from the temporary repository root
-relops --cwd repo repo/path/to/tool.sh
+relops repo --cwd repo repo/path/to/tool.sh
 
 # Deliberately run the cached revision without fetching
-relops --offline --ref feature/my-change repo/path/to/tool.sh
+relops repo --offline --ref feature/my-change repo/path/to/tool.sh
 ```
 
 Launcher options must precede the repository or script target. Every argument after it belongs to the tool, including `--help`, `--ref`, and `--`. `relops --help` lists launcher options.
@@ -116,18 +116,18 @@ Script targets start in the caller's directory unless you pass `--cwd repo`. Pro
 
 ### Release binaries (fleetbench)
 
-The bare `fleetbench` target selects GitHub's latest published stable release. A successful release check is reused for 15 minutes; repeated launches in that interval verify and run the cached binary without making release requests. Once the interval expires, relops checks the release API and `SHA256SUMS` again. The version appears in the compact header on stderr; `--verbose` also shows the last successful check time. Stdout belongs to fleetbench. Downloads and cached binaries must match the published SHA-256 before execution. Checksums verify integrity against the release's checksum file; they are not a separate publisher signature.
+The `relops run fb` command selects GitHub's latest published stable release. A successful release check is reused for 15 minutes; repeated launches in that interval verify and run the cached binary without making release requests. Once the interval expires, relops checks the release API and `SHA256SUMS` again. The version appears in the compact header on stderr; `--verbose` also shows the last successful check time. Stdout belongs to fleetbench. Downloads and cached binaries must match the published SHA-256 before execution. Checksums verify integrity against the release's checksum file; they are not a separate publisher signature.
 
 Platform selection is automatic: macOS arm64 uses `fleetbench-<tag>-macos-aarch64`, and Linux amd64 uses `fleetbench-<tag>-linux-x86_64`. Unsupported platforms or a latest release missing its matching binary/checksum fail clearly; relops never substitutes a different architecture or an older release.
 
 ```sh
-relops fleetbench --version
-relops fleetbench cpu --mode quick --json > result.json
-relops --refresh fleetbench --version
-relops --offline fleetbench --version
+relops run fb --version
+relops run fb cpu --mode quick --json > result.json
+relops run --refresh fb --version
+relops run --offline fb --version
 ```
 
-Release binaries run in the caller's directory and inherit its environment, arguments, IO, and permissions. They use the same exit-status and signal handling as source tools. `--cwd caller` is allowed; `--cwd repo`, `--ref`, `--runner`, and `--command` are rejected for release targets. Branch builds and explicit release-version selection are deferred. Paths such as `fleetbench/runner` continue to use source execution and support `--ref`.
+Release binaries run in the caller's directory and inherit its environment, arguments, IO, and permissions. They use the same exit-status and signal handling as source tools. `--cwd caller` is allowed; `--cwd repo`, `--ref`, `--runner`, and `--command` are rejected for release targets. Branch builds and explicit release-version selection are deferred. Use `relops repo --ref BRANCH fleetbench/runner` for a source path.
 
 `--offline` uses the last successfully prepared release for this owner/repository/platform, verifies the cached binary, and makes no network requests. A failed online check or download stops execution; there is no automatic fallback. Failed updates preserve the previous verified release for explicit offline use. Cache installation is locked across concurrent invocations and files are replaced atomically after verification. Old versions remain cached until manually removed.
 
@@ -135,13 +135,13 @@ Release binaries run in the caller's directory and inherit its environment, argu
 
 GitHub rate-limit failures report the server's message and retry time. Relops saves a cooldown shared by all release requests in this cache and makes no further release requests until that time, including requests with `--refresh`. It respects `Retry-After` and exhausted-quota reset headers; rate-limit responses without a usable future time pause requests for one minute. Fresh verified releases can still run during a cooldown; older prepared releases require explicit `--offline`.
 
-`--owner` selects another owner's fleetbench repository using the same asset convention. Optional API authentication uses `GH_TOKEN`, falling back to `GITHUB_TOKEN`; tokens are sent only to `api.github.com`, never to release download hosts or redirects to other hosts. Relops does not read GitHub CLI credentials or reuse SSH authentication for HTTPS. Release downloads remain public, so private releases are not supported. Adding other binary tools requires an explicit launcher definition rather than guessing asset names.
+Release owners are designated by the catalog; `run` rejects `--owner`. Use `repo --owner OWNER` for source execution from another owner. Optional API authentication uses `GH_TOKEN`, falling back to `GITHUB_TOKEN`; tokens are sent only to `api.github.com`, never to release download hosts or redirects to other hosts. Relops does not read GitHub CLI credentials or reuse SSH authentication for HTTPS. Release downloads remain public, so private releases are not supported. Adding other binary tools requires an explicit launcher definition rather than guessing asset names.
 
 ### Automatic uv projects
 
-Target a repository (`relops fleetroll_mvp`) or a project subdirectory (`relops repo/path/to/project`) containing committed `pyproject.toml` and `uv.lock` files. relops uses installed uv to sync the locked runtime environment, then runs a console entry point from the installed project:
+Target a repository (`relops repo fleetroll_mvp`) or a project subdirectory (`relops repo repo/path/to/project`) containing committed `pyproject.toml` and `uv.lock` files. relops uses installed uv to sync the locked runtime environment, then runs a console entry point from the installed project:
 
-- Prefer the command matching the Python project name, not the GitHub repository name. For fleetroll_mvp, the project name is `fleetroll`, so `relops fleetroll_mvp` runs `fleetroll`.
+- Prefer the command matching the Python project name, not the GitHub repository name. For fleetroll_mvp, the project name is `fleetroll`, so `relops repo fleetroll_mvp` runs `fleetroll`.
 - Otherwise use the sole entry point, or a deterministic alias when all entry points call the same function.
 - If distinct commands remain ambiguous, list them and require `--command NAME` before the target. `--command fr` selects fleetroll's alias explicitly.
 

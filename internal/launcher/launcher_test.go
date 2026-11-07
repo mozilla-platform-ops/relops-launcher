@@ -113,15 +113,15 @@ func TestCLI(t *testing.T) {
 		{"--ref=-oops", "example/tool"}, {"example/tool\\other"}, {"../file"},
 		{"example/"}, {"--command", "../outside", "example"},
 	} {
-		if _, _, err := parse(args, &bytes.Buffer{}, "test"); err == nil {
+		if _, _, err := parse(append([]string{"repo"}, args...), &bytes.Buffer{}, "test"); err == nil {
 			t.Errorf("accepted %q", args)
 		}
 	}
-	oProject, _, projectErr := parse([]string{"--cwd", "caller", "--command", "fr", "fleetroll_mvp", "-h"}, &bytes.Buffer{}, "test")
+	oProject, _, projectErr := parse([]string{"repo", "--cwd", "caller", "--command", "fr", "fleetroll_mvp", "-h"}, &bytes.Buffer{}, "test")
 	if projectErr != nil || oProject.repo != "fleetroll_mvp" || oProject.path != "" || !oProject.cwdSet || oProject.commandName != "fr" || strings.Join(oProject.args, "|") != "-h" {
 		t.Fatalf("project argument boundary: %+v %v", oProject, projectErr)
 	}
-	o, _, err := parse([]string{"--ref", "feature/one", "example/tool", "--ref", "tool-ref", "--", "a b"}, &bytes.Buffer{}, "test")
+	o, _, err := parse([]string{"repo", "--ref", "feature/one", "example/tool", "--ref", "tool-ref", "--", "a b"}, &bytes.Buffer{}, "test")
 	if err != nil || o.ref != "feature/one" || strings.Join(o.args, "|") != "--ref|tool-ref|--|a b" {
 		t.Fatalf("argument boundary: %+v %v", o, err)
 	}
@@ -133,10 +133,34 @@ func TestCLI(t *testing.T) {
 	}
 }
 
+func TestBareTargetsRequireCommands(t *testing.T) {
+	for _, tc := range []struct {
+		args []string
+		hint string
+	}{
+		{[]string{"android-tools/worker_health/create_tc_task.py", "--help"}, "relops repo android-tools/worker_health/create_tc_task.py --help"},
+		{[]string{"--ref", "feature/one", "example/tool.sh", "a b", ""}, "relops repo --ref feature/one example/tool.sh 'a b' ''"},
+		{[]string{"fleetroll_mvp", "--help"}, "relops repo fleetroll_mvp --help"},
+		{[]string{"fleetbench", "--version"}, "relops run fb --version"},
+		{[]string{"--offline", "fleetbench", "cpu", "--json"}, "relops run --offline fb cpu --json"},
+		{[]string{"fleetbench/runner", "--help"}, "relops repo fleetbench/runner --help"},
+		{[]string{"example/tool.sh", "$(touch /tmp/should-not-run)", "it's"}, "relops repo example/tool.sh '$(touch /tmp/should-not-run)' 'it'\"'\"'s'"},
+	} {
+		var out bytes.Buffer
+		_, done, err := parse(tc.args, &out, "test")
+		if err == nil || done || out.Len() != 0 || !strings.Contains(err.Error(), tc.hint) {
+			t.Fatalf("bare target %v: done=%v err=%v output=%q", tc.args, done, err, out.String())
+		}
+	}
+	if _, _, err := parse([]string{"rn"}, &bytes.Buffer{}, "test"); err == nil || !strings.Contains(err.Error(), `unknown command "rn"`) {
+		t.Fatalf("unknown command: %v", err)
+	}
+}
+
 func TestDefaultBranchAndFreshBranchTips(t *testing.T) {
 	f := newFixture(t)
 	old := f.git("rev-parse", "HEAD")
-	code, out, log := f.run("--verbose", "example/tool.sh")
+	code, out, log := f.run("repo", "--verbose", "example/tool.sh")
 	if code != 0 || out != "original\n" || !strings.Contains(log, "ref=refs/heads/trunk commit="+old) {
 		t.Fatalf("default branch: %d %q %s", code, out, log)
 	}
@@ -147,22 +171,22 @@ func TestDefaultBranchAndFreshBranchTips(t *testing.T) {
 	f.git("checkout", "-b", "feature/one")
 	f.write("tool.sh", "#!/bin/sh\nprintf 'feature\\n'\n", 0755)
 	sha := f.commit()
-	code, out, log = f.run("--verbose", "--ref", "feature/one", "example/tool.sh")
+	code, out, log = f.run("repo", "--verbose", "--ref", "feature/one", "example/tool.sh")
 	if code != 0 || out != "feature\n" || !strings.Contains(log, "commit="+sha) {
 		t.Fatalf("feature branch: %d %q %s", code, out, log)
 	}
 	f.write("tool.sh", "#!/bin/sh\nprintf 'updated\\n'\n", 0755)
 	f.commit()
-	code, out, log = f.run("--ref", "feature/one", "example/tool.sh")
+	code, out, log = f.run("repo", "--ref", "feature/one", "example/tool.sh")
 	if code != 0 || out != "updated\n" {
 		t.Fatalf("updated branch: %d %q %s", code, out, log)
 	}
-	code, out, log = f.run("--ref", old, "example/tool.sh")
+	code, out, log = f.run("repo", "--ref", old, "example/tool.sh")
 	if code != 0 || out != "original\n" {
 		t.Fatalf("pinned SHA: %d %q %s", code, out, log)
 	}
 	// The source repository's HEAD is also its advertised default branch.
-	code, out, log = f.run("--verbose", "example/tool.sh")
+	code, out, log = f.run("repo", "--verbose", "example/tool.sh")
 	if code != 0 || out != "updated\n" || !strings.Contains(log, "ref=refs/heads/feature/one") {
 		t.Fatalf("default branch changed: %d %q %s", code, out, log)
 	}
@@ -172,29 +196,29 @@ func TestDefaultBranchAndFreshBranchTips(t *testing.T) {
 func TestTagsAmbiguityAndRefDeletion(t *testing.T) {
 	f := newFixture(t)
 	f.git("tag", "-a", "release", "-m", "release")
-	code, out, log := f.run("--ref", "release", "example/tool.sh")
+	code, out, log := f.run("repo", "--ref", "release", "example/tool.sh")
 	if code != 0 || out != "original\n" {
 		t.Fatalf("annotated tag: %d %q %s", code, out, log)
 	}
 	f.git("branch", "release")
-	code, _, log = f.run("--ref", "release", "example/tool.sh")
+	code, _, log = f.run("repo", "--ref", "release", "example/tool.sh")
 	if code != 1 || !strings.Contains(log, "ambiguous") {
 		t.Fatalf("ambiguous ref: %d %s", code, log)
 	}
 	for _, ref := range []string{"refs/heads/release", "refs/tags/release"} {
-		code, _, log = f.run("--ref", ref, "example/tool.sh")
+		code, _, log = f.run("repo", "--ref", ref, "example/tool.sh")
 		if code != 0 {
 			t.Fatalf("explicit %s: %d %s", ref, code, log)
 		}
 	}
 	f.git("branch", "-D", "release")
 	f.git("tag", "-d", "release")
-	code, _, log = f.run("--ref", "release", "example/tool.sh")
+	code, _, log = f.run("repo", "--ref", "release", "example/tool.sh")
 	if code != 1 || !strings.Contains(log, "not found") {
 		t.Fatalf("deleted refs must not be stale: %d %s", code, log)
 	}
 	for _, ref := range []string{"missing", "trunk~1", "refs/remotes/origin/trunk", "abc1234", strings.Repeat("a", 40)} {
-		code, _, log = f.run("--ref", ref, "example/tool.sh")
+		code, _, log = f.run("repo", "--ref", ref, "example/tool.sh")
 		if code != 1 {
 			t.Fatalf("invalid/unavailable %s: %d %s", ref, code, log)
 		}
@@ -204,26 +228,26 @@ func TestTagsAmbiguityAndRefDeletion(t *testing.T) {
 
 func TestOfflineAndFailedOnlineFetch(t *testing.T) {
 	f := newFixture(t)
-	code, _, log := f.run("--offline", "example/tool.sh")
+	code, _, log := f.run("repo", "--offline", "example/tool.sh")
 	if code != 1 || !strings.Contains(log, "no cached repository") {
 		t.Fatalf("offline cache miss: %d %s", code, log)
 	}
-	code, _, log = f.run("example/tool.sh")
+	code, _, log = f.run("repo", "example/tool.sh")
 	if code != 0 {
 		t.Fatal(log)
 	}
 	if err := os.Rename(f.source, f.source+"-unavailable"); err != nil {
 		t.Fatal(err)
 	}
-	code, out, log := f.run("example/tool.sh")
+	code, out, log := f.run("repo", "example/tool.sh")
 	if code != 1 || out != "" || !strings.Contains(log, "use --offline") {
 		t.Fatalf("failed fetch silently ran code: %d %q %s", code, out, log)
 	}
-	code, out, log = f.run("--offline", "example/tool.sh")
+	code, out, log = f.run("repo", "--offline", "example/tool.sh")
 	if code != 0 || out != "original\n" || !strings.Contains(log, "(cached)") {
 		t.Fatalf("offline reuse: %d %q %s", code, out, log)
 	}
-	code, _, log = f.run("--offline", "--ref", strings.Repeat("a", 40), "example/tool.sh")
+	code, _, log = f.run("repo", "--offline", "--ref", strings.Repeat("a", 40), "example/tool.sh")
 	if code != 1 || !strings.Contains(log, "not cached") {
 		t.Fatalf("offline commit miss: %d %s", code, log)
 	}
@@ -235,7 +259,7 @@ func TestPartialInitializationIsNotReused(t *testing.T) {
 	if err := os.Rename(f.source, f.source+"-unavailable"); err != nil {
 		t.Fatal(err)
 	}
-	code, _, log := f.run("example/tool.sh")
+	code, _, log := f.run("repo", "example/tool.sh")
 	if code != 1 || !strings.Contains(log, "verify access") {
 		t.Fatalf("initial fetch failure: %d %s", code, log)
 	}
@@ -246,7 +270,7 @@ func TestPartialInitializationIsNotReused(t *testing.T) {
 	if err := os.Rename(f.source+"-unavailable", f.source); err != nil {
 		t.Fatal(err)
 	}
-	code, _, log = f.run("example/tool.sh")
+	code, _, log = f.run("repo", "example/tool.sh")
 	if code != 0 {
 		t.Fatalf("recovery: %d %s", code, log)
 	}
@@ -260,7 +284,7 @@ func TestToolIOArgumentsAndExitStatus(t *testing.T) {
 	var out, log bytes.Buffer
 	a := f.app(&out, &log)
 	a.in = strings.NewReader("hello input\n")
-	o, _, err := parse([]string{"example/tool.sh", "a b", "--ref", "--", "$(echo nope)", ""}, &out, "test")
+	o, _, err := parse([]string{"repo", "example/tool.sh", "a b", "--ref", "--", "$(echo nope)", ""}, &out, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,18 +304,18 @@ func TestWorkingDirectoriesAndRunners(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct{ cwd, want string }{{"repo", "repository"}, {"caller", "caller"}} {
-		code, out, log := f.run("--runner", "sh", "--cwd", tc.cwd, "example/read.sh", "./input.txt")
+		code, out, log := f.run("repo", "--runner", "sh", "--cwd", tc.cwd, "example/read.sh", "./input.txt")
 		if code != 0 || out != f.caller+"\n"+tc.want {
 			t.Fatalf("cwd %s: %d %q %s", tc.cwd, code, out, log)
 		}
 	}
-	code, _, log := f.run("example/read.sh")
+	code, _, log := f.run("repo", "example/read.sh")
 	if code != 1 || !strings.Contains(log, "cannot detect a runner") {
 		t.Fatalf("no extension guessing: %d %s", code, log)
 	}
 	f.write("bad.sh", "#!/nonexistent/relops-test-interpreter\n", 0755)
 	f.commit()
-	code, _, log = f.run("example/bad.sh")
+	code, _, log = f.run("repo", "example/bad.sh")
 	if code != 1 || !strings.Contains(log, "shebang/interpreter") {
 		t.Fatalf("missing shebang interpreter: %d %s", code, log)
 	}
@@ -308,12 +332,12 @@ func TestSymlinksAndNonFiles(t *testing.T) {
 	}
 	f.write("dir/file", "data", 0644)
 	f.commit()
-	code, out, log := f.run("example/inside")
+	code, out, log := f.run("repo", "example/inside")
 	if code != 0 || out != "original\n" {
 		t.Fatalf("internal symlink: %d %q %s", code, out, log)
 	}
 	for _, name := range []string{"outside", "dir", "missing"} {
-		code, _, log = f.run("example/" + name)
+		code, _, log = f.run("repo", "example/"+name)
 		if code != 1 {
 			t.Fatalf("invalid target %s: %d %s", name, code, log)
 		}
@@ -344,7 +368,7 @@ cat local-marker
 		go func(name string) {
 			defer wg.Done()
 			var out, log bytes.Buffer
-			o, _, err := parse([]string{"--cwd", "repo", "example/tool.sh", name}, &out, "test")
+			o, _, err := parse([]string{"repo", "--cwd", "repo", "example/tool.sh", name}, &out, "test")
 			if err != nil {
 				t.Error(err)
 				return
@@ -405,7 +429,7 @@ wait "$child"
 	f.commit()
 	var out, log bytes.Buffer
 	a := f.app(&out, &log)
-	o, _, err := parse([]string{"example/tool.sh"}, &out, "test")
+	o, _, err := parse([]string{"repo", "example/tool.sh"}, &out, "test")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,7 +18,7 @@ func TestExplicitPythonRunner(t *testing.T) {
 	f := newFixture(t)
 	f.write("tool.py", "import sys\nprint(sys.argv[1])\n", 0644)
 	f.commit()
-	code, out, log := f.run("--runner", "python3", "example/tool.py", "hello coworker")
+	code, out, log := f.run("repo", "--runner", "python3", "example/tool.py", "hello coworker")
 	if code != 0 || out != "hello coworker\n" {
 		t.Fatalf("Python runner: %d %q %s", code, out, log)
 	}
@@ -36,7 +36,7 @@ func TestGitContextAndCheckoutHooks(t *testing.T) {
 	f := newFixture(t)
 	t.Setenv("GIT_DIR", filepath.Join(f.source, ".git"))
 	t.Setenv("GIT_WORK_TREE", f.source)
-	code, _, log := f.run("example/tool.sh")
+	code, _, log := f.run("repo", "example/tool.sh")
 	if code != 0 {
 		t.Fatalf("inherited Git environment: %d %s", code, log)
 	}
@@ -53,7 +53,7 @@ func TestGitContextAndCheckoutHooks(t *testing.T) {
 	if _, err := a.git(context.Background(), filepath.Join(f.cache, "repos", defaultOwner, "example.git"), "config", "core.hooksPath", hooks); err != nil {
 		t.Fatal(err)
 	}
-	code, _, log = f.run("example/tool.sh")
+	code, _, log = f.run("repo", "example/tool.sh")
 	if code != 0 {
 		t.Fatal(log)
 	}
@@ -73,7 +73,7 @@ func TestGitTransportRewritePreservesCacheValidation(t *testing.T) {
 		var out, log bytes.Buffer
 		a := f.app(&out, &log)
 		a.remote = func(string, string) string { return alias }
-		o, _, err := parse([]string{"example/tool.sh"}, &out, "test")
+		o, _, err := parse([]string{"repo", "example/tool.sh"}, &out, "test")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -89,7 +89,7 @@ func TestToolCanUseItsOwnGitWorktree(t *testing.T) {
 	f := newFixture(t)
 	f.write("tool.sh", "#!/bin/sh\ngit rev-parse --is-inside-work-tree\n", 0755)
 	f.commit()
-	code, out, log := f.run("--cwd", "repo", "example/tool.sh")
+	code, out, log := f.run("repo", "--cwd", "repo", "example/tool.sh")
 	if code != 0 || out != "true\n" {
 		t.Fatalf("tool Git operations: %d %q %s", code, out, log)
 	}

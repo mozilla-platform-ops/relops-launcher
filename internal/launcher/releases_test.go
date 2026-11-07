@@ -123,15 +123,15 @@ func TestReleaseCLI(t *testing.T) {
 	for _, flags := range [][]string{
 		{"--ref", "feature"}, {"--ref="}, {"--runner", "auto"}, {"--command", "fleetbench"}, {"--cwd", "repo"},
 	} {
-		if _, _, err := parse(append(flags, "fleetbench"), &bytes.Buffer{}, "test"); err == nil {
+		if _, _, err := parse(append(append([]string{"run"}, flags...), "fleetbench"), &bytes.Buffer{}, "test"); err == nil {
 			t.Errorf("accepted incompatible release flags: %v", flags)
 		}
 	}
-	o, _, err := parse([]string{"--cwd", "caller", "fleetbench", "cpu", "--ref", "passed-through"}, &bytes.Buffer{}, "test")
+	o, _, err := parse([]string{"run", "--cwd", "caller", "fleetbench", "cpu", "--ref", "passed-through"}, &bytes.Buffer{}, "test")
 	if err != nil || !isReleaseTarget(o) || strings.Join(o.args, "|") != "cpu|--ref|passed-through" {
 		t.Fatalf("release argument boundary: %+v %v", o, err)
 	}
-	o, _, err = parse([]string{"--ref", "feature", "fleetbench/runner"}, &bytes.Buffer{}, "test")
+	o, _, err = parse([]string{"repo", "--ref", "feature", "fleetbench/runner"}, &bytes.Buffer{}, "test")
 	if err != nil || isReleaseTarget(o) {
 		t.Fatalf("source target changed: %+v %v", o, err)
 	}
@@ -165,7 +165,7 @@ exit 7
 	var out, log bytes.Buffer
 	a := f.app(&out, &log)
 	a.in = strings.NewReader("hello\n")
-	o, _, _ := parse([]string{"fleetbench", "cpu", "a b", "--help", "--", ""}, &out, "test")
+	o, _, _ := parse([]string{"run", "fleetbench", "cpu", "a b", "--help", "--", ""}, &out, "test")
 	code, err := a.run(context.Background(), o)
 	want := "input=hello\n<cpu>\n<a b>\n<--help>\n<-->\n<>\ncwd=" + f.caller + "\ncaller=" + f.caller + "\n"
 	if err != nil || code != 7 || out.String() != want || !strings.Contains(log.String(), "· v0.4.6") || !strings.Contains(log.String(), "binary stderr") {
@@ -173,46 +173,47 @@ exit 7
 	}
 	asset, _ := fleetbenchAsset(f.tag, runtime.GOOS, runtime.GOARCH)
 	binaryURL := releaseAssetURL(o, f.tag, asset)
-	code, _, logText := f.run("fleetbench")
+	code, _, logText := f.run("run", "fleetbench")
 	if code != 7 || f.requests[binaryURL] != 1 || f.requests["https://api.github.com/repos/"+defaultOwner+"/fleetbench/releases/latest"] != 1 {
 		t.Fatalf("online reuse: %d %s requests=%v", code, logText, f.requests)
 	}
 	count := len(f.requests)
 	f.status = 503
-	code, output, logText := f.run("--refresh", "fleetbench")
+	code, output, logText := f.run("run", "--refresh", "fleetbench")
 	if code != 1 || output != "" || !strings.Contains(logText, "use --offline") {
 		t.Fatalf("online failure ran cached binary: %d %q %s", code, output, logText)
 	}
 	before := f.requests[binaryURL]
-	code, _, logText = f.run("--offline", "fleetbench")
+	code, _, logText = f.run("run", "--offline", "fleetbench")
 	if code != 7 || !strings.Contains(logText, "(cached)") || len(f.requests) != count || f.requests[binaryURL] != before {
 		t.Fatalf("offline reuse: %d %s", code, logText)
 	}
 	// Missing cached releases must not trigger network requests in offline mode.
-	code, _, logText = f.run("--offline", "--owner", "another-owner", "fleetbench")
-	if code != 1 || !strings.Contains(logText, "run once online") {
-		t.Fatalf("owner isolation: %d %s", code, logText)
+	o.owner, o.offline = "another-owner", true
+	code, err = f.app(&out, &log).run(context.Background(), o)
+	if code != 1 || err == nil || !strings.Contains(err.Error(), "run once online") {
+		t.Fatalf("owner isolation: %d %v", code, err)
 	}
 }
 
 func TestReleaseUpdateFailureAndRepair(t *testing.T) {
 	f := newReleaseFixture(t)
-	if code, _, log := f.run("fleetbench"); code != 0 {
+	if code, _, log := f.run("run", "fleetbench"); code != 0 {
 		t.Fatal(log)
 	}
 	f.tag = "v0.4.7"
 	f.binary = "#!/bin/sh\nprintf 'updated\\n'\n"
 	f.badBinary = true
-	code, out, log := f.run("--refresh", "fleetbench")
+	code, out, log := f.run("run", "--refresh", "fleetbench")
 	if code != 1 || out != "" || !strings.Contains(log, "SHA-256 mismatch") {
 		t.Fatalf("bad download: %d %q %s", code, out, log)
 	}
-	code, out, log = f.run("--offline", "fleetbench")
+	code, out, log = f.run("run", "--offline", "fleetbench")
 	if code != 0 || out != "released\n" || !strings.Contains(log, "· v0.4.6") {
 		t.Fatalf("failed update lost last good release: %d %q %s", code, out, log)
 	}
 	f.badBinary = false
-	code, out, log = f.run("--refresh", "fleetbench")
+	code, out, log = f.run("run", "--refresh", "fleetbench")
 	if code != 0 || out != "updated\n" || !strings.Contains(log, "· v0.4.7") {
 		t.Fatalf("update: %d %q %s", code, out, log)
 	}
@@ -222,11 +223,11 @@ func TestReleaseUpdateFailureAndRepair(t *testing.T) {
 	if err := os.WriteFile(binary, []byte("#!/bin/sh\nprintf 'tampered\\n'\n"), 0700); err != nil {
 		t.Fatal(err)
 	}
-	code, out, log = f.run("--offline", "fleetbench")
+	code, out, log = f.run("run", "--offline", "fleetbench")
 	if code != 1 || out != "" || !strings.Contains(log, "missing or corrupt") {
 		t.Fatalf("offline corruption: %d %q %s", code, out, log)
 	}
-	code, out, log = f.run("fleetbench")
+	code, out, log = f.run("run", "fleetbench")
 	if code != 0 || out != "updated\n" {
 		t.Fatalf("repair: %d %q %s", code, out, log)
 	}
@@ -259,11 +260,11 @@ func TestReleaseRejectsInvalidMetadata(t *testing.T) {
 			case "HTTP error":
 				f.status = 403
 			}
-			code, out, log := f.run("fleetbench")
+			code, out, log := f.run("run", "fleetbench")
 			if code != 1 || out != "" {
 				t.Fatalf("invalid release ran: %d %q %s", code, out, log)
 			}
-			code, _, _ = f.run("--offline", "fleetbench")
+			code, _, _ = f.run("run", "--offline", "fleetbench")
 			if code != 1 {
 				t.Fatal("invalid release marked ready")
 			}
@@ -293,7 +294,7 @@ func TestConcurrentReleasePreparation(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			code, out, log := f.run("fleetbench")
+			code, out, log := f.run("run", "fleetbench")
 			if code != 0 || out != "released\n" {
 				t.Errorf("concurrent release: %d %q %s", code, out, log)
 			}
@@ -347,7 +348,7 @@ func TestRealFleetbenchRelease(t *testing.T) {
 	var out, log bytes.Buffer
 	a := f.app(&out, &log)
 	a.httpClient = nil
-	o, _, err := parse([]string{"fleetbench", "--version"}, &out, "test")
+	o, _, err := parse([]string{"run", "fleetbench", "--version"}, &out, "test")
 	if err != nil {
 		t.Fatal(err)
 	}

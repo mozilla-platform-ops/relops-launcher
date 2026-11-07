@@ -11,15 +11,15 @@ import (
 
 func TestOwnerValidationAndDefaults(t *testing.T) {
 	for _, owner := range []string{"", "../fork", "org/repo", "git@github.com:fork", "-fork", "fork-", "fork_name", strings.Repeat("a", 40)} {
-		if _, _, err := parse([]string{"--owner", owner, "example/tool.py"}, &bytes.Buffer{}, "test"); err == nil {
+		if _, _, err := parse([]string{"repo", "--owner", owner, "example/tool.py"}, &bytes.Buffer{}, "test"); err == nil {
 			t.Errorf("accepted invalid owner %q", owner)
 		}
 	}
-	o, _, err := parse([]string{"example/tool.py", "--owner", "tool-argument"}, &bytes.Buffer{}, "test")
+	o, _, err := parse([]string{"repo", "example/tool.py", "--owner", "tool-argument"}, &bytes.Buffer{}, "test")
 	if err != nil || o.owner != defaultOwner || o.cwd != "caller" || strings.Join(o.args, "|") != "--owner|tool-argument" {
 		t.Fatalf("defaults/boundary: %+v %v", o, err)
 	}
-	o, _, err = parse([]string{"--owner", "Aerickson", "example/tool.py"}, &bytes.Buffer{}, "test")
+	o, _, err = parse([]string{"repo", "--owner", "Aerickson", "example/tool.py"}, &bytes.Buffer{}, "test")
 	if err != nil || o.owner != "aerickson" || githubRemote(o.owner, o.repo) != "git@github.com:aerickson/example.git" {
 		t.Fatalf("owner resolution: %+v %v", o, err)
 	}
@@ -46,7 +46,7 @@ func TestOwnersHaveSeparateReposRefsAndLocks(t *testing.T) {
 		var out, log bytes.Buffer
 		a := f.app(&out, &log)
 		a.remote, a.lockTimeout = remote, 200*time.Millisecond
-		o, _, err := parse(args, &out, "test")
+		o, _, err := parse(append([]string{"repo"}, args...), &out, "test")
 		if err != nil {
 			t.Fatal(err)
 		}
