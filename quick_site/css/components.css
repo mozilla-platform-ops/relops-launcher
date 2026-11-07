@@ -121,6 +121,9 @@ kbd { font-size: var(--text-xs); padding: 1px var(--space-2); background: var(--
 .cmd { display: flex; align-items: stretch; background: var(--bg-sunk); border: var(--border-w) solid var(--line-strong); font-size: var(--text-sm); }
 .cmd code { flex: 1; padding: var(--space-3) var(--space-4); overflow-x: auto; white-space: nowrap; }
 .cmd--wrap code { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+.cmd__lines { flex: 1; min-width: 0; padding: var(--space-3) var(--space-4); }
+.cmd__lines code { display: block; padding: 0; }
+.cmd__comment { display: block; color: var(--fg-dim); overflow-wrap: anywhere; font-family: var(--font-mono); }
 .hero-downloads { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); font-size: var(--text-sm); }
 details > summary { cursor: pointer; }
 .cmd code::before { content: "$ "; color: var(--accent); }

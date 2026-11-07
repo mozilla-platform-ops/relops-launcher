@@ -13,7 +13,7 @@ import (
 type tool struct {
 	ID, Name, Description, Owner, Repo, Path, Ref string
 	Shortcut, Kind                                string
-	Args                                          []string
+	Args, Aliases                                 []string
 	Channel, Prerequisites, Documentation, Note   string
 }
 
@@ -62,12 +62,8 @@ func readTools(path string) ([]tool, error) {
 			if beta {
 				channel, id = "preview", entry.ID+"-beta"
 			}
-			name := entry.Name
-			if len(entry.Aliases) > 0 {
-				name += " (" + strings.Join(entry.Aliases, ", ") + ")"
-			}
 			entries = append(entries, tool{
-				ID: id, Shortcut: entry.ID, Name: name, Description: entry.Description,
+				ID: id, Shortcut: entry.ID, Name: entry.Name, Description: entry.Description, Aliases: entry.Aliases,
 				Owner: target.Owner, Repo: target.Repo, Path: target.Path, Ref: target.Ref,
 				Kind: target.Kind,
 				Args: target.Args, Channel: channel, Prerequisites: target.Prerequisites,
@@ -100,7 +96,7 @@ func renderTools(path string) (string, error) {
             <a href="{{.Documentation}}" aria-label="{{.Name}} documentation">docs ↗</a>
           </div>
           <p class="prose">{{.Description}}</p>
-          <div class="cmd cmd--wrap"><code id="tool-{{.ID}}">{{.Command}}</code><button type="button" data-copy="#tool-{{.ID}}">copy</button></div>
+          <div class="cmd cmd--wrap"><div class="cmd__lines">{{$tool := .}}{{if .Aliases}}<span class="cmd__comment"># Short {{if eq (len .Aliases) 1}}alias{{else}}aliases{{end}}: {{range $i, $alias := .Aliases}}{{if $i}}, {{end}}relops run {{if eq $tool.Channel "preview"}}-b {{end}}{{$alias}}{{end}}</span>{{end}}<code id="tool-{{.ID}}">{{.Command}}</code></div><button type="button" data-copy="#tool-{{.ID}}">copy</button></div>
           {{if .Note}}<p class="prose usage-note">{{.Note}}</p>{{end}}
         </li>
 {{end}}
