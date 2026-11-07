@@ -78,6 +78,9 @@ func Main(args []string, version string) int {
 }
 
 func (a *app) run(ctx context.Context, o options) (int, error) {
+	if o.webURL != "" {
+		return a.runWeb(ctx, o)
+	}
 	if o.catalogName != "" && o.verbose {
 		a.provenancef("catalog=%s tool=%s channel=%s", o.catalogRevision, o.catalogName, o.catalogChannel)
 	}

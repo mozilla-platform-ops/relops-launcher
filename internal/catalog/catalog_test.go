@@ -84,6 +84,24 @@ func TestValidation(t *testing.T) {
 	}
 }
 
+func TestWebTargetValidation(t *testing.T) {
+	valid := Target{Kind: "web", URL: "https://example.com/"}
+	if err := validateTarget(valid); err != nil {
+		t.Fatal(err)
+	}
+	for _, target := range []Target{
+		{Kind: "web", URL: "http://example.com/"},
+		{Kind: "web", URL: "https://user@example.com/"},
+		{Kind: "web", URL: "https://example.com/", Repo: "repo"},
+		{Kind: "web", URL: "https://example.com/", Args: []string{"x"}},
+		{Kind: "source", Owner: "owner", Repo: "repo", URL: "https://example.com/"},
+	} {
+		if err := validateTarget(target); err == nil {
+			t.Errorf("accepted %+v", target)
+		}
+	}
+}
+
 func TestSameToolCanHaveIndependentTargets(t *testing.T) {
 	c := Catalog{SchemaVersion: 1, Revision: "test", Tools: []Tool{{ID: "list", Aliases: []string{"beta"}, Name: "Example", Description: "Independent channels", Default: &Target{Kind: "source", Owner: "org", Repo: "main", Path: "tool.sh"}, Beta: &Target{Kind: "source", Owner: "person", Repo: "prototype", Path: "new/tool.sh", Ref: "preview"}}}}
 	data, _ := json.Marshal(c)

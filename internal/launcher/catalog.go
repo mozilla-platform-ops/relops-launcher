@@ -18,8 +18,12 @@ func catalogShort(out io.Writer) error {
 	var b strings.Builder
 	nameWidth := 0
 	for _, t := range c.Tools {
-		if len(t.ID) > nameWidth {
-			nameWidth = len(t.ID)
+		width := len(t.ID)
+		if (t.Default != nil && t.Default.Kind == "web") || (t.Beta != nil && t.Beta.Kind == "web") {
+			width += len(" (web)")
+		}
+		if width > nameWidth {
+			nameWidth = width
 		}
 	}
 	for _, beta := range []bool{false, true} {
@@ -37,6 +41,7 @@ func catalogShort(out io.Writer) error {
 				headed = true
 			}
 			name := t.ID
+			target, _, _ := t.Select(beta)
 			if len(t.Aliases) > 0 {
 				name = t.Aliases[0]
 			}
@@ -44,7 +49,15 @@ func catalogShort(out io.Writer) error {
 			if beta {
 				launch += "-b "
 			}
-			fmt.Fprintf(&b, "  %s%s  %s%s\n", p.text(styleCommand, t.ID), strings.Repeat(" ", nameWidth-len(t.ID)), launch, name)
+			label := t.ID
+			if target.Kind == "web" {
+				label += " (web)"
+			}
+			styled := p.text(styleCommand, t.ID)
+			if target.Kind == "web" {
+				styled += p.text(styleMetadata, " (web)")
+			}
+			fmt.Fprintf(&b, "  %s%s  %s%s\n", styled, strings.Repeat(" ", max(0, nameWidth-len(label))), launch, name)
 		}
 		if headed {
 			fmt.Fprintln(&b)
@@ -82,6 +95,9 @@ func catalogDisplay(args []string, out io.Writer) error {
 					headed = true
 				}
 				names := p.text(styleCommand, t.ID)
+				if target, _, err := t.Select(beta); err == nil && target.Kind == "web" {
+					names += " " + p.text(styleMetadata, "· web")
+				}
 				if len(t.Aliases) > 0 {
 					label := "alias: "
 					if len(t.Aliases) > 1 {
@@ -99,7 +115,11 @@ func catalogDisplay(args []string, out io.Writer) error {
 				if beta {
 					launch += "-b "
 				}
-				fmt.Fprintf(&b, "    %s%s [args...]\n", launch, name)
+				args := " [args...]"
+				if target, _, err := t.Select(beta); err == nil && target.Kind == "web" {
+					args = ""
+				}
+				fmt.Fprintf(&b, "    %s%s%s\n", launch, name, args)
 				fmt.Fprintln(&b)
 			}
 		}
@@ -133,11 +153,14 @@ func catalogDisplay(args []string, out io.Writer) error {
 					writeWrapped(&b, label+": "+value, "  ", terminalWidth(out))
 				}
 			}
-			field("Source", target.Owner+"/"+target.Repo)
-			if target.Kind == "release" {
+			if target.Kind == "web" {
+				field("URL", target.URL)
+			} else if target.Kind == "release" {
+				field("Source", target.Owner+"/"+target.Repo)
 				field("Version", "latest stable release (verified checksum)")
 				field("Directory", "caller")
 			} else {
+				field("Source", target.Owner+"/"+target.Repo)
 				ref := target.Ref
 				if ref == "" {
 					ref = "remote default branch"
@@ -168,7 +191,11 @@ func catalogDisplay(args []string, out io.Writer) error {
 				launch += "-b "
 			}
 			launch += t.ID
-			fmt.Fprintf(&b, "  Launch: %s [args...]\n", p.text(styleCommand, launch))
+			args := " [args...]"
+			if target.Kind == "web" {
+				args = ""
+			}
+			fmt.Fprintf(&b, "  Launch: %s%s\n", p.text(styleCommand, launch), args)
 		}
 		fmt.Fprintln(&b, p.text(styleMetadata, "\nBundled catalog "+c.Revision))
 	default:

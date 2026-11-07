@@ -30,6 +30,10 @@ func checkTools(ctx context.Context, path string, out io.Writer, remote func(too
 	}
 	var failures []error
 	for _, t := range entries {
+		if t.Kind == "web" {
+			fmt.Fprintf(out, "OK %s URL=%s (not checked)\n", t.ID, t.URL)
+			continue
+		}
 		if t.Owner == "" {
 			t.Owner = "mozilla-platform-ops"
 		}

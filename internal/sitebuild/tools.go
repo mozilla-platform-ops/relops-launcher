@@ -12,7 +12,7 @@ import (
 // tool is the website presentation of one catalog target.
 type tool struct {
 	ID, Name, Description, Owner, Repo, Path, Ref string
-	Shortcut, Kind                                string
+	Shortcut, Kind, URL                           string
 	Args, Aliases                                 []string
 	Channel, Prerequisites, Documentation, Note   string
 }
@@ -65,7 +65,7 @@ func readTools(path string) ([]tool, error) {
 			entries = append(entries, tool{
 				ID: id, Shortcut: entry.ID, Name: entry.Name, Description: entry.Description, Aliases: entry.Aliases,
 				Owner: target.Owner, Repo: target.Repo, Path: target.Path, Ref: target.Ref,
-				Kind: target.Kind,
+				Kind: target.Kind, URL: target.URL,
 				Args: target.Args, Channel: channel, Prerequisites: target.Prerequisites,
 				Documentation: target.Documentation, Note: target.Note,
 			})
@@ -92,10 +92,11 @@ func renderTools(path string) (string, error) {
         <li class="tool-row">
           <div class="tool-row__heading">
             <h3>{{.Name}}</h3>
+            {{if eq .Kind "web"}}<span class="badge badge--web">Web</span>{{end}}
             {{if .ChannelLabel}}<span class="badge">{{.ChannelLabel}}</span>{{end}}
-            <a href="{{.Documentation}}" aria-label="{{.Name}} documentation">docs ↗</a>
+            {{if ne .Kind "web"}}<a href="{{.Documentation}}" aria-label="{{.Name}} documentation">docs ↗</a>{{end}}
           </div>
-          <p class="prose">{{.Description}}</p>
+          <p class="prose">{{if eq .Kind "web"}}Open {{.Name}} (<a href="{{.URL}}">{{.URL}}</a>) in your browser.{{else}}{{.Description}}{{end}}</p>
           <div class="cmd cmd--wrap"><div class="cmd__lines">{{$tool := .}}{{if .Aliases}}<span class="cmd__comment"># Short {{if eq (len .Aliases) 1}}alias{{else}}aliases{{end}}: {{range $i, $alias := .Aliases}}{{if $i}}, {{end}}relops run {{if eq $tool.Channel "preview"}}-b {{end}}{{$alias}}{{end}}</span>{{end}}<code id="tool-{{.ID}}">{{.Command}}</code></div><button type="button" data-copy="#tool-{{.ID}}">copy</button></div>
           {{if .Note}}<p class="prose usage-note">{{.Note}}</p>{{end}}
         </li>

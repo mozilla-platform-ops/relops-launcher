@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -28,7 +29,8 @@ type Tool struct {
 }
 
 type Target struct {
-	Kind          string   `json:"kind"` // source or release; release currently supports fleetbench
+	Kind          string   `json:"kind"` // source, release, or web
+	URL           string   `json:"url,omitempty"`
 	Owner         string   `json:"owner"`
 	Repo          string   `json:"repo"`
 	Path          string   `json:"path,omitempty"`
@@ -83,6 +85,19 @@ func Decode(data []byte) (Catalog, error) {
 }
 
 func validateTarget(t Target) error {
+	if t.Kind == "web" {
+		u, err := url.Parse(t.URL)
+		if err != nil || u.Scheme != "https" || u.Hostname() == "" || u.User != nil || strings.ContainsAny(t.URL, "\r\n\t") {
+			return fmt.Errorf("web target requires an HTTPS URL")
+		}
+		if t.Owner != "" || t.Repo != "" || t.Path != "" || t.Ref != "" || t.Command != "" || t.Runner != "" || t.Cwd != "" || len(t.Args) != 0 {
+			return fmt.Errorf("web target cannot specify source or release fields")
+		}
+		return nil
+	}
+	if t.URL != "" {
+		return fmt.Errorf("URL is only supported for web targets")
+	}
 	if !owner.MatchString(t.Owner) || !repo.MatchString(t.Repo) || t.Repo == "." || t.Repo == ".." {
 		return fmt.Errorf("invalid target owner/repository")
 	}
@@ -113,7 +128,7 @@ func validateTarget(t Target) error {
 			return fmt.Errorf("unsupported release target")
 		}
 	default:
-		return fmt.Errorf("target kind must be source or release")
+		return fmt.Errorf("target kind must be source, release, or web")
 	}
 	return nil
 }

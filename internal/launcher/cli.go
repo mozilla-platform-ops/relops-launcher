@@ -17,6 +17,8 @@ const defaultOwner = "mozilla-platform-ops"
 type options struct {
 	owner, ref, runner, cwd, repo, path          string
 	commandName                                  string
+	webURL                                       string
+	printURL                                     bool
 	catalogName, catalogChannel, catalogRevision string
 	sourceTarget                                 bool
 	cwdSet                                       bool
@@ -47,6 +49,7 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 	fs.BoolVar(&o.verbose, "verbose", false, "verbose")
 	fs.BoolVar(&o.verbose, "v", false, "verbose")
 	if mode == "catalog" {
+		fs.BoolVar(&o.printURL, "print-url", false, "print a web target URL")
 		fs.BoolVar(&beta, "beta", false, "select beta target")
 		fs.BoolVar(&beta, "b", false, "select beta target")
 	}
@@ -150,6 +153,21 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 		}
 		explicit := map[string]bool{}
 		fs.Visit(func(f *flag.Flag) { explicit[f.Name] = true })
+		if target.Kind == "web" {
+			for _, flag := range []string{"owner", "ref", "runner", "command", "cwd", "offline", "refresh", "verbose", "v"} {
+				if explicit[flag] {
+					return o, false, fmt.Errorf("--%s is not supported for web targets", flag)
+				}
+			}
+			if fs.NArg() != 1 {
+				return o, false, errors.New("web targets do not accept arguments; put --print-url before the tool name")
+			}
+			o.webURL = target.URL
+			return o, false, nil
+		}
+		if explicit["print-url"] {
+			return o, false, errors.New("--print-url requires a web target")
+		}
 		if explicit["owner"] {
 			return o, false, errors.New("--owner is not supported for catalog targets; use relops repo")
 		}

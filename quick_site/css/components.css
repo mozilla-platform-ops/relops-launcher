@@ -164,6 +164,7 @@ details > summary { cursor: pointer; }
 .usage-detail__content > .prose { max-width: none; }
 .usage-note { font-size: var(--text-sm); }
 .badge { display: inline-block; padding: var(--space-1) var(--space-2); border: var(--border-w) solid var(--line); color: var(--fg); font-size: var(--text-xs); }
+.badge--web { color: var(--fg-dim); }
 .tool-list { list-style: none; padding: 0; }
 .tool-preview-intro { padding-top: var(--space-5); border-top: var(--border-w) solid var(--line); }
 .tool-preview-intro > * { margin: 0; }

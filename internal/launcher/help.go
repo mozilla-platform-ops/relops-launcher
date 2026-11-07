@@ -140,6 +140,7 @@ func writeHelp(out io.Writer, mode, version string) error {
 		rows("COMMON OPTIONS", common...)
 		rows("SOURCE EXECUTION", source...)
 		if mode == "catalog" {
+			rows("WEB TOOLS", helpRow{"--print-url", "Print a web tool's URL without opening a browser."})
 			rows("RELEASE UPDATES", helpRow{"--refresh", "Check latest release now; respects rate-limit cooldowns."})
 			paragraph("Release targets reject --ref, --runner, --command, and --cwd repo.\n--refresh requires an online release target. Catalog launches reject --owner.\nMissing channels fail; beta selection never falls back to default.")
 			rows("EXAMPLES", helpRow{"relops run fr --help", "Show tool help."}, helpRow{"relops run -b replay-tc-pool -h", "Select a beta tool."}, helpRow{"relops run --ref my-feature fr --help", "Try a pushed source branch."}, helpRow{"relops run fleetbench cpu --mode quick --json", "Run a verified release binary."})

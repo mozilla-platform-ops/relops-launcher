@@ -1,7 +1,28 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-07.1",
+  "revision": "2026-11-07.2",
   "tools": [
+    {
+      "id": "hangar",
+      "name": "Hangar",
+      "description": "Open Hangar in your browser.",
+      "default": {
+        "kind": "web",
+        "url": "https://hangar.relops.mozilla.com/",
+        "prerequisites": "A web browser and access to Hangar."
+      }
+    },
+    {
+      "id": "pool-classifier",
+      "aliases": ["pc"],
+      "name": "Pool Classifier",
+      "description": "Open Pool Classifier in your browser.",
+      "default": {
+        "kind": "web",
+        "url": "https://pool-classifier.relops.mozilla.com/",
+        "prerequisites": "A web browser and access to Pool Classifier."
+      }
+    },
     {
       "id": "taskcluster-web-launcher",
       "aliases": ["tcwl"],

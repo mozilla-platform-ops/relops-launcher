@@ -45,6 +45,8 @@ relops run -b replay-tc-pool -h               # -b and --beta select the beta ta
 relops run --offline fr --help
 relops run --ref my-branch fr --help          # override a default source target's ref
 relops run fleetbench --version               # latest stable release binary
+relops run pc                                 # open Pool Classifier in a browser
+relops run --print-url hangar                 # print a web tool's URL
 ```
 
 `run` is the primary launch command; `r` is its shortcut. `c` is the shortcut for `catalog`. `catalog launch` remains a compatibility alias for `run`. Bare `run` or `r` shows the compact tool directory.
@@ -54,6 +56,8 @@ Each entry has a unique shortcut ID and optional aliases, plus a default target,
 Normal launches show one compact header, such as `relops: fleetroll · main@24f451fe`, in green. Beta selections show `(beta)` and offline runs show `(cached)`. Environment setup adds a dim `relops: preparing environment…` line only when needed. Successful dependency setup output is hidden; failures show diagnostics. Use `-v` or `--verbose` for the catalog revision, full repository/ref/commit provenance, and live setup logs. Launcher verbose diagnostics are green too; dependency and tool output retain their own formatting. Set `NO_COLOR=1` to disable styling; `TERM=dumb` and redirected stderr also produce plain text.
 
 Launcher options go before the shortcut; all subsequent arguments belong to the tool. Website `example_args` are documentation only and are never injected into a launch. `--ref` can override the default source target but cannot be combined with `-b`/`--beta`. Catalog launches reject `--owner`; use repository execution for arbitrary forks. Release targets retain their existing option restrictions. `--command`, `--runner`, and `--cwd` override configured source defaults.
+
+Web targets print their HTTPS URL and open it with `open` on macOS or `xdg-open` on Linux. If no graphical session is detected or opening fails, use the printed URL manually. Use `relops run --print-url NAME` to print only the URL without opening a browser. Web targets reject tool arguments and source or release options.
 
 Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `run` selects execution specifically, `relops run list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog` or `relops c`; `relops catalog list` and `relops catalog ls` remain aliases. Inspect requirements with `relops info NAME` (shortcut: `relops i NAME`; compatibility alias: `relops catalog info NAME`).
 
