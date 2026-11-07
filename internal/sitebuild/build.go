@@ -3,6 +3,7 @@
 package sitebuild
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"debug/buildinfo"
 	"encoding/hex"
@@ -71,6 +72,10 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	catalogData, err := os.ReadFile(filepath.Join(source, "tools.json"))
+	if err != nil {
+		return "", err
+	}
 	output := filepath.Join(binaries, "site")
 	approval, approvalErr := macosrelease.ValidateReceipt(filepath.Join(binaries, "macos-notarization.json"), cfg.Version, binaries)
 	if cfg.RequireNotarized && approvalErr != nil {
@@ -117,6 +122,11 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 		data, err := os.ReadFile(file)
 		if err != nil {
 			return "", err
+		}
+		// The web commands must resolve to the same entries in the downloaded launcher.
+		// go:embed retains the catalog bytes verbatim in each executable.
+		if !bytes.Contains(data, catalogData) {
+			return "", fmt.Errorf("%s does not embed the website catalog; rebuild and release the launcher with this catalog before publishing", name)
 		}
 		digest := sha256.Sum256(data)
 		artifact := Artifact{OS: platform.os, Arch: platform.arch, Path: downloadPath + "/" + name, Size: len(data), SHA256: hex.EncodeToString(digest[:])}

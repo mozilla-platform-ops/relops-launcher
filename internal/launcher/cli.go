@@ -8,14 +8,28 @@ import (
 	"path"
 	"regexp"
 	"strings"
+
+	"github.com/mozilla-platform-ops/relops-launcher/internal/catalog"
 )
 
-const usage = `Usage: relops [options] <repo>[/<path>] [tool-arguments...]
+const usage = `Usage:
+  relops catalog list
+  relops catalog info NAME
+  relops catalog launch [options] NAME [tool-arguments...]
+  relops c [options] NAME [tool-arguments...]
+  relops repo [options] <repo>[/<path>] [tool-arguments...]
+  relops [options] <repo>[/<path>] [tool-arguments...]
+
+c is shorthand for catalog launch. Catalog names and aliases share one namespace.
+Use -b or --beta before a catalog name to select its configured beta target.
+The bundled catalog works without a catalog download. Example arguments from the
+website are never added to a launch. Use repo to escape reserved command names.
 
 Run a repository tool using Git SSH access, or a supported release binary via HTTPS.
 Launcher options must precede the target. All following arguments go to the tool.
 
 Options:
+  -b, --beta        Select a catalog tool's beta target (catalog launches only)
   --owner VALUE     GitHub user or organization (default: mozilla-platform-ops)
   --ref VALUE       Pushed branch, tag, or full commit SHA (default: default branch)
   --runner VALUE    auto, python3, bash, or sh (default: auto)
@@ -27,6 +41,9 @@ Options:
   --help            Show this help
 
 Examples:
+  relops c fr --help
+  relops c -b replay-tc-pool -h
+  relops repo c/path/to/tool.sh --help
   relops fleetbench cpu --mode quick --json
   relops --ref my-feature relops-infra/path/to/check.sh --verbose
   relops --cwd caller --runner python3 repo/check.py ./hosts.csv
@@ -49,11 +66,13 @@ An explicit --runner bypasses project-environment detection.
 const defaultOwner = "mozilla-platform-ops"
 
 type options struct {
-	owner, ref, runner, cwd, repo, path string
-	commandName                         string
-	cwdSet                              bool
-	args                                []string
-	offline, verbose                    bool
+	owner, ref, runner, cwd, repo, path          string
+	commandName                                  string
+	catalogName, catalogChannel, catalogRevision string
+	sourceTarget                                 bool
+	cwdSet                                       bool
+	args                                         []string
+	offline, verbose                             bool
 }
 
 var repoName = regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9._-]*$`)
@@ -61,7 +80,12 @@ var ownerName = regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9-]{0,37}[A-Za-z0-9])?
 var commitID = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 
 func parse(args []string, out io.Writer, version string) (options, bool, error) {
-	o := options{}
+	return parseMode(args, out, version, "root")
+}
+
+func parseMode(args []string, out io.Writer, version, mode string) (options, bool, error) {
+	o := options{sourceTarget: mode == "repo"}
+	var beta bool
 	fs := flag.NewFlagSet("relops", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	fs.StringVar(&o.owner, "owner", defaultOwner, "GitHub owner")
@@ -71,6 +95,10 @@ func parse(args []string, out io.Writer, version string) (options, bool, error) 
 	fs.StringVar(&o.cwd, "cwd", "caller", "working directory")
 	fs.BoolVar(&o.offline, "offline", false, "offline")
 	fs.BoolVar(&o.verbose, "verbose", false, "verbose")
+	if mode == "catalog" {
+		fs.BoolVar(&beta, "beta", false, "select beta target")
+		fs.BoolVar(&beta, "b", false, "select beta target")
+	}
 	showVersion := fs.Bool("version", false, "version")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -86,13 +114,78 @@ func parse(args []string, out io.Writer, version string) (options, bool, error) 
 	if fs.NArg() == 0 {
 		return o, false, errors.New("expected <repo> or <repo>/<path>; use relops --help")
 	}
+	if mode == "root" {
+		prefix := args[:len(args)-fs.NArg()]
+		rest := fs.Args()[1:]
+		switch fs.Arg(0) {
+		case "c":
+			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "catalog")
+		case "repo":
+			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "repo")
+		case "catalog":
+			if len(rest) == 0 || rest[0] == "--help" || rest[0] == "-h" {
+				_, err := io.WriteString(out, usage)
+				return o, true, err
+			}
+			if rest[0] == "launch" {
+				return parseMode(append(append([]string{}, prefix...), rest[1:]...), out, version, "catalog")
+			}
+			if len(prefix) != 0 {
+				return o, false, errors.New("launcher options only apply to catalog launch")
+			}
+			err := catalogDisplay(rest, out)
+			return o, err == nil, err
+		}
+	}
 	fs.Visit(func(f *flag.Flag) {
 		if f.Name == "cwd" {
 			o.cwdSet = true
 		}
 	})
+	targetName := fs.Arg(0)
+	if mode == "catalog" {
+		c, err := catalog.Bundled()
+		if err != nil {
+			return o, false, err
+		}
+		t, err := c.Lookup(targetName)
+		if err != nil {
+			return o, false, err
+		}
+		target, channel, err := t.Select(beta)
+		if err != nil {
+			return o, false, err
+		}
+		explicit := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { explicit[f.Name] = true })
+		if explicit["owner"] {
+			return o, false, errors.New("--owner is not supported for catalog targets; use relops repo")
+		}
+		if beta && explicit["ref"] {
+			return o, false, errors.New("--ref cannot be combined with --beta/-b")
+		}
+		o.owner = target.Owner
+		if !explicit["ref"] {
+			o.ref = target.Ref
+		}
+		if !explicit["runner"] && target.Runner != "" {
+			o.runner = target.Runner
+		}
+		if !explicit["command"] {
+			o.commandName = target.Command
+		}
+		if !explicit["cwd"] && target.Cwd != "" {
+			o.cwd, o.cwdSet = target.Cwd, true
+		}
+		targetName = target.Repo
+		if target.Path != "" {
+			targetName += "/" + target.Path
+		}
+		o.sourceTarget = target.Kind == "source"
+		o.catalogName, o.catalogChannel, o.catalogRevision = t.ID, channel, c.Revision
+	}
 	var hasPath bool
-	o.repo, o.path, hasPath = strings.Cut(fs.Arg(0), "/")
+	o.repo, o.path, hasPath = strings.Cut(targetName, "/")
 	if !ownerName.MatchString(o.owner) {
 		return o, false, errors.New("--owner must be a GitHub user or organization name (letters, digits, and internal hyphens; up to 39 characters)")
 	}

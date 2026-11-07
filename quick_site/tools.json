@@ -1,94 +1,146 @@
 {
+  "schema_version": 1,
+  "revision": "2026-11-06.1",
   "tools": [
     {
       "id": "replay-tc-pool",
       "name": "Taskcluster pool replay",
       "description": "Replay a mix of level-1 jobs into available worker-pool capacity.",
-      "owner": "aerickson",
-      "repo": "android-tools",
-      "path": "worker_health/replay_tc_pool.py",
-      "ref": "20261105-more_tool_development",
-      "args": ["-h"],
-      "channel": "preview",
-      "prerequisites": "Python 3 and Pipenv. Replaying tasks also needs Taskcluster credentials and scopes; see the tool's help.",
-      "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md"
+      "beta": {
+        "kind": "source",
+        "owner": "aerickson",
+        "repo": "android-tools",
+        "path": "worker_health/replay_tc_pool.py",
+        "ref": "20261105-more_tool_development",
+        "prerequisites": "Python 3 and Pipenv. Replaying tasks also needs Taskcluster credentials and scopes; see the tool's help.",
+        "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md",
+        "example_args": [
+          "-h"
+        ]
+      }
     },
     {
       "id": "replay-tc-task",
       "name": "Taskcluster task replay",
       "description": "Replay a completed Firefox CI task as an independent diagnostic task.",
-      "owner": "aerickson",
-      "repo": "android-tools",
-      "path": "worker_health/replay_tc_task.py",
-      "ref": "20261105-more_tool_development",
-      "args": ["-h"],
-      "channel": "preview",
-      "prerequisites": "Python 3 and Pipenv. Replaying tasks also needs Taskcluster credentials and scopes; see the tool's help.",
-      "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md#replay_tc_taskpy"
+      "beta": {
+        "kind": "source",
+        "owner": "aerickson",
+        "repo": "android-tools",
+        "path": "worker_health/replay_tc_task.py",
+        "ref": "20261105-more_tool_development",
+        "prerequisites": "Python 3 and Pipenv. Replaying tasks also needs Taskcluster credentials and scopes; see the tool's help.",
+        "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md#replay_tc_taskpy",
+        "example_args": [
+          "-h"
+        ]
+      }
     },
     {
       "id": "create-tc-task",
       "name": "Taskcluster task creator",
       "description": "Submit test tasks to a worker queue to check workers. Can run custom commands.",
-      "owner": "mozilla-platform-ops",
-      "repo": "android-tools",
-      "path": "worker_health/create_tc_task.py",
-      "args": ["-q", "gecko-t/t-linux-docker-noscratch-amd", "--count", "1", "--dry-run"],
-      "channel": "mainline",
-      "prerequisites": "Python 3 and Pipenv. Submitting tasks also needs Taskcluster credentials in ~/.tc_token with the required scopes.",
-      "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/create_tc_task.py"
+      "default": {
+        "kind": "source",
+        "owner": "mozilla-platform-ops",
+        "repo": "android-tools",
+        "path": "worker_health/create_tc_task.py",
+        "prerequisites": "Python 3 and Pipenv. Submitting tasks also needs Taskcluster credentials in ~/.tc_token with the required scopes.",
+        "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/create_tc_task.py",
+        "example_args": [
+          "-q",
+          "gecko-t/t-linux-docker-noscratch-amd",
+          "--count",
+          "1",
+          "--dry-run"
+        ]
+      }
     },
     {
       "id": "quarantine-tool",
       "name": "Taskcluster worker quarantine",
       "description": "View quarantined workers, quarantine hosts, or lift their quarantine.",
-      "owner": "mozilla-platform-ops",
-      "repo": "android-tools",
-      "path": "worker_health/quarantine_tool.py",
-      "ref": "master",
-      "args": ["--help"],
-      "channel": "mainline",
-      "prerequisites": "Python 3 and Pipenv. Changing quarantines also needs Taskcluster credentials and scopes; see the documentation.",
-      "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/README.md#quarantine_tool"
+      "default": {
+        "kind": "source",
+        "owner": "mozilla-platform-ops",
+        "repo": "android-tools",
+        "path": "worker_health/quarantine_tool.py",
+        "ref": "master",
+        "prerequisites": "Python 3 and Pipenv. Changing quarantines also needs Taskcluster credentials and scopes; see the documentation.",
+        "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/README.md#quarantine_tool",
+        "example_args": [
+          "--help"
+        ]
+      }
     },
     {
       "id": "moonshot-2404-x11-talos",
-      "name": "Moonshot oneshot tool — 24.04 X11 Talos",
+      "name": "Moonshot oneshot tool \u2014 24.04 X11 Talos",
       "description": "Reimage and converge a Moonshot worker for Ubuntu 24.04 X11 Talos.",
-      "owner": "mozilla-platform-ops",
-      "repo": "relops-infra",
-      "path": "moonshot/oneshot_2404_x11_talos.sh",
-      "ref": "20260805-tool_fixing",
-      "args": ["229"],
-      "channel": "preview",
-      "prerequisites": "Bash. Execution requires the helper's dependencies and host access.",
-      "note": "Replace 229 with the desired worker. Runs in dry-run mode by default.",
-      "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_x11_talos.sh"
+      "beta": {
+        "kind": "source",
+        "owner": "mozilla-platform-ops",
+        "repo": "relops-infra",
+        "path": "moonshot/oneshot_2404_x11_talos.sh",
+        "ref": "20260805-tool_fixing",
+        "prerequisites": "Bash. Execution requires the helper's dependencies and host access.",
+        "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_x11_talos.sh",
+        "note": "Replace 229 with the desired worker. Runs in dry-run mode by default.",
+        "example_args": [
+          "229"
+        ]
+      }
     },
     {
       "id": "moonshot-2404-wayland-talos",
-      "name": "Moonshot oneshot tool — 24.04 Wayland Talos",
+      "name": "Moonshot oneshot tool \u2014 24.04 Wayland Talos",
       "description": "Reimage and converge a Moonshot worker for Ubuntu 24.04 Wayland Talos.",
-      "owner": "mozilla-platform-ops",
-      "repo": "relops-infra",
-      "path": "moonshot/oneshot_2404_wayland_talos.sh",
-      "ref": "20260805-tool_fixing",
-      "args": ["229"],
-      "channel": "preview",
-      "prerequisites": "Bash. Execution requires the helper's dependencies and host access.",
-      "note": "Replace 229 with the desired worker. Runs in dry-run mode by default.",
-      "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_wayland_talos.sh"
+      "beta": {
+        "kind": "source",
+        "owner": "mozilla-platform-ops",
+        "repo": "relops-infra",
+        "path": "moonshot/oneshot_2404_wayland_talos.sh",
+        "ref": "20260805-tool_fixing",
+        "prerequisites": "Bash. Execution requires the helper's dependencies and host access.",
+        "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_wayland_talos.sh",
+        "note": "Replace 229 with the desired worker. Runs in dry-run mode by default.",
+        "example_args": [
+          "229"
+        ]
+      }
     },
     {
       "id": "fleetroll",
       "name": "Fleetroll",
       "description": "Audit and monitor Firefox CI hosts, and manage their Puppet configuration.",
-      "owner": "mozilla-platform-ops",
-      "repo": "fleetroll_mvp",
-      "args": ["--help"],
-      "channel": "mainline",
-      "prerequisites": "Requires uv and Python 3.11+. Host operations also need SSH access and the credentials described in the documentation.",
-      "documentation": "https://github.com/mozilla-platform-ops/fleetroll_mvp#readme"
+      "aliases": [
+        "fr"
+      ],
+      "default": {
+        "kind": "source",
+        "owner": "mozilla-platform-ops",
+        "repo": "fleetroll_mvp",
+        "prerequisites": "Requires uv and Python 3.11+. Host operations also need SSH access and the credentials described in the documentation.",
+        "documentation": "https://github.com/mozilla-platform-ops/fleetroll_mvp#readme",
+        "example_args": [
+          "--help"
+        ]
+      }
+    },
+    {
+      "id": "fleetbench",
+      "name": "Fleetbench",
+      "description": "Run host benchmarks using the latest stable Fleetbench release.",
+      "default": {
+        "kind": "release",
+        "owner": "mozilla-platform-ops",
+        "repo": "fleetbench",
+        "example_args": [
+          "--help"
+        ],
+        "documentation": "https://github.com/mozilla-platform-ops/fleetbench",
+        "prerequisites": "A supported platform and public HTTPS access; no Git or Rust required."
+      }
     }
   ]
 }

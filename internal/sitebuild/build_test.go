@@ -31,9 +31,13 @@ func fixture(t *testing.T) (Config, func(string) (metadata, error)) {
 	if err := os.WriteFile(filepath.Join(cfg.Source, "future.html"), []byte("concept only"), 0644); err != nil {
 		t.Fatal(err)
 	}
+	catalogData, err := os.ReadFile(filepath.Join(cfg.Source, "tools.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, platform := range platforms {
 		name := "relops-" + platform.os + "-" + platform.arch
-		if err := os.WriteFile(filepath.Join(cfg.Binaries, name), []byte("artifact "+name), 0755); err != nil {
+		if err := os.WriteFile(filepath.Join(cfg.Binaries, name), append([]byte("artifact "+name+"\n"), catalogData...), 0755); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -83,8 +87,8 @@ func TestBundleDownloadsInventoryAndLinks(t *testing.T) {
 		t.Fatal("unrendered or stale release information")
 	}
 	for _, command := range []string{
-		"relops --owner aerickson --ref 20261105-more_tool_development android-tools/worker_health/replay_tc_pool.py -h",
-		"relops fleetroll_mvp --help",
+		"relops c -b replay-tc-pool -h",
+		"relops c fleetroll --help",
 	} {
 		if !strings.Contains(string(page), command) {
 			t.Errorf("missing catalog command: %s", command)
@@ -269,5 +273,35 @@ func TestSignedSiteRequiresApprovalForExactArtifacts(t *testing.T) {
 	}
 	if _, err := build(cfg, inspect); err == nil {
 		t.Fatal("stale notarization receipt survived rebuilding the binary")
+	}
+}
+
+func TestSiteRejectsMissingOrDifferentEmbeddedCatalog(t *testing.T) {
+	for _, changed := range []bool{false, true} {
+		cfg, inspect := fixture(t)
+		output, err := build(cfg, inspect)
+		if err != nil {
+			t.Fatal(err)
+		}
+		previous, _ := os.ReadFile(filepath.Join(output, "index.html"))
+		if changed {
+			path := filepath.Join(cfg.Source, "tools.json")
+			data, _ := os.ReadFile(path)
+			data = []byte(strings.Replace(string(data), "2026-11-06.1", "changed-revision", 1))
+			if err := os.WriteFile(path, data, 0644); err != nil {
+				t.Fatal(err)
+			}
+		} else {
+			if err := os.WriteFile(filepath.Join(cfg.Binaries, "relops-darwin-arm64"), []byte("old launcher without a catalog"), 0755); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if _, err := build(cfg, inspect); err == nil || !strings.Contains(err.Error(), "does not embed the website catalog") {
+			t.Fatalf("accepted incompatible catalog: %v", err)
+		}
+		after, _ := os.ReadFile(filepath.Join(output, "index.html"))
+		if string(after) != string(previous) {
+			t.Fatal("failed build replaced previous site")
+		}
 	}
 }

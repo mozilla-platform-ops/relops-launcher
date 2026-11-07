@@ -39,7 +39,14 @@ func checkTools(ctx context.Context, path string, out io.Writer, remote func(too
 		}
 		label := fmt.Sprintf("%s: %s/%s ref=%s path=%s", t.ID, t.Owner, t.Repo, ref, t.Path)
 		toolCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
-		sha, err := checkTool(toolCtx, t, remote(t))
+		var sha string
+		var err error
+		if t.Kind == "release" {
+			// The launcher checks current assets and checksums when executing releases.
+			sha = "latest stable release (assets verified at launch)"
+		} else {
+			sha, err = checkTool(toolCtx, t, remote(t))
+		}
 		cancel()
 		if err != nil {
 			failure := fmt.Errorf("%s: %w", label, err)

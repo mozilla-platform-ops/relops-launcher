@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+
+	"github.com/mozilla-platform-ops/relops-launcher/internal/catalog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -77,17 +79,17 @@ func TestCheckToolsLocalRemote(t *testing.T) {
 		{"missing-repo", "", "tool.sh", "git ls-remote"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			entry := tool{ID: "example", Repo: "repo", Ref: tc.ref, Path: tc.path, Channel: "mainline"}
-			data, err := json.Marshal(struct{ Tools []tool }{[]tool{entry}})
+			entry := catalog.Tool{ID: "example", Name: "Example", Description: "Example tool", Default: &catalog.Target{Kind: "source", Owner: "mozilla-platform-ops", Repo: "repo", Ref: tc.ref, Path: tc.path}}
+			data, err := json.Marshal(catalog.Catalog{SchemaVersion: 1, Revision: "test", Tools: []catalog.Tool{entry}})
 			if err != nil {
 				t.Fatal(err)
 			}
-			catalog := filepath.Join(t.TempDir(), "tools.json")
-			if err := os.WriteFile(catalog, data, 0644); err != nil {
+			catalogPath := filepath.Join(t.TempDir(), "tools.json")
+			if err := os.WriteFile(catalogPath, data, 0644); err != nil {
 				t.Fatal(err)
 			}
 			var out bytes.Buffer
-			err = checkTools(context.Background(), catalog, &out, func(entry tool) string {
+			err = checkTools(context.Background(), catalogPath, &out, func(entry tool) string {
 				if entry.Owner != "mozilla-platform-ops" {
 					t.Errorf("unexpected default owner: %s", entry.Owner)
 				}
@@ -97,7 +99,7 @@ func TestCheckToolsLocalRemote(t *testing.T) {
 				return remote
 			})
 			if tc.failure != "" {
-				if err == nil || !strings.Contains(err.Error(), tc.failure) || !strings.Contains(out.String(), "FAIL example: mozilla-platform-ops/repo") {
+				if err == nil || !strings.Contains(err.Error(), tc.failure) || !strings.Contains(out.String(), "FAIL example-default: mozilla-platform-ops/repo") {
 					t.Fatalf("expected %q: %v; output %s", tc.failure, err, out.String())
 				}
 			} else if err != nil || !strings.Contains(out.String(), "commit="+sha) {

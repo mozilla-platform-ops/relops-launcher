@@ -2,16 +2,17 @@ package sitebuild
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
 	"html/template"
 	"os"
 	"strings"
+
+	"github.com/mozilla-platform-ops/relops-launcher/internal/catalog"
 )
 
-// This catalog prototypes website discovery; it is not a launcher registry.
+// tool is the website presentation of one catalog target.
 type tool struct {
 	ID, Name, Description, Owner, Repo, Path, Ref string
+	Shortcut, Kind                                string
 	Args                                          []string
 	Channel, Prerequisites, Documentation, Note   string
 }
@@ -27,18 +28,11 @@ func (t tool) ChannelLabel() string {
 }
 
 func (t tool) Command() string {
-	words := []string{"relops"}
-	if t.Owner != "" && t.Owner != "mozilla-platform-ops" {
-		words = append(words, "--owner", t.Owner)
+	words := []string{"relops", "c"}
+	if t.Channel == "preview" {
+		words = append(words, "-b")
 	}
-	if t.Ref != "" {
-		words = append(words, "--ref", t.Ref)
-	}
-	target := t.Repo
-	if t.Path != "" {
-		target += "/" + t.Path
-	}
-	words = append(words, target)
+	words = append(words, t.Shortcut)
 	words = append(words, t.Args...)
 	for i, word := range words {
 		if strings.ContainsAny(word, " \t\n'\"\\$`;&|<>()*?[]{}!#~") {
@@ -53,19 +47,35 @@ func readTools(path string) ([]tool, error) {
 	if err != nil {
 		return nil, err
 	}
-	var catalog struct{ Tools []tool }
-	if err := json.Unmarshal(data, &catalog); err != nil {
-		return nil, fmt.Errorf("parse tools catalog: %w", err)
+	c, err := catalog.Decode(data)
+	if err != nil {
+		return nil, err
 	}
-	for _, t := range catalog.Tools {
-		if t.Channel != "mainline" && t.Channel != "preview" && t.Channel != "release" {
-			return nil, fmt.Errorf("tool %q: channel must be mainline, preview, or release", t.ID)
-		}
-		if (t.Channel == "release" || t.Channel == "preview") && t.Ref == "" {
-			return nil, fmt.Errorf("tool %q: %s channel requires an explicit ref", t.ID, t.Channel)
+	var entries []tool
+	for _, entry := range c.Tools {
+		for _, beta := range []bool{false, true} {
+			target, _, err := entry.Select(beta)
+			if err != nil {
+				continue
+			}
+			channel, id := "mainline", entry.ID+"-default"
+			if beta {
+				channel, id = "preview", entry.ID+"-beta"
+			}
+			name := entry.Name
+			if len(entry.Aliases) > 0 {
+				name += " (" + strings.Join(entry.Aliases, ", ") + ")"
+			}
+			entries = append(entries, tool{
+				ID: id, Shortcut: entry.ID, Name: name, Description: entry.Description,
+				Owner: target.Owner, Repo: target.Repo, Path: target.Path, Ref: target.Ref,
+				Kind: target.Kind,
+				Args: target.Args, Channel: channel, Prerequisites: target.Prerequisites,
+				Documentation: target.Documentation, Note: target.Note,
+			})
 		}
 	}
-	return catalog.Tools, nil
+	return entries, nil
 }
 
 func renderTools(path string) (string, error) {
@@ -99,7 +109,7 @@ func renderTools(path string) (string, error) {
 {{if .Preview}}
       <div class="tool-preview-intro">
         <h3 class="label">Tools in preview</h3>
-        <p class="prose">These tools use development branches. Try them out and share feedback in Slack’s #relops channel.</p>
+        <p class="prose">These tools use their owners’ designated beta targets. Try them out and share feedback in Slack’s #relops channel.</p>
       </div>
       {{template "list" .Preview}}
 {{end}}`)

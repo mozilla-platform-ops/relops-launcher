@@ -21,7 +21,9 @@ import (
 
 // Release support is deliberately explicit: never guess asset names for an
 // arbitrary repository. Paths within fleetbench still use source execution.
-func isReleaseTarget(o options) bool { return o.repo == "fleetbench" && o.path == "" }
+func isReleaseTarget(o options) bool {
+	return !o.sourceTarget && o.repo == "fleetbench" && o.path == ""
+}
 
 func fleetbenchAsset(tag, goos, arch string) (string, error) {
 	platforms := map[string]string{

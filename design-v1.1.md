@@ -34,7 +34,7 @@ Examples use illustrative repository and script names.
 - Support intentional offline execution and report the executed commit.
 - Ship a single launcher binary for macOS and Linux, with documented installation.
 
-V1 does not include aliases, registry editing, Quick integration, automatic launcher updates, a general dependency manager, Windows, or execution of repository setup hooks. It is not a sandbox. Automatic Pipenv setup installs locked runtime dependencies through an already-installed Pipenv; tools can change external state.
+The original V1 scope did not include aliases or registry editing. It also excluded Quick integration, automatic launcher updates, a general dependency manager, Windows, or execution of repository setup hooks. It is not a sandbox. Automatic Pipenv setup installs locked runtime dependencies through an already-installed Pipenv; tools can change external state.
 
 ## Command contract
 
@@ -207,22 +207,25 @@ Manually verify the three real trial tools, SSH access, binary installation, and
 
 ## Tentative release roadmap
 
-### Future proposal: tool directory with optional beta targets
+### Implemented: bundled catalog with optional beta targets
 
-When `relops` gains a built-in directory of common tools, each entry could define a production target and an optional beta target. For example, `relops fleetroll` would use Fleetroll's production configuration, while `relops --beta fleetroll` would select its configured beta branch when available.
+The canonical catalog is `quick_site/tools.json`, shared by the website and launcher. Schema version 1 has an explicit catalog revision and tools with unique IDs, optional aliases, and independent optional `default` and `beta` targets. Names and aliases share one namespace. A tool must have at least one target. First accepted names are claimed through Git review; established names should not be reassigned to unrelated tools.
 
-- Production remains the default. Its target can use an explicit branch, tag, or commit, or omit the ref to follow the repository's actual default branch; do not guess `master` or `main`.
-- `--beta` selects the entry's optional beta target. If none is configured, use the production target and clearly report that no beta target was configured.
-- A configured beta target that is missing or inaccessible must fail rather than silently fall back to production.
-- Report the selected channel, repository, ref, and resolved commit so the choice is visible. `list`/`info` should expose whether a beta target exists.
-- An explicit `--ref` can select a revision instead of the configured production ref. Reject combining `--ref` and `--beta` to avoid ambiguity. Launcher options still precede the tool name.
+- Discovery: `relops catalog list` and `relops catalog info NAME` (aliases resolve to canonical entries).
+- Execution: `relops catalog launch [options] NAME [tool-arguments...]`; `relops c` aliases `catalog launch` only.
+- `-b` and `--beta` select beta. A missing beta or default fails without fallback. Beta-only prototypes are supported. A beta target can differ in owner, repository, path, ref, command, runner, and cwd.
+- Source targets may follow the remote default branch or specify a branch, tag, or commit. Beta means the owner-designated preview, not necessarily HEAD. Release targets explicitly select supported release binaries (initially Fleetbench).
+- Launcher options precede the shortcut; all subsequent arguments belong to the tool. Website example arguments are never execution defaults. Explicit `--ref` overrides a default source ref; combining it with beta selection is rejected. `--owner` is rejected for catalog launches; arbitrary forks remain available through repository execution. Other source flags override configured defaults. Release option restrictions remain unchanged.
+- Diagnostics identify catalog revision, canonical shortcut, channel, and resolved commit or release version. List/info are local operations without cache setup or network access.
+- `relops repo [options] REPO[/PATH]` explicitly selects repository source execution, including repositories named `c`, `catalog`, or `repo`. Existing direct repository/path syntax remains supported; bare launcher command names are reserved. The direct bare `fleetbench` target retains release behavior, while `relops repo fleetbench` selects source.
+- The versioned catalog is embedded at build time. Updates currently require rebuilding the launcher. Network updates, independent hosting, atomic catalog caching, and additional channels are deferred. If additional channels are needed, `--channel NAME` can be introduced while retaining `-b`/`--beta`.
 
-This is a future registry feature, not a current launcher option. The directory format, beta target overrides beyond a ref (such as owner or path), and interaction with cached/offline directory entries need design before implementation.
+The website renders from the same validated schema. Catalog-based website commands must ship with a launcher release that supports them, rather than older retained binaries.
 
 | Release | User outcome | Features / gates |
 | --- | --- | --- |
 | v1 | “Try this tool on my branch.” | Explicit repo/path, refs, shared object cache, per-run checkout, runners/cwd, offline mode, provenance, manual installation |
-| v1.1 | “Find and run our usual tools.” | Git-backed curated registry, aliases, `list`/`info`, visible revision policy, cached registry; verify authenticated retrieval first |
+| v1.1 | “Find and run our usual tools.” | Bundled Git-backed curated catalog, aliases, `list`/`info`, and visible revision policy; network retrieval and caching deferred |
 | v1.2 | “Install and update the launcher easily.” | Verified binary hosting/authentication, release manifest, safe self-update, CI publication; optionally Quick-hosted catalog |
 | v1.3 | “Keep everyday use convenient.” | Cache inspection/pruning, shell completion, optional TTL with explicit refresh controls; prioritize from actual usage |
 | Later | “Add a shared tool with less ceremony.” | Registry editing that prepares reviewed Git changes; repository metadata and richer runners if justified |

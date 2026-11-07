@@ -78,6 +78,9 @@ func Main(args []string, version string) int {
 }
 
 func (a *app) run(ctx context.Context, o options) (int, error) {
+	if o.catalogName != "" {
+		fmt.Fprintf(a.errOut, "relops: catalog=%s tool=%s channel=%s\n", o.catalogRevision, o.catalogName, o.catalogChannel)
+	}
 	if isReleaseTarget(o) {
 		return a.runRelease(ctx, o)
 	}

@@ -31,6 +31,38 @@ install -m 755 bin/relops ~/.local/bin/relops
 
 Ensure `~/.local/bin` is on your `PATH`. Coworkers receiving a prebuilt binary do not need Go. The download site is published at <https://relops-launcher.quick.mozilla.cloud/> behind Mozilla SSO. Download the appropriate artifact in your browser, then use the site's checksum-and-install command from any terminal directory. It reads from `~/Downloads` and sets PATH for the current terminal; the site also explains persistent PATH setup. Terminal downloads without authentication return Google sign-in HTML. Generate the site with `just site`; see the [publishing instructions](quick_site/README.md#publishing) for the account-specific Quick deployment command. Live download verification, minimum OS versions, and real coworker installation trials remain release checks.
 
+## Catalog
+
+The launcher bundles a curated catalog from `quick_site/tools.json`; the website renders the same entries. Catalog lookup and discovery require no network access. Running a tool still fetches its source or checks its release normally, unless `--offline` is selected. Catalog updates currently require a new launcher build; remote catalog downloads are deferred.
+
+```sh
+relops catalog list
+relops catalog info fr
+relops catalog launch fleetroll --help
+relops c fr --help                         # c = catalog launch; fr = fleetroll
+relops c -b replay-tc-pool -h               # -b and --beta select the beta target
+relops c --offline fr --help
+relops c --ref my-branch fr --help          # override a default source target's ref
+relops c fleetbench --version              # latest stable release binary
+```
+
+Each entry has a unique shortcut ID and optional aliases, plus a default target, beta target, or both. Owners designate each target independently, including its GitHub owner, repository, path, and optional ref, console command, runner, and working directory. An omitted source ref follows the remote's default branch. Beta is a designated preview, not necessarily branch HEAD. Missing channels fail clearly; beta-only tools require `-b`. There is no fallback between channels. Launch diagnostics show the canonical shortcut, channel, catalog revision, and resolved source commit or release version.
+
+Launcher options go before the shortcut; all subsequent arguments belong to the tool. Website `example_args` are documentation only and are never injected into a launch. `--ref` can override the default source target but cannot be combined with `-b`/`--beta`. Catalog launches reject `--owner`; use repository execution for arbitrary forks. Release targets retain their existing option restrictions. `--command`, `--runner`, and `--cwd` override configured source defaults.
+
+Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `c` aliases execution specifically, `relops c list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog list`.
+
+Direct repository syntax remains supported. `relops repo` explicitly selects source execution and escapes launcher command names:
+
+```sh
+relops android-tools/worker_health/create_tc_task.py --help
+relops repo --ref my-branch android-tools/worker_health/create_tc_task.py --help
+relops repo c/path/to/tool.sh --help        # repository named c
+relops repo fleetbench                     # source project, rather than release binary
+```
+
+`c`, `catalog`, and `repo` are reserved as bare launcher commands. Paths such as `c/path/to/tool.sh` still select repositories directly. Flags may also precede the namespace, for example `relops --offline c fr --help`.
+
 ## Use
 
 ```sh
@@ -187,7 +219,7 @@ RELOPS_TEST_TERMINAL=1 /tmp/relops-terminal-test -test.run '^TestInteractiveTerm
 # Type hello and Enter, then press Ctrl-C at the prompt.
 ```
 
-Before releasing, select and document three real organization tools (shell, Python with known prerequisites, and caller-relative file input), trial installation and SSH access with a coworker, and verify runtime behavior on macOS and Linux. Aliases, a Git-backed registry, Quick integration, and self-update are deferred.
+Before releasing, select and document three real organization tools (shell, Python with known prerequisites, and caller-relative file input), trial installation and SSH access with a coworker, and verify runtime behavior on macOS and Linux. Network catalog updates, Quick integration, and self-update are deferred.
 
 Initial local validation: integration tests, `go vet`, and race checks passed on macOS arm64; the interactive terminal check passed for input, Ctrl-C (status 130), and foreground restoration. All four target binaries cross-compiled. Linux execution and coworker installation have not yet been verified.
 
