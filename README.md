@@ -1,5 +1,9 @@
 # RelOps Launcher
 
+The standalone checkout is `~/git/relops-launcher`. See the
+[repository migration notes](docs/repository-migration.md) for history extraction,
+local release artifacts, and the remaining publication and source cutover steps.
+
 Give a coworker one command to run a tool from your pushed branch:
 
 ```sh
@@ -10,7 +14,7 @@ relops repo --ref my-feature relops-infra/path/to/check.sh --verbose
 
 For supported binary tools, relops can instead download and run the latest stable GitHub release. The first supported tool is fleetbench: `relops run fb cpu --mode quick --json`. No Git checkout or Rust toolchain is needed for this target.
 
-Published binaries target macOS Apple silicon (arm64) and Linux amd64. It has no Go package dependencies. See [design v1.1](design-v1.1.md) for the contract and release roadmap, or the [original design](../../product-specs/relops-launcher-design.md) for background.
+Published binaries target macOS Apple silicon (arm64) and Linux amd64. It has no Go package dependencies. See [design v1.1](design-v1.1.md) for the contract and release roadmap, or the [original design](docs/original-design.md) for background.
 
 ## Install
 
@@ -166,7 +170,7 @@ Automatic setup does not load a project `.env` file; supply runtime configuratio
 For the replay tool, the full command is now:
 
 ```sh
-/Users/aerickson/git/df/scripts/relops-launcher/bin/relops \
+~/git/relops-launcher/bin/relops \
   --owner aerickson \
   --ref 022526-tool_tweaks \
   android-tools/worker_health/replay_tc_pool.py

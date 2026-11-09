@@ -6,7 +6,7 @@
 
 **Command:** `relops`
 
-**Predecessor:** [Original design](../../product-specs/relops-launcher-design.md)
+**Predecessor:** [Original design](docs/original-design.md)
 
 ## Outcome
 

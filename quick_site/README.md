@@ -2,7 +2,7 @@
 
 Single-page download site for the `relops` launcher. The tracked HTML is a template; `just site` renders an unsigned preview, while `just signed-site` prepares Developer ID signed and notarized macOS downloads. Binaries and generated output are ignored by Git.
 
-From `scripts/relops-launcher`:
+From the repository root (`~/git/relops-launcher`):
 
 ```sh
 just site-check

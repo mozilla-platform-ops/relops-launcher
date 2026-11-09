@@ -2,13 +2,7 @@ name: RelOps launcher
 
 on:
   push:
-    paths:
-      - scripts/relops-launcher/**
-      - .github/workflows/relops-launcher.yml
   pull_request:
-    paths:
-      - scripts/relops-launcher/**
-      - .github/workflows/relops-launcher.yml
   workflow_dispatch:
 
 permissions:
@@ -21,14 +15,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: scripts/relops-launcher
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version-file: scripts/relops-launcher/.go-version
+          go-version-file: .go-version
           cache: false
       - uses: extractions/setup-just@v4
         with:
@@ -39,14 +30,11 @@ jobs:
   bundle:
     needs: verify
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: scripts/relops-launcher
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version-file: scripts/relops-launcher/.go-version
+          go-version-file: .go-version
           cache: false
       - uses: extractions/setup-just@v4
         with:
@@ -62,5 +50,5 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: relops-site-preview-${{ github.sha }}
-          path: scripts/relops-launcher/dist/site/
+          path: dist/site/
           if-no-files-found: error
