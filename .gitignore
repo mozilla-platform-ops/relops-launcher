@@ -5,3 +5,5 @@
 /relops-darwin-amd64
 /relops-linux-arm64
 /relops-linux-amd64
+# managed by tt
+/TASTE.md
