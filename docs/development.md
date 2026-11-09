@@ -53,6 +53,7 @@ Before releasing, select and document three real organization tools (shell, Pyth
 
 ## Release and presentation guides
 
+- [Catalog onboarding audit and coworker trial](catalog-onboarding-audit.md)
 - [GitHub releases and launcher updates](github-releases.md)
 - [Website preview, signing, and publishing](../quick_site/README.md)
 - [CLI design and color system](cli-design.md)

@@ -1,27 +1,29 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-07.4",
+  "revision": "2026-11-09.1",
   "tools": [
     {
       "id": "hangar",
       "aliases": ["h"],
       "name": "Hangar",
-      "description": "Open Hangar in your browser.",
+      "description": "Inspect Firefox CI fleet inventory, worker and pool health, alerts, and Puppet configuration in a shared dashboard.",
       "default": {
         "kind": "web",
         "url": "https://hangar.relops.mozilla.com/",
-        "prerequisites": "A web browser and access to Hangar."
+        "prerequisites": "A web browser and a Mozilla Google account with dashboard access. No local Python environment or Taskcluster token is needed.",
+        "documentation": "https://github.com/mozilla-platform-ops/hangar#readme"
       }
     },
     {
       "id": "pool-classifier",
       "aliases": ["pc"],
       "name": "Pool Classifier",
-      "description": "Open Pool Classifier in your browser.",
+      "description": "Review Taskcluster pool health, task success rates, alerting workers, and failures grouped by log patterns.",
       "default": {
         "kind": "web",
         "url": "https://pool-classifier.relops.mozilla.com/",
-        "prerequisites": "A web browser and access to Pool Classifier."
+        "prerequisites": "A web browser and a Mozilla Google account with dashboard access. No local Python environment or Taskcluster token is needed.",
+        "documentation": "https://github.com/mozilla-platform-ops/pool-classifier#readme"
       }
     },
     {
@@ -35,22 +37,25 @@
         "repo": "relops-infra",
         "path": "taskcluster_web_launcher/tcwl",
         "ref": "20260805-tool_fixing",
-        "prerequisites": "Python 3 and a terminal. Opening a pool also requires a web browser.",
+        "prerequisites": "Python 3 with curses and SQLite support, GitHub SSH access, and an interactive terminal for the picker. Uses only the Python standard library; no uv, Pipenv, or Taskcluster token is needed. Fetching pool lists needs Firefox CI HTTPS access. Opening a selected URL also needs a browser; --print only prints it.",
+        "data_files": ["~/.tc-worker-picker.sqlite3"],
         "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/taskcluster_web_launcher/README.md"
       }
     },
     {
       "id": "replay-tc-pool",
       "name": "Taskcluster pool replay",
-      "description": "Replay a mix of level-1 jobs into available worker-pool capacity.",
+      "description": "Test a worker pool by replaying completed level-1 jobs from another pool, tracking workload coverage and available capacity.",
       "beta": {
         "kind": "source",
         "owner": "aerickson",
         "repo": "android-tools",
         "path": "worker_health/replay_tc_pool.py",
         "ref": "20261105-more_tool_development",
-        "prerequisites": "Python 3 and Pipenv. Replaying tasks also needs Taskcluster credentials and scopes; see the tool's help.",
-        "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md",
+        "prerequisites": "Python 3.11+, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Active monitoring, including --dry-run, needs ~/.tc_token containing JSON clientId and accessToken fields. Help and saved-session viewing need no Taskcluster credentials. Submission requires queue:create-task:lowest:DESTINATION (replace DESTINATION with the --queue pool), queue:create-task:project:none, queue:scheduler-id:-, and every scope requested by the selected source tasks. Workload-dependent grants and token setup are in the linked README; --help also lists common scopes.",
+        "data_files": ["~/.tc_token"],
+        "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md#replay-client-scopes",
+        "note": "Monitoring starts with submissions paused; press S in the dashboard or pass --submit-on-start to enable them. Press P to inspect missing scopes. Use --session PATH to view a saved session without contacting Taskcluster, or --session PATH --resume --dry-run --once to check one monitoring cycle without submitting tasks.",
         "example_args": [
           "-h"
         ]
@@ -59,14 +64,15 @@
     {
       "id": "replay-tc-task",
       "name": "Taskcluster task replay",
-      "description": "Replay a completed Firefox CI task as an independent diagnostic task.",
+      "description": "Replay a completed level-1 Firefox CI task as an independent diagnostic task, or preview its task definition without submitting.",
       "beta": {
         "kind": "source",
         "owner": "aerickson",
         "repo": "android-tools",
         "path": "worker_health/replay_tc_task.py",
         "ref": "20261105-more_tool_development",
-        "prerequisites": "Python 3 and Pipenv. Replaying tasks also needs Taskcluster credentials and scopes; see the tool's help.",
+        "prerequisites": "Python 3.11+, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Submission needs ~/.tc_token containing JSON clientId and accessToken fields, queue:create-task:lowest:DESTINATION (the --queue pool), queue:create-task:project:none, queue:scheduler-id:-, and every source task scope. A public task-ID --dry-run needs no token; an existing token is used if present. The interactive pool picker reads effective client scopes when credentials are present. See Replay client scopes in the linked README.",
+        "data_files": ["~/.tc_token"],
         "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md#replay_tc_taskpy",
         "example_args": [
           "-h"
@@ -77,13 +83,14 @@
       "id": "create-tc-task",
       "aliases": ["ct"],
       "name": "Taskcluster task creator",
-      "description": "Submit test tasks to a worker queue to check workers. Can run custom commands.",
+      "description": "Submit diagnostic tasks to a worker queue, using a timed counter or your own shell command, and optionally watch their results.",
       "default": {
         "kind": "source",
         "owner": "mozilla-platform-ops",
         "repo": "android-tools",
         "path": "worker_health/create_tc_task.py",
-        "prerequisites": "Python 3 and Pipenv. Submitting tasks also needs Taskcluster credentials with the required scopes.",
+        "prerequisites": "Python 3 compatible with the committed Pipfile.lock, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Needs ~/.tc_token containing JSON clientId and accessToken fields, including for --dry-run. Help does not read credentials. Submission needs permission to create tasks on the destination queue; the linked script documents its credential setup and scope examples.",
+        "note": "--dry-run builds the request without submitting tasks, but still loads the token file. The linked script explains how to create the token.",
         "data_files": ["~/.tc_token"],
         "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/create_tc_task.py",
         "example_args": [
@@ -106,7 +113,9 @@
         "repo": "android-tools",
         "path": "worker_health/quarantine_tool.py",
         "ref": "master",
-        "prerequisites": "Python 3 and Pipenv. Changing quarantines also needs Taskcluster credentials and scopes; see the documentation.",
+        "prerequisites": "Python 3 compatible with the committed Pipfile.lock, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Worker queries and quarantine actions use ~/.tc_token containing JSON clientId and accessToken fields. Help does not read credentials. Changing quarantine needs queue:quarantine-worker permission for the target workers; the linked setup guide gives queue:quarantine-worker:* as an example.",
+        "note": "The show and show-all actions also read credentials. The linked README includes token setup and examples for viewing, quarantining, and lifting quarantine.",
+        "data_files": ["~/.tc_token"],
         "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/README.md#quarantine_tool",
         "example_args": [
           "--help"
@@ -123,9 +132,10 @@
         "repo": "relops-infra",
         "path": "moonshot/oneshot_2404_x11_talos.sh",
         "ref": "20260805-tool_fixing",
-        "prerequisites": "Bash. Execution requires the helper's dependencies and host access.",
-        "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_x11_talos.sh",
-        "note": "Replace 229 with the desired worker. Runs in dry-run mode by default.",
+        "prerequisites": "Bash and GitHub SSH access. Confirmed execution also needs expect, flock, ssh, nc, network access to the chassis and worker, an iLO key loaded in ssh-agent, and relops SSH/sudo access on the worker. Convergence reads scripts from ~/git/ronin_puppet and ~/vault.yaml; an optional --ronin-settings file must be readable. pv and pyfiglet are optional. relops does not prepare these system tools or files.",
+        "data_files": ["~/git/ronin_puppet", "~/vault.yaml"],
+        "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/README.md#oneshot-scripts",
+        "note": "Replace 229 with the desired worker. Without --confirm, prints a plan and exits. --confirm enables reimaging and convergence. See the linked runbook for iLO key setup, Ronin checkout, and SKIP_REIMAGE / SKIP_CONVERGE behavior.",
         "example_args": [
           "229"
         ]
@@ -141,9 +151,10 @@
         "repo": "relops-infra",
         "path": "moonshot/oneshot_2404_wayland_talos.sh",
         "ref": "20260805-tool_fixing",
-        "prerequisites": "Bash. Execution requires the helper's dependencies and host access.",
-        "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/oneshot_2404_wayland_talos.sh",
-        "note": "Replace 229 with the desired worker. Runs in dry-run mode by default.",
+        "prerequisites": "Bash and GitHub SSH access. Confirmed execution also needs expect, flock, ssh, nc, network access to the chassis and worker, an iLO key loaded in ssh-agent, and relops SSH/sudo access on the worker. Convergence reads scripts from ~/git/ronin_puppet and ~/vault.yaml; an optional --ronin-settings file must be readable. pv and pyfiglet are optional. relops does not prepare these system tools or files.",
+        "data_files": ["~/git/ronin_puppet", "~/vault.yaml"],
+        "documentation": "https://github.com/mozilla-platform-ops/relops-infra/blob/20260805-tool_fixing/moonshot/README.md#oneshot-scripts",
+        "note": "Replace 229 with the desired worker. Without --confirm, prints a plan and exits. --confirm enables reimaging and convergence. See the linked runbook for iLO key setup, Ronin checkout, and SKIP_REIMAGE / SKIP_CONVERGE behavior.",
         "example_args": [
           "229"
         ]
@@ -160,8 +171,10 @@
         "kind": "source",
         "owner": "mozilla-platform-ops",
         "repo": "fleetroll_mvp",
-        "prerequisites": "Requires uv and Python 3.11+. Host operations also need SSH access and the credentials described in the documentation.",
-        "documentation": "https://github.com/mozilla-platform-ops/fleetroll_mvp#readme",
+        "prerequisites": "Python 3.11+, GitHub SSH access, and uv for initial setup; relops installs the locked runtime dependencies. Host operations need network access, noninteractive SSH authentication, and the sudo permissions for the selected command. Taskcluster gathering and rollout reports read ~/.tc_token, or the file named by TC_TOKEN. Private GitHub comparisons need a repository-read token configured under [github] api_token in ~/.fleetroll/config.toml. The curses monitor needs a suitable terminal.",
+        "note": "Credentials depend on the command: help needs none, and public queue counts do not need a Taskcluster token. Files listed here are used only by the relevant operations. The linked README covers host access and per-command configuration.",
+        "data_files": ["~/.tc_token", "~/.fleetroll/config.toml"],
+        "documentation": "https://github.com/mozilla-platform-ops/fleetroll_mvp#setup",
         "example_args": [
           "--help"
         ]
@@ -171,7 +184,7 @@
       "id": "fleetbench",
       "aliases": ["fb"],
       "name": "Fleetbench",
-      "description": "Run host benchmarks using the latest stable Fleetbench release.",
+      "description": "Inspect host metadata or measure CPU and Android ADB transfer performance using the latest stable Fleetbench binary.",
       "default": {
         "kind": "release",
         "owner": "mozilla-platform-ops",
@@ -179,8 +192,8 @@
         "example_args": [
           "--help"
         ],
-        "documentation": "https://github.com/mozilla-platform-ops/fleetbench",
-        "prerequisites": "A supported platform and public HTTPS access; no Git or Rust required."
+        "documentation": "https://github.com/mozilla-platform-ops/fleetbench#adb-io-benchmark-adb",
+        "prerequisites": "macOS Apple silicon or Linux amd64 and public GitHub HTTPS access for release checks/downloads. No Git, Rust, Python environment, or Taskcluster credentials are needed for inspect or cpu. The adb workload also needs adb on PATH and an attached, authorized Android device; see the linked ADB I/O instructions."
       }
     }
   ]
