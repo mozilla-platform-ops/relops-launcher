@@ -7,20 +7,22 @@
 
 - Read `TASTE.md` and optional `TASTE.local.md` at the project root. Explicit
   local guidance takes precedence over general shared preferences.
-- Make routine decisions and verify your work independently. Consult the human
-  for unresolved structural decisions or taste conflicts; bring a recommendation.
+- Make routine decisions independently. Prefer small, complete changes; verify
+  them and report concrete evidence. Consult only when existing guidance cannot
+  settle a consequential choice or taste conflict; bring a recommendation.
   Follow existing authorization requirements.
-- Agents may record durable preferences that apply across projects in shared
-  `TASTE.md` (its `USER_TASTE.md` source). Base additions on explicit human
-  feedback; do not infer a general preference from a single implementation choice.
-- Capture the underlying judgment, rather than specific commands, filenames,
-  thresholds, or fixes. Put reusable project-specific guidance in repo-owned
-  `TASTE.local.md` (create if needed), and operational instructions in `AGENTS.md`.
-  Do not invent exceptions to shared taste.
-- Update an existing preference before adding a duplicate. Keep additions concise
-  and preserve qualifications. Ask before changing the meaning of or removing an
-  established preference. Mention taste changes in the final response so the
-  human can review and refine them in Git. Follow existing commit permissions.
+- Agents may record durable cross-project preferences in shared `TASTE.md`.
+  Use explicit human feedback; do not infer general preferences from single
+  implementation choices.
+- Capture underlying judgment and qualifications; avoid turning one-off fixes
+  into blanket rules. Put project-specific lessons in repo-owned `TASTE.local.md`
+  (create if needed), and operational instructions in `AGENTS.md`. Do not invent
+  exceptions to shared taste.
+- Update existing preferences before adding duplicates; preserve qualifications.
+  Ask before changing established meaning or removing preferences. Report taste
+  edits with the actual source path, a brief change summary, and whether they
+  remain uncommitted. Shared edits live in the dotfiles checkout, outside this
+  project's diff. Follow existing commit permissions.
 - If `TASTE.md` is missing, run `tt install`.
 <!-- end-tt-agent-instructions -->
 
