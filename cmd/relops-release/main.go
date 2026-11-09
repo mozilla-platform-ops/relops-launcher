@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
@@ -108,12 +109,12 @@ func run(args []string) error {
 		for _, s := range info.Settings {
 			settings[s.Key] = s.Value
 		}
-		if settings["vcs.revision"] != m.Commit || settings["vcs.modified"] != "false" || !strings.Contains(settings["-ldflags"], "main.version=relops-launcher-version:"+*version+":end") || !strings.Contains(settings["-ldflags"], "selfupdate.PublicKey="+strings.TrimSpace(string(pub))) {
-			return fmt.Errorf("%s must be a clean tagged build with the expected version and update public key", name)
-		}
 		b, e := os.ReadFile(file)
 		if e != nil {
 			return e
+		}
+		if info.Path != "github.com/mozilla-platform-ops/relops-launcher/cmd/relops" || settings["vcs.revision"] != m.Commit || settings["vcs.modified"] != "false" || settings["-trimpath"] != "true" || settings["CGO_ENABLED"] != "0" || "relops-"+settings["GOOS"]+"-"+settings["GOARCH"] != name || !embeddedReleaseIdentity(b, *version, strings.TrimSpace(string(pub))) {
+			return fmt.Errorf("%s must be a clean tagged build with the expected platform, version and update public key", name)
 		}
 		sum := sha256.Sum256(b)
 		m.Artifacts = append(m.Artifacts, selfupdate.Artifact{Name: name, SHA256: hex.EncodeToString(sum[:])})
@@ -129,4 +130,11 @@ func run(args []string) error {
 		return e
 	}
 	return os.WriteFile(filepath.Join(*dir, "update.json.sig"), []byte(sig), 0644)
+}
+
+// Trimpath builds omit linker flags from buildinfo. The linker-injected version
+// marker and public key remain in the executable, including after codesigning.
+func embeddedReleaseIdentity(binary []byte, version, key string) bool {
+	pub, err := base64.StdEncoding.DecodeString(key)
+	return err == nil && len(pub) == ed25519.PublicKeySize && bytes.Contains(binary, []byte("relops-launcher-version:"+version+":end")) && bytes.Contains(binary, []byte(key))
 }

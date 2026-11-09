@@ -55,3 +55,22 @@ func TestReleaseRequiresInputs(t *testing.T) {
 		}
 	}
 }
+
+func TestEmbeddedReleaseIdentity(t *testing.T) {
+	key := base64.StdEncoding.EncodeToString(make([]byte, ed25519.PublicKeySize))
+	binary := []byte("prefix\x00relops-launcher-version:0.3.0:end\x00" + key + "\x00suffix")
+	if !embeddedReleaseIdentity(binary, "0.3.0", key) {
+		t.Fatal("rejected embedded identity without linker metadata")
+	}
+	if embeddedReleaseIdentity(binary, "0.3.1", key) {
+		t.Fatal("accepted wrong version")
+	}
+	other := make([]byte, ed25519.PublicKeySize)
+	other[0] = 1
+	if embeddedReleaseIdentity(binary, "0.3.0", base64.StdEncoding.EncodeToString(other)) {
+		t.Fatal("accepted wrong key")
+	}
+	if embeddedReleaseIdentity(binary, "0.3.0", "") {
+		t.Fatal("accepted missing key")
+	}
+}
