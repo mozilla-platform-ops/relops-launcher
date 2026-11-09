@@ -11,13 +11,21 @@ It also runs supported release binaries, such as fleetbench, and opens web tools
 
 ## Install
 
-Download the macOS Apple silicon or Linux amd64 binary from the
-[download site](https://relops-launcher.quick.mozilla.cloud/) (Mozilla SSO).
-Open it in your browser, then follow the site's checksum-and-install instructions.
-Prebuilt binaries do not require Go.
+Download the latest binary and `SHA256SUMS` from
+[GitHub Releases](https://github.com/mozilla-platform-ops/relops-launcher/releases/latest)
+(no sign-in required):
+
+- macOS Apple silicon: `relops-darwin-arm64`
+- Linux amd64: `relops-linux-amd64`
+
+Verify the binary against the checksum file from the same release, then install it
+as `relops` in a directory on your `PATH`. Prebuilt binaries do not require Go.
+
+The [Quick download site](https://relops-launcher.quick.mozilla.cloud/)
+also provides browser downloads and checksum-and-install instructions (Mozilla SSO).
 
 Source tools need Git with working GitHub SSH access and the tool's interpreter.
-Python projects also need `uv` or `pipenv` for their first run; see
+Projects using `uv` or Pipenv need that manager for initial environment setup; see
 [Python environments](docs/python-environments.md). Release binaries need none of these.
 
 To build from this checkout, see [local installation](docs/development.md#local-installation).
@@ -71,6 +79,7 @@ relops update --check
 relops update
 ```
 
+Updates download from GitHub Releases and run only when requested.
 Older versions without the updater need a one-time manual installation.
 
 ## Documentation
