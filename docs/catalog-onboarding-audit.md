@@ -56,7 +56,7 @@ that a particular user has sufficient permissions or can install successfully.
 Tracking: `rlau-p66.3`. **Prepared; not yet performed.**
 
 The published v0.3.0 launcher predates this catalog update. Use a newly approved
-release containing catalog revision `2026-11-09.1`, or explicitly identify a
+release containing the updated tool guidance, or explicitly identify a
 reviewed development build as a preview. Catalog changes require a launcher
 rebuild; do not replace published v0.3.0 binaries with different bytes.
 

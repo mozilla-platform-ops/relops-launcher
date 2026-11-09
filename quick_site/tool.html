@@ -62,7 +62,7 @@
       <h3>{{if eq .Channel "preview"}}Beta{{else}}Default{{end}}</h3>
       {{if .Prerequisites}}<p class="prose">{{.Prerequisites}}</p>{{end}}
       {{if .DataFiles}}<dl class="tool-facts"><dt>Local files</dt><dd><ul>{{range .DataFiles}}<li><code>{{.}}</code></li>{{end}}</ul><p>See the setup guide for when each file is used.</p></dd></dl>{{end}}
-      {{if .Documentation}}<p class="prose"><a href="{{.Documentation}}">Setup and upstream documentation ↗</a></p>{{end}}
+      {{if .Documentation}}<p class="prose"><a href="{{.Documentation}}">Usage and setup ↗</a></p>{{end}}
     </div>{{end}}
   </section>
 
@@ -79,6 +79,7 @@
         {{if .Runner}}<dt>Runner</dt><dd><code>{{.Runner}}</code></dd>{{end}}
         {{if .Cwd}}<dt>Working directory</dt><dd><code>{{.Cwd}}</code></dd>{{end}}{{end}}
       </dl>
+      {{if .SourceURL}}<p class="prose"><a href="{{.SourceURL}}">View source ↗</a></p>{{end}}
     </div>{{end}}
     <p class="prose tool-catalog-revision">Catalog {{.CatalogRevision}}</p>
   </section>

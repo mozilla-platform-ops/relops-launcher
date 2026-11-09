@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-09.1",
+  "revision": "2026-11-09.2",
   "tools": [
     {
       "id": "hangar",
@@ -89,10 +89,10 @@
         "owner": "mozilla-platform-ops",
         "repo": "android-tools",
         "path": "worker_health/create_tc_task.py",
-        "prerequisites": "Python 3 compatible with the committed Pipfile.lock, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Needs ~/.tc_token containing JSON clientId and accessToken fields, including for --dry-run. Help does not read credentials. Submission needs permission to create tasks on the destination queue; the linked script documents its credential setup and scope examples.",
-        "note": "--dry-run builds the request without submitting tasks, but still loads the token file. The linked script explains how to create the token.",
+        "prerequisites": "Python 3 compatible with the committed Pipfile.lock, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Needs ~/.tc_token containing JSON clientId and accessToken fields, including for --dry-run. Help does not read credentials. Submission needs permission to create tasks on the destination queue; the linked README covers usage and token setup.",
+        "note": "--dry-run builds the request without submitting tasks, but still loads the token file. See Taskcluster credentials in the linked README for token setup.",
         "data_files": ["~/.tc_token"],
-        "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/create_tc_task.py",
+        "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/HEAD/worker_health/README.md#create_tc_taskpy",
         "example_args": [
           "-q",
           "gecko-t/t-linux-docker-noscratch-amd",

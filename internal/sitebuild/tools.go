@@ -3,6 +3,7 @@ package sitebuild
 import (
 	"bytes"
 	"html/template"
+	"net/url"
 	"os"
 	"strings"
 
@@ -24,6 +25,25 @@ func (t tool) Launch() string {
 		words = append(words, "-b")
 	}
 	return strings.Join(append(words, t.Shortcut), " ")
+}
+
+func (t tool) SourceURL() string {
+	if t.Kind != "source" {
+		return ""
+	}
+	ref := strings.TrimPrefix(strings.TrimPrefix(t.Ref, "refs/heads/"), "refs/tags/")
+	if ref == "" {
+		ref = "HEAD"
+	}
+	// GitHub's tree route handles directories and redirects files to blob URLs.
+	parts := []string{t.Owner, t.Repo, "tree", ref}
+	if t.Path != "" {
+		parts = append(parts, strings.Split(t.Path, "/")...)
+	}
+	for i := range parts {
+		parts[i] = url.PathEscape(parts[i])
+	}
+	return "https://github.com/" + strings.Join(parts, "/")
 }
 
 func (t tool) ChannelLabel() string {

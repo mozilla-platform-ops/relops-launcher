@@ -32,7 +32,7 @@ func TestToolPagesForEntireCatalog(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, value := range []string{entry.Name, entry.Description, entry.Command(), entry.Prerequisites, entry.Documentation} {
+		for _, value := range []string{entry.Name, entry.Description, entry.Command(), entry.Prerequisites, entry.Documentation, entry.SourceURL()} {
 			if !strings.Contains(html.UnescapeString(string(page)), value) {
 				t.Errorf("%s page missing catalog value %q", entry.Shortcut, value)
 			}
@@ -53,6 +53,27 @@ func TestToolPagesForEntireCatalog(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(output, "tool-guides")); !os.IsNotExist(err) {
 		t.Fatal("Markdown source was packaged")
+	}
+}
+
+func TestToolSourceURL(t *testing.T) {
+	for _, tc := range []struct {
+		name, kind, ref, path, want string
+	}{
+		{"default script", "source", "", "worker_health/create_tc_task.py", "https://github.com/org/repo/tree/HEAD/worker_health/create_tc_task.py"},
+		{"project root", "source", "", "", "https://github.com/org/repo/tree/HEAD"},
+		{"project directory", "source", "release", "python/project", "https://github.com/org/repo/tree/release/python/project"},
+		{"branch", "source", "refs/heads/feature/new", "a b.py", "https://github.com/org/repo/tree/feature%2Fnew/a%20b.py"},
+		{"tag", "source", "refs/tags/v1", "tool.py", "https://github.com/org/repo/tree/v1/tool.py"},
+		{"web", "web", "", "", ""},
+		{"release", "release", "", "", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			entry := tool{Kind: tc.kind, Owner: "org", Repo: "repo", Ref: tc.ref, Path: tc.path}
+			if got := entry.SourceURL(); got != tc.want {
+				t.Fatalf("source link: got %s, want %s", got, tc.want)
+			}
+		})
 	}
 }
 
