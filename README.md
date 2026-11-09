@@ -1,8 +1,5 @@
 # RelOps Launcher
 
-This project is licensed under the [Mozilla Public License 2.0](LICENSE).
-Participation is governed by Mozilla's [Community Participation Guidelines](CODE_OF_CONDUCT.md).
-
 Give a coworker one command to run a tool from your pushed branch:
 
 ```sh
@@ -247,3 +244,8 @@ Before releasing, select and document three real organization tools (shell, Pyth
 Initial local validation: integration tests, `go vet`, and race checks passed on macOS arm64; the interactive terminal check passed for input, Ctrl-C (status 130), and foreground restoration. All four target binaries cross-compiled. Linux execution and coworker installation have not yet been verified.
 
 The `0.1.1` macOS release completed Developer ID signing and Apple notarization. Both architectures passed signature and online notarization-ticket checks, and the generated signed site passed its download-selector tests. Browser installation of the published signed release remains a separate verification step.
+
+## License and community
+
+This project is licensed under the [Mozilla Public License 2.0](LICENSE).
+Participation is governed by Mozilla's [Community Participation Guidelines](CODE_OF_CONDUCT.md).
