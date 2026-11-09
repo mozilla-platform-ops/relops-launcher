@@ -3,10 +3,6 @@
 This project is licensed under the [Mozilla Public License 2.0](LICENSE).
 Participation is governed by Mozilla's [Community Participation Guidelines](CODE_OF_CONDUCT.md).
 
-The standalone checkout is `~/git/relops-launcher`. See the
-[repository migration notes](docs/repository-migration.md) for history extraction,
-local release artifacts, and the remaining publication and source cutover steps.
-
 Give a coworker one command to run a tool from your pushed branch:
 
 ```sh
