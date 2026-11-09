@@ -13,6 +13,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/mozilla-platform-ops/relops-launcher/internal/selfupdate"
 )
 
 type app struct {
@@ -37,6 +39,15 @@ func Main(args []string, version string) int {
 		return 2
 	}
 	if done {
+		return 0
+	}
+	if o.update {
+		ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+		defer cancel()
+		if err := selfupdate.Run(ctx, selfupdate.Config{Current: version, Key: selfupdate.PublicKey, Check: o.updateCheck, Out: os.Stdout}); err != nil {
+			writeError(os.Stderr, err)
+			return 1
+		}
 		return 0
 	}
 	cache, err := os.UserCacheDir()

@@ -239,11 +239,19 @@ RELOPS_TEST_TERMINAL=1 /tmp/relops-terminal-test -test.run '^TestInteractiveTerm
 # Type hello and Enter, then press Ctrl-C at the prompt.
 ```
 
-Before releasing, select and document three real organization tools (shell, Python with known prerequisites, and caller-relative file input), trial installation and SSH access with a coworker, and verify runtime behavior on macOS and Linux. Network catalog updates, Quick integration, and self-update are deferred.
+Before releasing, select and document three real organization tools (shell, Python with known prerequisites, and caller-relative file input), trial installation and SSH access with a coworker, and verify runtime behavior on macOS and Linux. Network catalog updates and broader Quick integration remain deferred. Launcher self-update uses GitHub Releases as described below.
 
 Initial local validation: integration tests, `go vet`, and race checks passed on macOS arm64; the interactive terminal check passed for input, Ctrl-C (status 130), and foreground restoration. All four target binaries cross-compiled. Linux execution and coworker installation have not yet been verified.
 
 The `0.1.1` macOS release completed Developer ID signing and Apple notarization. Both architectures passed signature and online notarization-ticket checks, and the generated signed site passed its download-selector tests. Browser installation of the published signed release remains a separate verification step.
+
+## Launcher updates and GitHub releases
+
+Run `relops update --check` to check for a newer stable launcher, or
+`relops update` to verify and install it. Downloads are hosted on
+[GitHub Releases](https://github.com/mozilla-platform-ops/relops-launcher/releases).
+See [GitHub release preparation](docs/github-releases.md) for local signing,
+update-key setup, and draft uploads. Older launchers need a one-time manual install.
 
 ## License and community
 

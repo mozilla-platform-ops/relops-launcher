@@ -24,6 +24,7 @@ type options struct {
 	cwdSet                                       bool
 	args                                         []string
 	offline, verbose, refresh                    bool
+	update, updateCheck                          bool
 }
 
 var repoName = regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9._-]*$`)
@@ -86,6 +87,19 @@ func parseMode(args []string, out io.Writer, version, mode string) (options, boo
 		prefix := args[:len(args)-fs.NArg()]
 		rest := fs.Args()[1:]
 		switch fs.Arg(0) {
+		case "update":
+			if len(prefix) != 0 {
+				return o, false, errors.New("use relops update [--check] without launcher options")
+			}
+			if len(rest) == 1 && (rest[0] == "--help" || rest[0] == "-h") {
+				_, err := fmt.Fprintln(out, "Usage: relops update [--check]\nCheck or install the latest stable launcher release.")
+				return o, true, err
+			}
+			if len(rest) > 1 || (len(rest) == 1 && rest[0] != "--check") {
+				return o, false, errors.New("usage: relops update [--check]")
+			}
+			o.update, o.updateCheck = true, len(rest) == 1
+			return o, false, nil
 		case "run", "r":
 			return parseMode(append(append([]string{}, prefix...), rest...), out, version, "catalog")
 		case "repo":

@@ -6,6 +6,8 @@ sign_identity := env("RELOPS_SIGN_IDENTITY", "Developer ID Application: Andrew E
 team_id := env("RELOPS_TEAM_ID", "W5BHZ9R8A3")
 notary_profile := env("RELOPS_NOTARY_PROFILE", "relops-notary")
 quick_account := env("RELOPS_QUICK_ACCOUNT", "aerickson@mozilla.com")
+update_key := if path_exists("release-public-key.txt") == "true" { trim(read("release-public-key.txt")) } else { "" }
+update_ldflags := " -X github.com/mozilla-platform-ops/relops-launcher/internal/selfupdate.PublicKey=" + update_key
 retained_release := "dist/releases/v" + version
 
 # List available recipes.
@@ -15,7 +17,7 @@ default:
 # Build the native launcher with the release version.
 build:
     mkdir -p bin
-    CGO_ENABLED=0 {{ quote(go) }} build -trimpath -ldflags {{ quote("-X main.version=relops-launcher-version:" + version + ":end") }} -o bin/relops ./cmd/relops
+    CGO_ENABLED=0 {{ quote(go) }} build -trimpath -ldflags {{ quote("-X main.version=relops-launcher-version:" + version + ":end" + update_ldflags) }} -o bin/relops ./cmd/relops
 
 # Run the Go integration tests.
 test:
@@ -37,7 +39,7 @@ release:
         target_os=${platform%/*}
         target_arch=${platform#*/}
         CGO_ENABLED=0 GOOS="$target_os" GOARCH="$target_arch" {{ quote(go) }} build -trimpath \
-            -ldflags {{ quote("-s -w -X main.version=relops-launcher-version:" + version + ":end") }} \
+            -ldflags {{ quote("-s -w -X main.version=relops-launcher-version:" + version + ":end" + update_ldflags) }} \
             -o "dist/relops-$target_os-$target_arch" ./cmd/relops
     done
     cd dist
@@ -134,3 +136,14 @@ check-tools:
 # Inspect catalog sources for advisory compatibility and documentation warnings.
 inspect-tools:
     {{ quote(go) }} run ./cmd/relops-site --inspect-tools
+
+# Authenticate retained artifacts locally. Private key stays outside the checkout.
+prepare-github-release:
+    test -n "{{ update_key }}" || { echo 'Create release-public-key.txt first; see docs/github-releases.md.' >&2; exit 1; }
+    test -n "$RELOPS_UPDATE_PRIVATE_KEY"
+    cd {{ quote(retained_release) }} && shasum -a 256 -c SHA256SUMS
+    {{ quote(go) }} run ./cmd/relops-release --version {{ quote(version) }} --dir {{ quote(retained_release) }} --private-key "$RELOPS_UPDATE_PRIVATE_KEY"
+
+# Upload a draft only; review and publish separately. Requires the pushed version tag.
+github-release-draft: prepare-github-release
+    gh release create v{{ version }} --repo mozilla-platform-ops/relops-launcher --verify-tag --draft --title 'relops v{{ version }}' --generate-notes {{ quote(retained_release + "/relops-darwin-arm64") }} {{ quote(retained_release + "/relops-linux-amd64") }} {{ quote(retained_release + "/SHA256SUMS") }} {{ quote(retained_release + "/update.json") }} {{ quote(retained_release + "/update.json.sig") }} LICENSE
