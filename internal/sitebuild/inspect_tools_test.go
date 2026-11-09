@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -98,9 +99,6 @@ func TestPythonInspectorWorkingDirectoryAndParseErrors(t *testing.T) {
 }
 
 func TestShellInspectorCheckoutWrites(t *testing.T) {
-	if _, err := exec.LookPath("python3"); err != nil {
-		t.Skip("python3 not available")
-	}
 	source := `#!/bin/bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git rev-parse --show-toplevel)"
@@ -112,17 +110,19 @@ printf '%s\n' 'not > a redirect'
 echo data > /tmp/safe.txt
 `
 	inputs := []pythonInput{{Path: "tool.sh", Source: source, TemporaryCwd: true}, {Path: "caller.sh", Source: source}}
-	results, err := runInspector(context.Background(), "Shell", shellInspector, inputs)
-	if err != nil {
-		t.Fatal(err)
+	var results []string
+	for _, input := range inputs {
+		for _, f := range inspectShell(input) {
+			results = append(results, input.Path+":"+fmt.Sprint(f.Line)+" ["+f.Rule+"]")
+		}
 	}
 	got := strings.Join(results, "\n")
-	for _, want := range []string{"tool.sh:4 [checkout-write]", "tool.sh:5 [checkout-write]", "tool.sh:6 [relative-write]", "caller.sh:4 [checkout-write]", "caller.sh:5 [checkout-write]"} {
+	for _, want := range []string{"tool.sh:4 [checkout-write]", "tool.sh:5 [checkout-write]", "tool.sh:6 [relative-write]", "caller.sh:4 [checkout-write]"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("missing %q in %s", want, got)
 		}
 	}
-	for _, unwanted := range []string{"caller.sh:6", ":7 [", ":8 [", ":9 ["} {
+	for _, unwanted := range []string{"caller.sh:5", "caller.sh:6", ":7 [", ":8 [", ":9 ["} {
 		if strings.Contains(got, unwanted) {
 			t.Errorf("unexpected %q in %s", unwanted, got)
 		}

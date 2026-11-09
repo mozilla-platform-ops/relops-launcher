@@ -17,9 +17,6 @@ import (
 //go:embed inspect_python.py
 var pythonInspector string
 
-//go:embed inspect_shell.py
-var shellInspector string
-
 type pythonInput struct {
 	Path         string   `json:"path"`
 	Source       string   `json:"source"`
@@ -126,18 +123,20 @@ func inspectSources(ctx context.Context, dir, sha, kind string, t tool) ([]strin
 		}
 	}
 	var results []string
-	for _, group := range []struct {
-		name, script string
-		inputs       []pythonInput
-	}{{"Python", pythonInspector, pythonInputs}, {"Shell", shellInspector, shellInputs}} {
-		if len(group.inputs) == 0 {
-			continue
-		}
-		lines, err := runInspector(ctx, group.name, group.script, group.inputs)
+	if len(pythonInputs) > 0 {
+		lines, err := runInspector(ctx, "Python", pythonInspector, pythonInputs)
 		if err != nil {
 			return nil, err
 		}
 		results = append(results, lines...)
+	}
+	if len(shellInputs) > 0 {
+		results = append(results, fmt.Sprintf("  Shell: scanned %d file(s)", len(shellInputs)))
+		for _, input := range shellInputs {
+			for _, f := range inspectShell(input) {
+				results = append(results, fmt.Sprintf("  WARN %s:%d [%s] %s", path.Clean(input.Path), f.Line, f.Rule, f.Detail))
+			}
+		}
 	}
 	return results, nil
 }
