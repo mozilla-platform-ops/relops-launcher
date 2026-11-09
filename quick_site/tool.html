@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Name}} — relops</title>
+  <meta name="description" content="{{.Description}}">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0a'/%3E%3Crect x='11' y='7' width='10' height='18' fill='%23c8ff2e'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../../css/tokens.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <script defer src="../../js/main.js"></script>
+</head>
+<body id="top" class="tool-detail">
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="../../">relops<span class="cursor" aria-hidden="true"></span></a>
+    <span class="spacer"></span>
+    <a class="link" href="../../#tools">Catalog</a>
+    <a class="link" href="../../#install">Install</a>
+    <a class="link" href="https://github.com/mozilla-platform-ops/relops-launcher">GitHub <span aria-hidden="true">↗</span></a>
+  </div>
+</header>
+<main class="tool-page wrap">
+  <header class="tool-intro">
+    <a class="tool-back" href="../../#tools">← All tools</a>
+    <div class="tool-title">
+      <h1>{{.Name}}</h1>
+      <div class="tool-badges">{{range .Targets}}<span class="badge">{{if eq .Channel "preview"}}Beta{{else}}Default{{end}}</span>{{end}}</div>
+    </div>
+    <p class="lead">{{.Description}}</p>
+    <nav class="tool-jumps" aria-label="On this page">
+      {{if .Guide}}<a href="#tool-guide">Guide</a>{{end}}
+      <a href="#tool-run">Run it</a>
+      <a href="#tool-requirements">Requirements</a>
+      <a href="#tool-source">Source</a>
+    </nav>
+  </header>
+
+  {{if .Guide}}<section class="tool-section" id="tool-guide" aria-labelledby="guide-heading">
+    <h2 class="label" id="guide-heading">Guide</h2>
+    <div class="tool-guide">{{.Guide}}</div>
+  </section>{{end}}
+
+  <section class="tool-section" id="tool-run" aria-labelledby="run-heading">
+    <h2 class="h-section" id="run-heading">Run it</h2>
+    <p class="prose">New to relops? <a href="../../#install">Install the launcher</a>, then check the requirements below.</p>
+    {{range .Targets}}<div class="tool-target" id="{{.ID}}">
+      <h3>{{if eq .Channel "preview"}}Beta{{else}}Default{{end}}{{if eq .Kind "web"}} <span class="badge badge--web">Web</span>{{end}}</h3>
+      <figure class="tool-command">
+        <div class="cmd cmd--wrap"><code id="launch-{{.ID}}">{{.Command}}</code><button type="button" data-copy="#launch-{{.ID}}">copy</button></div>
+        <figcaption>{{if eq .Kind "web"}}Opens the hosted tool in your browser.{{else}}Example launch command. Put launcher options before the tool name.{{end}}</figcaption>
+      </figure>
+      {{if .Aliases}}<p class="prose">Aliases: {{range $i, $alias := .Aliases}}{{if $i}}, {{end}}<code>{{$alias}}</code>{{end}}.</p>{{end}}
+      {{if .Note}}<p class="prose">{{.Note}}</p>{{end}}
+    </div>{{end}}
+  </section>
+
+  <section class="tool-section" id="tool-requirements" aria-labelledby="requirements-heading">
+    <h2 class="h-section" id="requirements-heading">Requirements</h2>
+    {{range .Targets}}<div class="tool-target">
+      <h3>{{if eq .Channel "preview"}}Beta{{else}}Default{{end}}</h3>
+      {{if .Prerequisites}}<p class="prose">{{.Prerequisites}}</p>{{end}}
+      {{if .DataFiles}}<dl class="tool-facts"><dt>Local files</dt><dd><ul>{{range .DataFiles}}<li><code>{{.}}</code></li>{{end}}</ul><p>See the setup guide for when each file is used.</p></dd></dl>{{end}}
+      {{if .Documentation}}<p class="prose"><a href="{{.Documentation}}">Setup and upstream documentation ↗</a></p>{{end}}
+    </div>{{end}}
+  </section>
+
+  <section class="tool-section" id="tool-source" aria-labelledby="source-heading">
+    <h2 class="h-section" id="source-heading">Source</h2>
+    {{range .Targets}}<div class="tool-target">
+      <h3>{{if eq .Channel "preview"}}Beta{{else}}Default{{end}}</h3>
+      <dl class="tool-facts">
+        {{if eq .Kind "web"}}<dt>Website</dt><dd><a href="{{.URL}}">{{.URL}}</a></dd>
+        {{else}}<dt>Repository</dt><dd><a href="https://github.com/{{.Owner}}/{{.Repo}}">{{.Owner}}/{{.Repo}}</a></dd>
+        <dt>Revision</dt><dd>{{if eq .Kind "release"}}Latest stable release{{else if .Ref}}<code>{{.Ref}}</code>{{else}}Remote default branch{{end}}</dd>
+        {{if .Path}}<dt>Path</dt><dd><code>{{.Path}}</code></dd>{{end}}
+        {{if .EntryPoint}}<dt>Entry point</dt><dd><code>{{.EntryPoint}}</code></dd>{{end}}
+        {{if .Runner}}<dt>Runner</dt><dd><code>{{.Runner}}</code></dd>{{end}}
+        {{if .Cwd}}<dt>Working directory</dt><dd><code>{{.Cwd}}</code></dd>{{end}}{{end}}
+      </dl>
+    </div>{{end}}
+    <p class="prose tool-catalog-revision">Catalog {{.CatalogRevision}}</p>
+  </section>
+</main>
+<footer class="footer">
+  <div class="wrap">
+    <a class="footer__brand" href="../../">relops<span class="cursor" aria-hidden="true"></span></a>
+    <span class="footer__details"><span>v{{.Version}}</span><span aria-hidden="true">·</span><span title="Program source revision">{{.Revision}}</span><span aria-hidden="true">·</span><a href="../../releases.json">Details ↗</a></span>
+  </div>
+</footer>
+</body>
+</html>

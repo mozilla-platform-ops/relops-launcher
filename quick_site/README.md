@@ -30,13 +30,58 @@ dist/site/
     SHA256SUMS
 ```
 
-`VERSION` supplies the release version; directory names follow it. The builder checks that all binaries have matching source/toolchain metadata and the expected platform, then hashes the exact downloadable bytes. A failed build leaves the previous generated site in place. Only the current homepage, CSS, and JS ship; concept pages, tests, documentation, source, and Git data do not.
+`VERSION` supplies the release version; directory names follow it. The builder checks that all binaries have matching source/toolchain metadata and the expected platform, then hashes the exact downloadable bytes. A failed build leaves the previous generated site in place. Only generated pages, CSS, JavaScript, guide images, and release assets ship; concept pages, tests, Markdown source, and Git data do not.
 
 `releases.json` records the actual embedded binary metadata, including whether the source checkout was dirty. Commit release source and rebuild before publishing so the source commit is reproducible and `source_dirty` is false. Release versions should identify fixed artifacts: bump `VERSION` for a changed published binary. Checksums detect corruption; they are not signatures. Quick's shared-write model still applies to the hosted files.
 
 The footer places the lowercase relops wordmark with a static accent block on the left, with the program version, plain-text seven-character source revision, and a single Details link on the right. The version and revision come from the binary metadata rather than the website checkout's HEAD, so site-only deployments continue to identify the downloadable program accurately. Dirty builds append `-dirty` to the displayed revision. Details links to `releases.json`.
 
 Go's dirty flag also includes untracked files elsewhere in the Git repository. Build official releases from a clean checkout or detached worktree when unrelated files are present. Check `source_dirty` in the prepared `releases.json` before deployment. Keep existing published bytes unchanged when correcting release provenance; publish a new version instead.
+
+## Tool pages and guides
+
+Every catalog tool gets a page at `/tools/<id>/`, linked from its name on the
+homepage. Default and beta targets share a page. Commands, aliases, requirements,
+declared files, and source details come from `tools.json`; edit that catalog to
+change the reference information. A page works without a hand-written guide.
+
+To add a guide, create `quick_site/tool-guides/<id>.md`, using the canonical
+catalog ID. Markdown is rendered during the Go site build with Goldmark; visitors
+do not need JavaScript to read it. Start with `##` headings since the page supplies
+the title. Paragraphs, lists, fenced code blocks, links, tables, and images are
+supported; raw HTML is rejected. Keep the guide focused on when to use a tool,
+workflows, and useful limitations rather than repeating the generated reference.
+
+For example, in `quick_site/tool-guides/fleetroll.md`:
+
+````md
+## A first look
+
+```sh
+{{launch}} --help
+```
+
+*Lists the available commands before connecting to a host.*
+````
+
+`{{launch}}` expands to the canonical launch command, using the default target
+when present, otherwise beta. It does not include `example_args`. The generated
+Run it section always shows each configured target with its example arguments.
+For a workflow specific to another channel, write its command explicitly.
+
+Put screenshots in `quick_site/tool-guides/images/<id>/`. Reference them as
+`![Useful alt text](images/<id>/screenshot.png)` and follow them with an italic
+paragraph for a caption. PNG, JPEG, GIF, WebP, AVIF, and SVG files are supported.
+Images are packaged under `tool-guide-images/<id>/`; the build rewrites their
+URLs. Markdown source stays out of the published bundle.
+
+Other local links are relative to the generated page: `../fleetroll/` links to
+another tool, `#tool-requirements` links to the generated requirements, and normal
+Markdown headings get anchor IDs. Builds reject unknown guide IDs, missing local
+links/images/anchors, and symlinks. External link availability is not checked.
+
+Run `just site-check` and `just serve` to review your changes locally. Submit guide
+and image edits through Git review. Publishing remains a separate step.
 
 ## macOS signing and notarization
 

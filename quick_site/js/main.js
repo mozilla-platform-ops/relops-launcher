@@ -110,9 +110,18 @@
   }
 
   /* ---- Copy buttons --------------------------------------------------- */
+  $$(".tool-guide pre > code").forEach((code, i) => {
+    code.id = `guide-code-${i}`;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.copy = `#${code.id}`;
+    button.className = "chip";
+    button.textContent = "copy";
+    code.parentElement.append(button);
+  });
   $$("[data-copy]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const text = $(btn.dataset.copy)?.textContent.trim();
+      const text = document.getElementById(btn.dataset.copy.slice(1))?.textContent.trim();
       if (!text) return;
       try { await navigator.clipboard.writeText(text); btn.textContent = "copied"; }
       catch { btn.textContent = "select + ⌘C"; }

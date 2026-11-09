@@ -176,6 +176,51 @@ details > summary { cursor: pointer; }
 .tool-row__heading { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
 .tool-row__heading h3 { margin: 0; font-size: var(--text-md); font-weight: 500; }
 .tool-row__heading a { font-size: var(--text-xs); color: var(--fg-dim); }
+.tool-row__heading .tool-name { font-size: inherit; color: var(--fg); }
+.tool-row__heading .tool-name:hover { color: var(--accent); }
+
+/* --- Tool guides -------------------------------------------------------- */
+.tool-page { max-width: 58rem; padding-bottom: var(--space-8); }
+.tool-intro { padding: var(--space-7) 0 var(--space-6); }
+.tool-back { font-size: var(--text-sm); color: var(--fg-dim); }
+.tool-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin: var(--space-6) 0 var(--space-4); }
+.tool-title h1 { font-size: clamp(var(--text-xl), 5vw, 3rem); line-height: 1.15; letter-spacing: -0.04em; margin: 0; overflow-wrap: anywhere; }
+.tool-badges { display: flex; gap: var(--space-2); }
+.tool-jumps { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); margin-top: var(--space-6); font-size: var(--text-sm); }
+.tool-section { border-top: var(--border-w) solid var(--line); padding: var(--space-6) 0; scroll-margin-top: var(--space-8); }
+.tool-section > h2 { margin-top: 0; }
+.tool-target + .tool-target { margin-top: var(--space-6); border-top: var(--border-w) dashed var(--line); padding-top: var(--space-5); }
+.tool-target h3 { font-size: var(--text-md); font-weight: 500; margin: 0 0 var(--space-3); }
+.tool-target .prose { max-width: none; }
+.tool-command { margin: 0; }
+.tool-command figcaption { color: var(--fg-dim); font-size: var(--text-xs); margin-top: var(--space-2); }
+.tool-facts { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: var(--space-2) var(--space-4); font-size: var(--text-sm); }
+.tool-facts dt { color: var(--fg-dim); }
+.tool-facts dd { margin: 0; overflow-wrap: anywhere; }
+.tool-facts ul { list-style: none; padding: 0; margin: 0; }
+.tool-facts p { color: var(--fg-dim); margin: var(--space-2) 0 0; }
+.tool-catalog-revision { margin-top: var(--space-6); font-size: var(--text-xs); }
+.tool-guide { color: var(--fg-dim); max-width: var(--measure); }
+.tool-guide > :first-child { margin-top: var(--space-4); }
+.tool-guide h2, .tool-guide h3, .tool-guide h4 { color: var(--fg); line-height: 1.35; scroll-margin-top: var(--space-8); }
+.tool-guide h2 { margin: var(--space-6) 0 var(--space-3); font-size: var(--text-lg); font-weight: 500; }
+.tool-guide h3, .tool-guide h4 { font-size: var(--text-md); margin-top: var(--space-5); }
+.tool-guide p, .tool-guide li { overflow-wrap: anywhere; }
+.tool-guide li + li { margin-top: var(--space-2); }
+.tool-guide strong, .tool-guide code { color: var(--fg); }
+.tool-guide :not(pre) > code { background: var(--bg-raised); padding: 0 var(--space-1); }
+.tool-guide pre { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-4); margin: var(--space-4) 0; border: var(--border-w) solid var(--line-strong); background: var(--bg-sunk); font-size: var(--text-sm); white-space: pre-wrap; }
+.tool-guide pre code { min-width: 0; flex: 1; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tool-guide pre button { flex-shrink: 0; }
+.tool-guide pre + p:has(> em:only-child), .tool-guide p:has(> img:only-child) + p:has(> em:only-child) { font-size: var(--text-xs); }
+.tool-guide blockquote { border-left: var(--border-w) solid var(--accent); margin-left: 0; padding-left: var(--space-4); }
+.tool-guide img { display: block; height: auto; border: var(--border-w) solid var(--line); }
+.tool-guide table { display: block; overflow-x: auto; }
+@media (max-width: 40rem) {
+  .tool-facts { grid-template-columns: minmax(0, 1fr); }
+  .tool-facts dd + dt { margin-top: var(--space-2); }
+  .tool-detail .footer .wrap { flex-wrap: wrap; }
+}
 .usage-help { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3) var(--space-5); padding-top: var(--space-5); border-top: var(--border-w) solid var(--line); }
 .usage-help > p { margin: 0; }
 

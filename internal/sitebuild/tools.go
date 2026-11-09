@@ -12,9 +12,18 @@ import (
 // tool is the website presentation of one catalog target.
 type tool struct {
 	ID, Name, Description, Owner, Repo, Path, Ref string
-	Shortcut, Kind, URL, Cwd                      string
+	Shortcut, Kind, URL, Cwd, EntryPoint, Runner  string
 	Args, Aliases, DataFiles                      []string
 	Channel, Prerequisites, Documentation, Note   string
+	CatalogRevision                               string
+}
+
+func (t tool) Launch() string {
+	words := []string{"relops", "run"}
+	if t.Channel == "preview" {
+		words = append(words, "-b")
+	}
+	return strings.Join(append(words, t.Shortcut), " ")
 }
 
 func (t tool) ChannelLabel() string {
@@ -66,8 +75,10 @@ func readTools(path string) ([]tool, error) {
 				ID: id, Shortcut: entry.ID, Name: entry.Name, Description: entry.Description, Aliases: entry.Aliases,
 				Owner: target.Owner, Repo: target.Repo, Path: target.Path, Ref: target.Ref,
 				Kind: target.Kind, URL: target.URL, Cwd: target.Cwd,
+				EntryPoint: target.Command, Runner: target.Runner,
 				Args: target.Args, Channel: channel, Prerequisites: target.Prerequisites,
 				Documentation: target.Documentation, Note: target.Note, DataFiles: target.DataFiles,
+				CatalogRevision: c.Revision,
 			})
 		}
 	}
@@ -91,10 +102,9 @@ func renderTools(path string) (string, error) {
       <ul class="tool-list">{{range .}}
         <li class="tool-row">
           <div class="tool-row__heading">
-            <h3>{{.Name}}</h3>
+            <h3><a class="tool-name" href="tools/{{.Shortcut}}/">{{.Name}}</a></h3>
             {{if eq .Kind "web"}}<span class="badge badge--web">Web</span>{{end}}
             {{if .ChannelLabel}}<span class="badge">{{.ChannelLabel}}</span>{{end}}
-            {{if ne .Kind "web"}}<a href="{{.Documentation}}" aria-label="{{.Name}} documentation">docs ↗</a>{{end}}
           </div>
           <p class="prose">{{if eq .Kind "web"}}Open {{.Name}} (<a href="{{.URL}}">{{.URL}}</a>) in your browser.{{else}}{{.Description}}{{end}}</p>
           <div class="cmd cmd--wrap"><div class="cmd__lines">{{$tool := .}}{{if .Aliases}}<span class="cmd__comment"># Short {{if eq (len .Aliases) 1}}alias{{else}}aliases{{end}}: {{range $i, $alias := .Aliases}}{{if $i}}, {{end}}relops run {{if eq $tool.Channel "preview"}}-b {{end}}{{$alias}}{{end}}</span>{{end}}<code id="tool-{{.ID}}">{{.Command}}</code></div><button type="button" data-copy="#tool-{{.ID}}">copy</button></div>

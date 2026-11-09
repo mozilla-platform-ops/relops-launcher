@@ -42,9 +42,10 @@ reimage-log finding below came from reading the helper source.
 - `rlau-jk2`: Moonshot's reimage helper writes logs below its own checkout, so
   those logs disappear after a relops run. Bootstrap output already uses a
   separate temporary file; it does not preserve these reimage logs.
-- `rlau-noi`: richer website pages remain separate work. The current compact
-  homepage shows notes and documentation links, but not the full prerequisites
-  shown by `relops info`.
+
+Tool pages added under `rlau-noi` now show the full catalog prerequisites and
+upstream setup links alongside optional hand-written guides. The compact
+homepage links to those pages through each tool's name.
 
 No Taskcluster credentials were read, no tasks were submitted, and no worker
 operations were performed. Source inspection and path checks do not establish

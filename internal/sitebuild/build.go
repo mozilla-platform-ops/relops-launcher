@@ -179,6 +179,12 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 	if err := writeFile(stage, "index.html", []byte(page)); err != nil {
 		return "", err
 	}
+	if err := buildToolPages(source, stage, cfg.Version, revision); err != nil {
+		return "", fmt.Errorf("build tool pages: %w", err)
+	}
+	if err := validateSiteLinks(stage); err != nil {
+		return "", err
+	}
 	files := []string{"index.json"}
 	if err := filepath.WalkDir(stage, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {

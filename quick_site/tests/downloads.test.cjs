@@ -39,6 +39,7 @@ function page(data = release, linux = false) {
   const document = {
     documentElement: { dataset: {}, classList: { add() {} } },
     querySelector(selector) { return elements[selector] || null; },
+    getElementById(id) { return elements['#' + id] || null; },
     querySelectorAll(selector) {
       if (selector === '[data-platform]' || selector === '[data-os]') return links;
       if (selector === '[data-copy]') return [copy];
