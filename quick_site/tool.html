@@ -61,7 +61,9 @@
     {{range .Targets}}<div class="tool-target">
       <h3>{{if eq .Channel "preview"}}Beta{{else}}Default{{end}}</h3>
       {{if .Prerequisites}}<p class="prose">{{.Prerequisites}}</p>{{end}}
-      {{if .DataFiles}}<dl class="tool-facts"><dt>Local files</dt><dd><ul>{{range .DataFiles}}<li><code>{{.}}</code></li>{{end}}</ul><p>See the setup guide for when each file is used.</p></dd></dl>{{end}}
+      {{$requirements := .Requirements}}
+      {{if $requirements.Files}}<dl class="tool-facts"><dt>Local files</dt><dd><ul>{{range $requirements.Files}}<li>{{if .GuidePath}}<a href="../../{{.GuidePath}}"><code>{{.Path}}</code></a>{{else}}<code>{{.Path}}</code>{{end}}</li>{{end}}</ul></dd></dl>{{end}}
+      {{range $requirements.Guides}}<p class="prose"><a href="../../{{.Path}}">{{.Title}} setup guide →</a></p>{{end}}
       {{if .Documentation}}<p class="prose"><a href="{{.Documentation}}">Usage and setup ↗</a></p>{{end}}
     </div>{{end}}
   </section>

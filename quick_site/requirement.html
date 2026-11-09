@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Guide.Title}} — relops setup</title>
+  <meta name="description" content="{{.Guide.Summary}}">
+  <meta name="color-scheme" content="dark light">
+  <link rel="stylesheet" href="../../css/tokens.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <script defer src="../../js/main.js"></script>
+</head>
+<body id="top" class="tool-detail">
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="../../">relops<span class="cursor" aria-hidden="true"></span></a>
+    <span class="spacer"></span>
+    <a class="link" href="../../#tools">Catalog</a>
+    <a class="link" href="../../#install">Install</a>
+    <a class="link" href="https://github.com/mozilla-platform-ops/relops-launcher">GitHub ↗</a>
+  </div>
+</header>
+<main class="tool-page wrap">
+  <header class="tool-intro">
+    <a class="tool-back" href="../../#tools">← All tools</a>
+    <p class="label" style="margin-top: var(--space-6)">Shared setup guide</p>
+    <div class="tool-title"><h1>{{.Guide.Title}}</h1></div>
+    <p class="lead">{{.Guide.Summary}}</p>
+  </header>
+  <article class="tool-section tool-guide" aria-label="{{.Guide.Title}} setup">{{.Content}}</article>
+  {{if .Tools}}<section class="tool-section" aria-labelledby="used-by-heading">
+    <h2 class="h-section" id="used-by-heading">Tools using this guide</h2>
+    <p class="prose">Each tool explains which operations need credentials and which scopes they require.</p>
+    <ul class="tool-list">{{range .Tools}}<li class="tool-row">
+      <div class="tool-row__heading"><h3><a class="tool-name" href="../../tools/{{.Shortcut}}/">{{.Name}}</a></h3></div>
+      <p class="prose">{{.Description}}</p>
+    </li>{{end}}</ul>
+  </section>{{end}}
+</main>
+<footer class="footer">
+  <div class="wrap">
+    <a class="footer__brand" href="../../">relops<span class="cursor" aria-hidden="true"></span></a>
+    <span class="footer__details"><span>v{{.Version}}</span><span aria-hidden="true">·</span><span title="Program source revision">{{.Revision}}</span><span aria-hidden="true">·</span><a href="../../releases.json">Details ↗</a></span>
+  </div>
+</footer>
+</body>
+</html>

@@ -186,3 +186,23 @@ func TestCatalogInfoShowsDataFiles(t *testing.T) {
 		t.Fatalf("missing data file in catalog info: %s", out.String())
 	}
 }
+
+func TestCatalogInfoShowsSharedSetupGuides(t *testing.T) {
+	for _, name := range []string{"create-tc-task", "replay-tc-pool", "replay-tc-task", "quarantine-tool", "fleetroll"} {
+		var out bytes.Buffer
+		if err := catalogDisplay([]string{"info", name}, &out); err != nil {
+			t.Fatal(err)
+		}
+		text := strings.Join(strings.Fields(out.String()), " ")
+		if !strings.Contains(text, "Setup guide: Taskcluster credentials:") || !strings.Contains(text, "https://relops-launcher.quick.mozilla.cloud/requirements/taskcluster-credentials/") {
+			t.Errorf("missing shared setup guide for %s: %s", name, text)
+		}
+	}
+	var out bytes.Buffer
+	if err := catalogDisplay([]string{"info", "pool-classifier"}, &out); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out.String(), "Setup guide:") {
+		t.Fatal("hosted dashboard should not acquire local Taskcluster setup requirements")
+	}
+}

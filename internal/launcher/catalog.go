@@ -188,6 +188,13 @@ func catalogDisplay(args []string, out io.Writer) error {
 			}
 			field("Prerequisites", target.Prerequisites)
 			field("Data files", strings.Join(target.DataFiles, ", "))
+			for _, id := range target.SetupGuides {
+				guide, err := catalog.LookupSetupGuide(id)
+				if err != nil {
+					return err
+				}
+				field("Setup guide", guide.Title+": "+guide.URL())
+			}
 			field("Docs", target.Documentation)
 			field("Note", target.Note)
 			launch := "relops run "

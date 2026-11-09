@@ -182,6 +182,9 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 	if err := buildToolPages(source, stage, cfg.Version, revision); err != nil {
 		return "", fmt.Errorf("build tool pages: %w", err)
 	}
+	if err := buildSetupPages(source, stage, cfg.Version, revision); err != nil {
+		return "", fmt.Errorf("build setup guides: %w", err)
+	}
 	if err := validateSiteLinks(stage); err != nil {
 		return "", err
 	}

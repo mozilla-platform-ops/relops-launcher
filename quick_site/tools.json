@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-09.2",
+  "revision": "2026-11-09.3",
   "tools": [
     {
       "id": "hangar",
@@ -52,8 +52,9 @@
         "repo": "android-tools",
         "path": "worker_health/replay_tc_pool.py",
         "ref": "20261105-more_tool_development",
-        "prerequisites": "Python 3.11+, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Active monitoring, including --dry-run, needs ~/.tc_token containing JSON clientId and accessToken fields. Help and saved-session viewing need no Taskcluster credentials. Submission requires queue:create-task:lowest:DESTINATION (replace DESTINATION with the --queue pool), queue:create-task:project:none, queue:scheduler-id:-, and every scope requested by the selected source tasks. Workload-dependent grants and token setup are in the linked README; --help also lists common scopes.",
+        "prerequisites": "Python 3.11+, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Active monitoring, including --dry-run, needs ~/.tc_token. Help and saved-session viewing need no Taskcluster credentials. Submission requires queue:create-task:lowest:DESTINATION (replace DESTINATION with the --queue pool), queue:create-task:project:none, queue:scheduler-id:-, and every scope requested by the selected source tasks. Workload-dependent grants are in the linked README; --help also lists common scopes.",
         "data_files": ["~/.tc_token"],
+        "setup_guides": ["taskcluster-credentials"],
         "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md#replay-client-scopes",
         "note": "Monitoring starts with submissions paused; press S in the dashboard or pass --submit-on-start to enable them. Press P to inspect missing scopes. Use --session PATH to view a saved session without contacting Taskcluster, or --session PATH --resume --dry-run --once to check one monitoring cycle without submitting tasks.",
         "example_args": [
@@ -71,8 +72,9 @@
         "repo": "android-tools",
         "path": "worker_health/replay_tc_task.py",
         "ref": "20261105-more_tool_development",
-        "prerequisites": "Python 3.11+, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Submission needs ~/.tc_token containing JSON clientId and accessToken fields, queue:create-task:lowest:DESTINATION (the --queue pool), queue:create-task:project:none, queue:scheduler-id:-, and every source task scope. A public task-ID --dry-run needs no token; an existing token is used if present. The interactive pool picker reads effective client scopes when credentials are present. See Replay client scopes in the linked README.",
+        "prerequisites": "Python 3.11+, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Submission needs ~/.tc_token, queue:create-task:lowest:DESTINATION (the --queue pool), queue:create-task:project:none, queue:scheduler-id:-, and every source task scope. A public task-ID --dry-run needs no token; an existing token is used if present. The interactive pool picker reads effective client scopes when credentials are present. See Replay client scopes in the linked README.",
         "data_files": ["~/.tc_token"],
+        "setup_guides": ["taskcluster-credentials"],
         "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md#replay_tc_taskpy",
         "example_args": [
           "-h"
@@ -89,9 +91,10 @@
         "owner": "mozilla-platform-ops",
         "repo": "android-tools",
         "path": "worker_health/create_tc_task.py",
-        "prerequisites": "Python 3 compatible with the committed Pipfile.lock, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Needs ~/.tc_token containing JSON clientId and accessToken fields, including for --dry-run. Help does not read credentials. Submission needs permission to create tasks on the destination queue; the linked README covers usage and token setup.",
-        "note": "--dry-run builds the request without submitting tasks, but still loads the token file. See Taskcluster credentials in the linked README for token setup.",
+        "prerequisites": "Python 3 compatible with the committed Pipfile.lock, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Needs ~/.tc_token, including for --dry-run. Help does not read credentials. Submission needs permission to create tasks on the destination queue; the linked README covers usage and token setup.",
+        "note": "--dry-run builds the request without submitting tasks, but still loads the token file.",
         "data_files": ["~/.tc_token"],
+        "setup_guides": ["taskcluster-credentials"],
         "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/HEAD/worker_health/README.md#create_tc_taskpy",
         "example_args": [
           "-q",
@@ -113,9 +116,10 @@
         "repo": "android-tools",
         "path": "worker_health/quarantine_tool.py",
         "ref": "master",
-        "prerequisites": "Python 3 compatible with the committed Pipfile.lock, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Worker queries and quarantine actions use ~/.tc_token containing JSON clientId and accessToken fields. Help does not read credentials. Changing quarantine needs queue:quarantine-worker permission for the target workers; the linked setup guide gives queue:quarantine-worker:* as an example.",
+        "prerequisites": "Python 3 compatible with the committed Pipfile.lock, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Worker queries and quarantine actions use ~/.tc_token. Help does not read credentials. Changing quarantine needs queue:quarantine-worker permission for the target workers; the upstream README gives queue:quarantine-worker:* as an example.",
         "note": "The show and show-all actions also read credentials. The linked README includes token setup and examples for viewing, quarantining, and lifting quarantine.",
         "data_files": ["~/.tc_token"],
+        "setup_guides": ["taskcluster-credentials"],
         "documentation": "https://github.com/mozilla-platform-ops/android-tools/blob/master/worker_health/README.md#quarantine_tool",
         "example_args": [
           "--help"
@@ -174,6 +178,7 @@
         "prerequisites": "Python 3.11+, GitHub SSH access, and uv for initial setup; relops installs the locked runtime dependencies. Host operations need network access, noninteractive SSH authentication, and the sudo permissions for the selected command. Taskcluster gathering and rollout reports read ~/.tc_token, or the file named by TC_TOKEN. Private GitHub comparisons need a repository-read token configured under [github] api_token in ~/.fleetroll/config.toml. The curses monitor needs a suitable terminal.",
         "note": "Credentials depend on the command: help needs none, and public queue counts do not need a Taskcluster token. Files listed here are used only by the relevant operations. The linked README covers host access and per-command configuration.",
         "data_files": ["~/.tc_token", "~/.fleetroll/config.toml"],
+        "setup_guides": ["taskcluster-credentials"],
         "documentation": "https://github.com/mozilla-platform-ops/fleetroll_mvp#setup",
         "example_args": [
           "--help"

@@ -17,6 +17,36 @@ type tool struct {
 	Args, Aliases, DataFiles                      []string
 	Channel, Prerequisites, Documentation, Note   string
 	CatalogRevision                               string
+	SetupGuides                                   []catalog.SetupGuide
+}
+
+type requirementFile struct {
+	Path, GuidePath string
+}
+
+type requirementsView struct {
+	Files  []requirementFile
+	Guides []catalog.SetupGuide
+}
+
+func (t tool) Requirements() requirementsView {
+	var view requirementsView
+	for _, path := range t.DataFiles {
+		view.Files = append(view.Files, requirementFile{Path: path})
+	}
+	for _, guide := range t.SetupGuides {
+		linked := false
+		for i := range view.Files {
+			if guide.File != "" && view.Files[i].Path == guide.File {
+				view.Files[i].GuidePath = guide.Path()
+				linked = true
+			}
+		}
+		if !linked {
+			view.Guides = append(view.Guides, guide)
+		}
+	}
+	return view
 }
 
 func (t tool) Launch() string {
@@ -91,6 +121,14 @@ func readTools(path string) ([]tool, error) {
 			if beta {
 				channel, id = "preview", entry.ID+"-beta"
 			}
+			var guides []catalog.SetupGuide
+			for _, guideID := range target.SetupGuides {
+				guide, err := catalog.LookupSetupGuide(guideID)
+				if err != nil {
+					return nil, err
+				}
+				guides = append(guides, guide)
+			}
 			entries = append(entries, tool{
 				ID: id, Shortcut: entry.ID, Name: entry.Name, Description: entry.Description, Aliases: entry.Aliases,
 				Owner: target.Owner, Repo: target.Repo, Path: target.Path, Ref: target.Ref,
@@ -99,6 +137,7 @@ func readTools(path string) ([]tool, error) {
 				Args: target.Args, Channel: channel, Prerequisites: target.Prerequisites,
 				Documentation: target.Documentation, Note: target.Note, DataFiles: target.DataFiles,
 				CatalogRevision: c.Revision,
+				SetupGuides:     guides,
 			})
 		}
 	}

@@ -95,6 +95,10 @@ func renderGuide(data []byte, target tool) (template.HTML, error) {
 	// A single convenience token keeps hand-written workflows tied to the
 	// catalog's canonical ID and channel without making guides Go templates.
 	data = bytes.ReplaceAll(data, []byte("{{launch}}"), []byte(target.Launch()))
+	return renderMarkdown(data, target.Shortcut)
+}
+
+func renderMarkdown(data []byte, imageTool string) (template.HTML, error) {
 	md := goldmark.New(goldmark.WithExtensions(extension.Table),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()))
 	doc := md.Parser().Parse(text.NewReader(data))
@@ -110,7 +114,10 @@ func renderGuide(data []byte, target tool) (template.HTML, error) {
 		case *ast.HTMLBlock, *ast.RawHTML:
 			return ast.WalkStop, errors.New("use Markdown rather than raw HTML")
 		case *ast.Image:
-			prefix := "images/" + target.Shortcut + "/"
+			if imageTool == "" {
+				return ast.WalkStop, errors.New("images are supported in tool guides only")
+			}
+			prefix := "images/" + imageTool + "/"
 			if !strings.HasPrefix(string(node.Destination), prefix) {
 				return ast.WalkStop, fmt.Errorf("guide images must use %s", prefix)
 			}

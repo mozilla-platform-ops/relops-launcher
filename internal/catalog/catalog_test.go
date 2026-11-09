@@ -51,6 +51,10 @@ func TestValidation(t *testing.T) {
 		{"invalid ref", func(c *Catalog) { c.Tools[0].Default.Ref = "-bad" }},
 		{"invalid runner", func(c *Catalog) { c.Tools[0].Default.Runner = "guess" }},
 		{"invalid cwd", func(c *Catalog) { c.Tools[0].Default.Cwd = "elsewhere" }},
+		{"unknown setup guide", func(c *Catalog) { c.Tools[0].Default.SetupGuides = []string{"missing-guide"} }},
+		{"duplicate setup guide", func(c *Catalog) {
+			c.Tools[0].Default.SetupGuides = []string{"taskcluster-credentials", "taskcluster-credentials"}
+		}},
 		{"invalid command", func(c *Catalog) { c.Tools[0].Default.Command = "../bad" }},
 		{"unsupported release", func(c *Catalog) { c.Tools[0].Default.Kind = "release" }},
 	} {

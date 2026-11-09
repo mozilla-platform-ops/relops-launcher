@@ -83,6 +83,31 @@ links/images/anchors, and symlinks. External link availability is not checked.
 Run `just site-check` and `just serve` to review your changes locally. Submit guide
 and image edits through Git review. Publishing remains a separate step.
 
+## Shared setup guides
+
+Targets can reference shared requirements pages with
+`"setup_guides": ["taskcluster-credentials"]`. These references appear under the
+tool's Requirements section and in `relops info`. They link to documentation;
+they do not run credential checks or make every operation require a token.
+Keep operation-specific scopes, versions, and path overrides in each target's
+prerequisites or upstream docs.
+
+The shared guide definitions (ID, title, summary, and optional file path) live in
+`internal/catalog/setup_guides.go`; their Markdown lives at
+`quick_site/requirements/<id>.md`. The builder renders each one with
+`requirement.html` at `/requirements/<id>/`, reusing the tool-guide typography.
+The first guide covers Taskcluster credentials and scopes. Use level-2 headings,
+links, lists, tables, and fenced code blocks for these text guides.
+
+To add another guide, register its definition, add its Markdown file, then
+reference its ID from the targets that use it. Tool backlinks are generated from
+those references, combining default and beta channels. Unknown or duplicate
+references fail catalog validation; missing content or broken local links fail
+the site build before replacing the previous bundle. Shared Markdown source
+stays out of the published site. When a guide's file path matches a target's
+declared local file, that filename links to the guide. Other guides appear as
+separate links.
+
 ## macOS signing and notarization
 
 Use a Mac with Xcode command-line tools and an available Developer ID Application identity. The configured publisher is `Developer ID Application: Andrew Erickson (W5BHZ9R8A3)`; private keys remain in Keychain. Ordinary builds and CI do not access signing credentials.

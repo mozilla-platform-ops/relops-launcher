@@ -23,7 +23,7 @@ func fixture(t *testing.T) (Config, func(string) (metadata, error)) {
 	if err := os.MkdirAll(cfg.Source, 0755); err != nil {
 		t.Fatal(err)
 	}
-	for _, item := range []string{"index.html", "tool.html", "tool-guides", "css", "js", "tools.json"} {
+	for _, item := range []string{"index.html", "tool.html", "requirement.html", "requirements", "tool-guides", "css", "js", "tools.json"} {
 		if err := copySource(filepath.Join("..", "..", "quick_site", item), filepath.Join(cfg.Source, item)); err != nil {
 			t.Fatal(err)
 		}

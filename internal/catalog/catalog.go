@@ -41,6 +41,7 @@ type Target struct {
 	Args          []string `json:"example_args,omitempty"`
 	Prerequisites string   `json:"prerequisites,omitempty"`
 	DataFiles     []string `json:"data_files,omitempty"`
+	SetupGuides   []string `json:"setup_guides,omitempty"`
 	Documentation string   `json:"documentation,omitempty"`
 	Note          string   `json:"note,omitempty"`
 }
@@ -86,6 +87,16 @@ func Decode(data []byte) (Catalog, error) {
 }
 
 func validateTarget(t Target) error {
+	guides := make(map[string]bool)
+	for _, id := range t.SetupGuides {
+		if _, err := LookupSetupGuide(id); err != nil {
+			return err
+		}
+		if guides[id] {
+			return fmt.Errorf("duplicate setup guide %q", id)
+		}
+		guides[id] = true
+	}
 	if t.Kind == "web" {
 		u, err := url.Parse(t.URL)
 		if err != nil || u.Scheme != "https" || u.Hostname() == "" || u.User != nil || strings.ContainsAny(t.URL, "\r\n\t") {
