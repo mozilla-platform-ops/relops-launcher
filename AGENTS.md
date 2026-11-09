@@ -10,19 +10,18 @@
 - Make routine decisions independently. Prefer small, complete changes; verify
   them and report concrete evidence. Consult only when existing guidance cannot
   settle a consequential choice or taste conflict; bring a recommendation.
-  Follow existing authorization requirements.
+  Respect existing authorization and commit permissions.
 - Agents may record durable cross-project preferences in shared `TASTE.md`.
   Use explicit human feedback; do not infer general preferences from single
   implementation choices.
-- Capture underlying judgment and qualifications; avoid turning one-off fixes
+- Capture underlying judgment; avoid turning one-off fixes
   into blanket rules. Put project-specific lessons in repo-owned `TASTE.local.md`
   (create if needed), and operational instructions in `AGENTS.md`. Do not invent
   exceptions to shared taste.
 - Update existing preferences before adding duplicates; preserve qualifications.
-  Ask before changing established meaning or removing preferences. Report taste
-  edits with the actual source path, a brief change summary, and whether they
-  remain uncommitted. Shared edits live in the dotfiles checkout, outside this
-  project's diff. Follow existing commit permissions.
+  Change established meaning or remove preferences only with explicit human
+  direction. For shared edits, report the resolved source path, change summary,
+  and uncommitted status.
 - If `TASTE.md` is missing, run `tt install`.
 <!-- end-tt-agent-instructions -->
 
