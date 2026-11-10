@@ -4,6 +4,10 @@ Start here when a worker pool's success rate changes and you want to see which
 workers or failures account for it. The dashboard groups task results using log
 patterns, helping you move from a pool-wide symptom to examples worth inspecting.
 
+![Pool Classifier overview listing pools by operating system, live hosts, utilization, start lag, priority, task success, and coverage.](images/pool-classifier/overview.png)
+
+*Pool health across platforms.*
+
 ## A first look
 
 ```sh
