@@ -1,9 +1,3 @@
-## When to use it
-
-Use a small diagnostic task to check that a worker queue accepts work, identify
-the worker that claims it, or run a shell command on that worker. This tool
-creates a fresh task rather than copying an existing Firefox CI job.
-
 ## Start with help
 
 ```sh

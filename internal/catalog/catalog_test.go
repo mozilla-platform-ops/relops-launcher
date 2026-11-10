@@ -11,6 +11,11 @@ func TestBundledLookupAndChannels(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	for _, tool := range c.Tools {
+		if strings.TrimSpace(tool.WhenToUse) == "" {
+			t.Errorf("bundled tool %s needs when_to_use guidance", tool.ID)
+		}
+	}
 	fr, err := c.Lookup("fr")
 	if err != nil || fr.ID != "fleetroll" {
 		t.Fatalf("alias: %+v %v", fr, err)

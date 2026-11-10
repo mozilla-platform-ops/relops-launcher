@@ -17,6 +17,7 @@ type tool struct {
 	Args, Aliases, DataFiles                      []string
 	Channel, Prerequisites, Documentation, Note   string
 	CatalogRevision                               string
+	WhenToUse                                     string
 	SetupGuides                                   []catalog.SetupGuide
 }
 
@@ -131,7 +132,8 @@ func readTools(path string) ([]tool, error) {
 			}
 			entries = append(entries, tool{
 				ID: id, Shortcut: entry.ID, Name: entry.Name, Description: entry.Description, Aliases: entry.Aliases,
-				Owner: target.Owner, Repo: target.Repo, Path: target.Path, Ref: target.Ref,
+				WhenToUse: entry.WhenToUse,
+				Owner:     target.Owner, Repo: target.Repo, Path: target.Path, Ref: target.Ref,
 				Kind: target.Kind, URL: target.URL, Cwd: target.Cwd,
 				EntryPoint: target.Command, Runner: target.Runner,
 				Args: target.Args, Channel: channel, Prerequisites: target.Prerequisites,

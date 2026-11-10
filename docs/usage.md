@@ -35,6 +35,11 @@ Web targets print their HTTPS URL and open it with `open` on macOS or `xdg-open`
 
 Catalog names and aliases share one namespace; duplicates fail validation. Claim names through Git review, and keep established names associated with the same tool. Because `run` selects execution specifically, `relops run list` launches a tool named `list` if one is registered. Catalog discovery uses `relops catalog` or `relops c`; `relops catalog list` and `relops catalog ls` remain aliases. Inspect requirements with `relops info NAME` (shortcut: `relops i NAME`; compatibility alias: `relops catalog info NAME`).
 
+`relops info` also explains when to choose the tool. This guidance comes from the
+catalog's tool-level `when_to_use` field, shared with the website's "When to use it"
+section. Both channels use the same guidance; prerequisites remain specific to
+each target. Catalog edits take effect in newly built launchers.
+
 Use `relops repo` for arbitrary source paths and `relops run` (shortcut: `r`) for catalog tools. Bare targets are rejected with a suggested replacement:
 
 ```sh

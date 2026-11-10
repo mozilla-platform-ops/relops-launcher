@@ -32,10 +32,13 @@ func TestToolPagesForEntireCatalog(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, value := range []string{entry.Name, entry.Description, entry.Command(), entry.Prerequisites, entry.Documentation, entry.SourceURL()} {
+		for _, value := range []string{entry.Name, entry.Description, entry.WhenToUse, entry.Command(), entry.Prerequisites, entry.Documentation, entry.SourceURL()} {
 			if !strings.Contains(html.UnescapeString(string(page)), value) {
 				t.Errorf("%s page missing catalog value %q", entry.Shortcut, value)
 			}
+		}
+		if strings.Count(string(page), `id="when-to-use-heading"`) != 1 || strings.Contains(string(page), `<h2 id="when-to-use-it">`) {
+			t.Errorf("%s needs exactly one catalog-generated usage section", entry.Shortcut)
 		}
 		if !strings.Contains(string(home), `href="tools/`+entry.Shortcut+`/"`) {
 			t.Errorf("homepage does not link %s", entry.Shortcut)
@@ -84,8 +87,9 @@ func TestToolPageKeepsIndependentChannelsTogether(t *testing.T) {
 	}
 	c := catalog.Catalog{SchemaVersion: 1, Revision: "channels", Tools: []catalog.Tool{{
 		ID: "duet", Name: "Duet <two>", Description: "Two & separate targets", Aliases: []string{"du"},
-		Default: &catalog.Target{Kind: "source", Owner: "org", Repo: "stable", Ref: "v1", Command: "start", Cwd: "repo", Prerequisites: "Stable setup", Args: []string{"a b"}},
-		Beta:    &catalog.Target{Kind: "source", Owner: "fork", Repo: "experiment", Ref: "next", Path: "tool.py", Runner: "python3", Prerequisites: "Beta setup", Args: []string{"--help"}},
+		WhenToUse: "Compare <targets> & inspect behavior.",
+		Default:   &catalog.Target{Kind: "source", Owner: "org", Repo: "stable", Ref: "v1", Command: "start", Cwd: "repo", Prerequisites: "Stable setup", Args: []string{"a b"}},
+		Beta:      &catalog.Target{Kind: "source", Owner: "fork", Repo: "experiment", Ref: "next", Path: "tool.py", Runner: "python3", Prerequisites: "Beta setup", Args: []string{"--help"}},
 	}}}
 	data, _ := json.Marshal(c)
 	if err := os.WriteFile(filepath.Join(source, "tools.json"), data, 0644); err != nil {
@@ -109,6 +113,9 @@ func TestToolPageKeepsIndependentChannelsTogether(t *testing.T) {
 	}
 	if bytes.Contains(data, []byte("Duet <two>")) || !bytes.Contains(data, []byte("Duet &lt;two&gt;")) {
 		t.Fatal("catalog prose was not escaped")
+	}
+	if !bytes.Contains(data, []byte("Compare &lt;targets&gt; &amp; inspect behavior.")) || bytes.Contains(data, []byte("Compare <targets>")) {
+		t.Fatal("usage guidance was missing or not escaped")
 	}
 	pages, _ := os.ReadDir(filepath.Join(output, "tools"))
 	if len(pages) != 1 {

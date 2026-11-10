@@ -1,12 +1,13 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-09.3",
+  "revision": "2026-11-09.4",
   "tools": [
     {
       "id": "hangar",
       "aliases": ["h"],
       "name": "Hangar",
       "description": "Inspect Firefox CI fleet inventory, worker and pool health, alerts, and Puppet configuration in a shared dashboard.",
+      "when_to_use": "Use Hangar when you need a fleet-wide starting point for investigating worker health, load, or alerts. Start with the overview, then narrow to a platform, pool, or machine to inspect inventory and configuration.",
       "default": {
         "kind": "web",
         "url": "https://hangar.relops.mozilla.com/",
@@ -19,6 +20,7 @@
       "aliases": ["pc"],
       "name": "Pool Classifier",
       "description": "Review Taskcluster pool health, task success rates, alerting workers, and failures grouped by log patterns.",
+      "when_to_use": "Start here when a worker pool's success rate changes and you want to see which workers or failures account for it. The dashboard groups task results using log patterns, helping you move from a pool-wide symptom to examples worth inspecting.",
       "default": {
         "kind": "web",
         "url": "https://pool-classifier.relops.mozilla.com/",
@@ -31,6 +33,7 @@
       "aliases": ["tcwl"],
       "name": "Taskcluster Web Launcher",
       "description": "Find Firefox CI worker pools and open their Taskcluster pages.",
+      "when_to_use": "Use this terminal picker when you know a worker pool name or part of one and want to reach its Taskcluster page quickly. Choose a pool to open it in your browser, or print its URL for use elsewhere.",
       "beta": {
         "kind": "source",
         "owner": "mozilla-platform-ops",
@@ -46,6 +49,7 @@
       "id": "replay-tc-pool",
       "name": "Taskcluster pool replay",
       "description": "Test a worker pool by replaying completed level-1 jobs from another pool, tracking workload coverage and available capacity.",
+      "when_to_use": "Use pool replay when testing a destination pool against a mix of jobs from an existing pool, for example while evaluating a worker configuration change. Coverage tracks which discovered workload types have completed successfully in the replay session, rather than treating one successful task as a full test.",
       "beta": {
         "kind": "source",
         "owner": "aerickson",
@@ -66,6 +70,7 @@
       "id": "replay-tc-task",
       "name": "Taskcluster task replay",
       "description": "Replay a completed level-1 Firefox CI task as an independent diagnostic task, or preview its task definition without submitting.",
+      "when_to_use": "Use task replay when one completed level-1 Firefox CI task provides a useful diagnostic workload for a worker pool. Preview its task definition before submitting an independent replay task; use pool replay when you need coverage across a mix of jobs.",
       "beta": {
         "kind": "source",
         "owner": "aerickson",
@@ -86,6 +91,7 @@
       "aliases": ["ct"],
       "name": "Taskcluster task creator",
       "description": "Submit diagnostic tasks to a worker queue, using a timed counter or your own shell command, and optionally watch their results.",
+      "when_to_use": "Use a small diagnostic task to check that a worker queue accepts work, identify the worker that claims it, or run a shell command on that worker. This tool creates a fresh task rather than copying an existing Firefox CI job.",
       "default": {
         "kind": "source",
         "owner": "mozilla-platform-ops",
@@ -110,6 +116,7 @@
       "aliases": ["qt"],
       "name": "Taskcluster worker quarantine",
       "description": "View quarantined workers, quarantine hosts, or lift their quarantine.",
+      "when_to_use": "Use this when investigating a worker that should be kept out of normal task scheduling, checking which workers are already quarantined, or returning a recovered worker to service. Review the target workers and their current quarantine state before changing it.",
       "default": {
         "kind": "source",
         "owner": "mozilla-platform-ops",
@@ -130,6 +137,7 @@
       "id": "moonshot-2404-x11-talos",
       "name": "Moonshot oneshot tool \u2014 24.04 X11 Talos",
       "description": "Reimage and converge a Moonshot worker for Ubuntu 24.04 X11 Talos.",
+      "when_to_use": "Use this when preparing a Moonshot worker for Ubuntu 24.04 X11 Talos through reimaging and Puppet convergence. Review the printed plan and intended worker before confirming the operation; use the Wayland tool for a Wayland configuration.",
       "beta": {
         "kind": "source",
         "owner": "mozilla-platform-ops",
@@ -149,6 +157,7 @@
       "id": "moonshot-2404-wayland-talos",
       "name": "Moonshot oneshot tool \u2014 24.04 Wayland Talos",
       "description": "Reimage and converge a Moonshot worker for Ubuntu 24.04 Wayland Talos.",
+      "when_to_use": "Use this when preparing a Moonshot worker for Ubuntu 24.04 Wayland Talos through reimaging and Puppet convergence. Review the printed plan and intended worker before confirming the operation; use the X11 tool for an X11 configuration.",
       "beta": {
         "kind": "source",
         "owner": "mozilla-platform-ops",
@@ -168,6 +177,7 @@
       "id": "fleetroll",
       "name": "Fleetroll",
       "description": "Audit and monitor Firefox CI hosts, and manage their Puppet configuration.",
+      "when_to_use": "Use Fleetroll when auditing or monitoring a set of Firefox CI hosts, checking their Puppet configuration, or managing a configuration rollout. Choose the host operations and access needed for the investigation or change you intend to make.",
       "aliases": [
         "fr"
       ],
@@ -190,6 +200,7 @@
       "aliases": ["fb"],
       "name": "Fleetbench",
       "description": "Inspect host metadata or measure CPU and Android ADB transfer performance using the latest stable Fleetbench binary.",
+      "when_to_use": "Use Fleetbench to inspect host metadata or compare CPU performance while evaluating machines or investigating performance differences. Use its ADB transfer workload when measuring transfer performance with an attached Android device.",
       "default": {
         "kind": "release",
         "owner": "mozilla-platform-ops",

@@ -24,6 +24,7 @@ type Tool struct {
 	Name        string   `json:"name"`
 	Aliases     []string `json:"aliases,omitempty"`
 	Description string   `json:"description"`
+	WhenToUse   string   `json:"when_to_use,omitempty"`
 	Default     *Target  `json:"default,omitempty"`
 	Beta        *Target  `json:"beta,omitempty"`
 }

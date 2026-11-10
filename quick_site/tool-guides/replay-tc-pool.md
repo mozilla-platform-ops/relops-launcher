@@ -1,10 +1,3 @@
-## When to use it
-
-Use pool replay when testing a destination pool against a mix of jobs from an
-existing pool—for example, while evaluating a worker configuration change.
-Coverage tracks which discovered workload types have completed successfully in
-the replay session, rather than treating one successful task as a full test.
-
 ![Pool replay dashboard showing workload coverage, task status, and the activity log.](images/replay-tc-pool/session-dashboard.png)
 
 *An active session with submissions enabled.*

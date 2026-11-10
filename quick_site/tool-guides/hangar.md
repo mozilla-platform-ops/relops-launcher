@@ -1,9 +1,5 @@
 ## A first look
 
-Use Hangar to inspect Firefox CI fleet health and load across platforms.
-The overview brings together the release schedule, pending and running tasks,
-busy pools, and machine activity.
-
 ![Hangar overview showing the Firefox release schedule, fleet load, busiest pools, and machine activity by platform.](images/hangar/overview.png)
 
 *The overview dashboard.*

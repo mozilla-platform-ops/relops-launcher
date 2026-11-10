@@ -50,12 +50,20 @@ homepage. Default and beta targets share a page. Commands, aliases, requirements
 declared files, and source details come from `tools.json`; edit that catalog to
 change the reference information. A page works without a hand-written guide.
 
+Each curated tool must also have a tool-level `when_to_use` paragraph in the
+catalog, shared by its default and beta targets. Use plain text to explain when
+to choose the tool, with a concrete situation or useful distinction from related
+tools. The page template renders it as "When to use it" before the optional guide;
+`relops info` displays the same text. Bundled-catalog tests check that every tool
+has guidance. Keep `description` as the short summary used in catalog listings.
+
 To add a guide, create `quick_site/tool-guides/<id>.md`, using the canonical
 catalog ID. Markdown is rendered during the Go site build with Goldmark; visitors
 do not need JavaScript to read it. Start with `##` headings since the page supplies
 the title. Paragraphs, lists, fenced code blocks, links, tables, and images are
-supported; raw HTML is rejected. Keep the guide focused on when to use a tool,
-workflows, and useful limitations rather than repeating the generated reference.
+supported; raw HTML is rejected. Keep the guide focused on workflows, screenshots,
+and useful limitations rather than repeating the catalog's "When to use it"
+section or generated reference.
 The build combines these checked-in guides with `tool.html`, catalog data, and
 shared CSS. It does not generate prose or images with AI.
 

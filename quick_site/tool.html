@@ -30,12 +30,18 @@
     </div>
     <p class="lead">{{.Description}}</p>
     <nav class="tool-jumps" aria-label="On this page">
+      {{if .WhenToUse}}<a href="#tool-when-to-use">When to use it</a>{{end}}
       {{if .Guide}}<a href="#tool-guide">Guide</a>{{end}}
       <a href="#tool-run">Run it</a>
       <a href="#tool-requirements">Requirements</a>
       <a href="#tool-source">Source</a>
     </nav>
   </header>
+
+  {{if .WhenToUse}}<section class="tool-section" id="tool-when-to-use" aria-labelledby="when-to-use-heading">
+    <h2 class="h-section" id="when-to-use-heading">When to use it</h2>
+    <p class="prose">{{.WhenToUse}}</p>
+  </section>{{end}}
 
   {{if .Guide}}<section class="tool-section" id="tool-guide" aria-labelledby="guide-heading">
     <h2 class="label" id="guide-heading">Guide</h2>

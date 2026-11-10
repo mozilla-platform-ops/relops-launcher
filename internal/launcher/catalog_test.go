@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/mozilla-platform-ops/relops-launcher/internal/catalog"
 )
 
 func TestCatalogCLI(t *testing.T) {
@@ -184,6 +186,23 @@ func TestCatalogInfoShowsDataFiles(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), "Data files: ~/.tc_token") {
 		t.Fatalf("missing data file in catalog info: %s", out.String())
+	}
+}
+
+func TestCatalogInfoShowsWhenToUse(t *testing.T) {
+	c, err := catalog.Bundled()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tool := range c.Tools {
+		var out bytes.Buffer
+		if err := catalogDisplay([]string{"info", tool.ID}, &out); err != nil {
+			t.Fatal(err)
+		}
+		text := strings.Join(strings.Fields(out.String()), " ")
+		if !strings.Contains(text, "WHEN TO USE IT "+tool.WhenToUse) {
+			t.Errorf("missing catalog usage guidance for %s: %s", tool.ID, text)
+		}
 	}
 }
 

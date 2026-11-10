@@ -141,6 +141,10 @@ func catalogDisplay(args []string, out io.Writer) error {
 		if len(t.Aliases) > 0 {
 			fmt.Fprintln(&b, "Aliases: "+strings.Join(t.Aliases, ", "))
 		}
+		if t.WhenToUse != "" {
+			fmt.Fprintf(&b, "\n%s\n", p.text(styleHeading, "WHEN TO USE IT"))
+			writeWrapped(&b, t.WhenToUse, "  ", terminalWidth(out))
+		}
 		for _, beta := range []bool{false, true} {
 			target, channel, err := t.Select(beta)
 			if err != nil {

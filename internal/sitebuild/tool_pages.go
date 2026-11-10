@@ -24,6 +24,7 @@ type toolPage struct {
 	ID, Name, Description, Version, Revision, CatalogRevision string
 	Targets                                                   []tool
 	Guide                                                     template.HTML
+	WhenToUse                                                 string
 }
 
 func buildToolPages(source, stage, version, revision string) error {
@@ -37,6 +38,7 @@ func buildToolPages(source, stage, version, revision string) error {
 		if pages[entry.Shortcut] == nil {
 			pages[entry.Shortcut] = &toolPage{ID: entry.Shortcut, Name: entry.Name,
 				Description: entry.Description, Version: version, Revision: revision, CatalogRevision: entry.CatalogRevision}
+			pages[entry.Shortcut].WhenToUse = entry.WhenToUse
 			order = append(order, entry.Shortcut)
 		}
 		pages[entry.Shortcut].Targets = append(pages[entry.Shortcut].Targets, entry)
