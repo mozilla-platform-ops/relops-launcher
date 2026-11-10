@@ -56,6 +56,8 @@ do not need JavaScript to read it. Start with `##` headings since the page suppl
 the title. Paragraphs, lists, fenced code blocks, links, tables, and images are
 supported; raw HTML is rejected. Keep the guide focused on when to use a tool,
 workflows, and useful limitations rather than repeating the generated reference.
+The build combines these checked-in guides with `tool.html`, catalog data, and
+shared CSS. It does not generate prose or images with AI.
 
 For example, in `quick_site/tool-guides/fleetroll.md`:
 
@@ -76,7 +78,17 @@ For a workflow specific to another channel, write its command explicitly.
 
 Put screenshots in `quick_site/tool-guides/images/<id>/`. Reference them as
 `![Useful alt text](images/<id>/screenshot.png)` and follow them with an italic
-paragraph for a caption. PNG, JPEG, GIF, WebP, AVIF, and SVG files are supported.
+paragraph for a short descriptive caption. The renderer automatically links each
+image to its full-size file; existing explicit links are preserved. Do not add a
+separate "Open full size" link or viewing instructions to the caption. For example:
+
+```md
+![Dashboard showing pool health](images/<id>/screenshot.png)
+
+*The overview dashboard.*
+```
+
+PNG, JPEG, GIF, WebP, AVIF, and SVG files are supported.
 Images are packaged under `tool-guide-images/<id>/`; the build rewrites their
 URLs. Markdown source stays out of the published bundle.
 

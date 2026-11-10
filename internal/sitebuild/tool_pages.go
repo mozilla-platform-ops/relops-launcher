@@ -102,6 +102,7 @@ func renderMarkdown(data []byte, imageTool string) (template.HTML, error) {
 	md := goldmark.New(goldmark.WithExtensions(extension.Table),
 		goldmark.WithParserOptions(parser.WithAutoHeadingID()))
 	doc := md.Parser().Parse(text.NewReader(data))
+	var screenshots []*ast.Image
 	err := ast.Walk(doc, func(node ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
 			return ast.WalkContinue, nil
@@ -122,11 +123,29 @@ func renderMarkdown(data []byte, imageTool string) (template.HTML, error) {
 				return ast.WalkStop, fmt.Errorf("guide images must use %s", prefix)
 			}
 			node.Destination = append([]byte("../../tool-guide-images/"), node.Destination[len("images/"):]...)
+			screenshots = append(screenshots, node)
 		}
 		return ast.WalkContinue, nil
 	})
 	if err != nil {
 		return "", err
+	}
+	// Add full-size links after walking so reparenting cannot affect traversal.
+	for _, image := range screenshots {
+		linked := false
+		for parent := image.Parent(); parent != nil; parent = parent.Parent() {
+			if _, ok := parent.(*ast.Link); ok {
+				linked = true
+				break
+			}
+		}
+		if !linked {
+			link := ast.NewLink()
+			link.Destination = image.Destination
+			parent := image.Parent()
+			parent.ReplaceChild(parent, image, link)
+			link.AppendChild(link, image)
+		}
 	}
 	var out bytes.Buffer
 	if err := md.Renderer().Render(&out, data, doc); err != nil {

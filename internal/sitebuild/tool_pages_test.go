@@ -137,9 +137,23 @@ func TestGuideImagesPackagedAndLinked(t *testing.T) {
 	if !bytes.Contains(page, []byte(`src="../../tool-guide-images/fleetroll/monitor.png" alt="Worker monitor"`)) {
 		t.Fatal("image URL or alt text not rendered")
 	}
+	if !bytes.Contains(page, []byte(`<a href="../../tool-guide-images/fleetroll/monitor.png"><img`)) {
+		t.Fatal("screenshot should link to its full-size file automatically")
+	}
 	packaged, _ := os.ReadFile(filepath.Join(output, "tool-guide-images", "fleetroll", "monitor.png"))
 	if !bytes.Equal(packaged, image) {
 		t.Fatal("image bytes changed or missing")
+	}
+}
+
+func TestGuideScreenshotKeepsExplicitLink(t *testing.T) {
+	guide := []byte(`[![Dashboard](images/fleetroll/monitor.png)](https://example.com/dashboard)`)
+	page, err := renderGuide(guide, tool{Shortcut: "fleetroll"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(page), `<a href="https://example.com/dashboard"><img src="../../tool-guide-images/fleetroll/monitor.png"`) || strings.Count(string(page), "<a ") != 1 {
+		t.Fatalf("explicit image link changed or nested: %s", page)
 	}
 }
 
