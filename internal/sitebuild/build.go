@@ -185,6 +185,9 @@ func build(cfg Config, inspect func(string) (metadata, error)) (string, error) {
 	if err := buildSetupPages(source, stage, cfg.Version, revision); err != nil {
 		return "", fmt.Errorf("build setup guides: %w", err)
 	}
+	if err := fingerprintAssets(stage); err != nil {
+		return "", fmt.Errorf("fingerprint assets: %w", err)
+	}
 	if err := validateSiteLinks(stage); err != nil {
 		return "", err
 	}

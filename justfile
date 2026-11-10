@@ -68,7 +68,7 @@ _serve-preview:
 
 # Build the site and test download selection and copying (requires Node).
 site-check: site
-    node --check dist/site/js/main.js
+    for script in dist/site/js/*.js; do node --check "$script"; done
     node --test quick_site/tests/downloads.test.cjs
 
 # Store notarization credentials in Keychain using secure interactive prompts.
@@ -86,7 +86,7 @@ notarize-macos: release
 # Prepare the production download site without rebuilding away its signatures.
 signed-site: notarize-macos
     {{ quote(go) }} run ./cmd/relops-site --version {{ quote(version) }} --require-notarized
-    node --check dist/site/js/main.js
+    for script in dist/site/js/*.js; do node --check "$script"; done
     node --test quick_site/tests/downloads.test.cjs
     just version={{ quote(version) }} retain-release
 
@@ -118,7 +118,7 @@ site-from-release:
     test -d {{ quote(retained_release) }} || { echo 'No retained release; run just signed-site first.' >&2; exit 1; }
     cd {{ quote(retained_release) }} && shasum -a 256 -c SHA256SUMS
     {{ quote(go) }} run ./cmd/relops-site --version {{ quote(version) }} --binaries {{ quote(retained_release) }} --require-notarized
-    node --check {{ quote(retained_release + "/site/js/main.js") }}
+    for script in {{ quote(retained_release + "/site/js") }}/*.js; do node --check "$script"; done
     RELOPS_SITE_DIR={{ quote(retained_release + "/site") }} node --test quick_site/tests/downloads.test.cjs
 
 # Check live tools and publish site changes using retained release binaries.

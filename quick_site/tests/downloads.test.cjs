@@ -13,7 +13,10 @@ const site = process.env.RELOPS_SITE_DIR
   ? path.resolve(process.env.RELOPS_SITE_DIR)
   : path.resolve(__dirname, '../../dist/site');
 const release = JSON.parse(fs.readFileSync(path.join(site, 'releases.json'), 'utf8'));
-const script = fs.readFileSync(path.join(site, 'js/main.js'), 'utf8');
+const index = fs.readFileSync(path.join(site, 'index.html'), 'utf8');
+const scriptPath = index.match(/<script defer src="(js\/main\.[a-f0-9]+\.js)"><\/script>/);
+assert.ok(scriptPath, 'homepage must load the fingerprinted script');
+const script = fs.readFileSync(path.join(site, scriptPath[1]), 'utf8');
 
 function node(extra = {}) {
   return {

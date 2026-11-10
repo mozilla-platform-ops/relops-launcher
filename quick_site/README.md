@@ -13,6 +13,11 @@ Open `http://localhost:8080`. `just site-check` requires Node for the download-s
 
 For automatic rebuilds and serving in one terminal, stop any existing `just serve` process and run `just dev`. This requires `watchexec` (`brew install watchexec` on macOS). It builds unsigned binaries and the site immediately, then rebuilds and restarts the server when site or launcher sources change; refresh the browser after editing. It checks for changes every second. If you prefer separate terminals, use `just watch-site` alongside `just serve`. These commands update the local preview only; publishing still uses `just publish-site`.
 
+Site assembly adds content hashes to CSS and JavaScript filenames and rewrites
+references on the homepage, tool pages, and setup guides. Changed assets get new
+URLs automatically, including for site-only deployments; unchanged assets keep
+the same URLs. Edit the original filenames under `css/` and `js/` as usual.
+
 Press Ctrl-C to stop the watcher and its server.
 
 ## Generated bundle
