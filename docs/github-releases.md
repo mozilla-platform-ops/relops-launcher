@@ -26,6 +26,12 @@ asset while the release is a draft, then publish after verification.
 ## Release preparation
 
 1. Bump `VERSION`, run `just check`, and commit the reviewed source and public key.
+   This commit must happen before building production binaries, including for a
+   site-only deployment. Confirm `git status --short` is empty before running
+   `just signed-site` or `just publish`: Go embeds the source commit and dirty
+   status in each binary. Committing afterward does not fix existing binaries;
+   rebuild, sign, and notarize them from the clean commit. Keep preview builds
+   separate from retained production releases.
 2. Create the matching `vVERSION` tag at that clean commit. Push the commit and tag
    through the normal reviewed release process.
 3. On the signing Mac, run `just signed-site` to build, sign, notarize, and retain
