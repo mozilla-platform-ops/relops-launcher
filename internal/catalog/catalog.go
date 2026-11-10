@@ -162,6 +162,16 @@ func (c Catalog) Lookup(n string) (Tool, error) {
 	return Tool{}, fmt.Errorf("unknown catalog tool %q; use relops catalog", n)
 }
 
+// BetaOnlyError provides a runnable alternative when a tool has no default.
+type BetaOnlyError struct {
+	ToolID  string
+	Command string
+}
+
+func (e *BetaOnlyError) Error() string {
+	return fmt.Sprintf("%s is only available in beta.\n\n  Try: %s", e.ToolID, e.Command)
+}
+
 func (t Tool) Select(beta bool) (*Target, string, error) {
 	target, channel := t.Default, "default"
 	if beta {
@@ -169,11 +179,13 @@ func (t Tool) Select(beta bool) (*Target, string, error) {
 	}
 	if target == nil {
 		if !beta && t.Beta != nil {
-			hint := fmt.Sprintf("relops run -b %s", t.ID)
-			if len(t.Aliases) > 0 {
-				hint += fmt.Sprintf(" (or relops r -b %s)", t.Aliases[0])
+			name := t.ID
+			for _, alias := range t.Aliases {
+				if len(alias) < len(name) {
+					name = alias
+				}
 			}
-			return nil, channel, fmt.Errorf("tool %q has no default target; launch its beta with %s", t.ID, hint)
+			return nil, channel, &BetaOnlyError{ToolID: t.ID, Command: "relops r -b " + name}
 		}
 		return nil, channel, fmt.Errorf("tool %q has no %s target", t.ID, channel)
 	}

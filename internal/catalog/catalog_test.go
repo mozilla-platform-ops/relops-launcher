@@ -44,8 +44,9 @@ func TestMissingDefaultBetaHint(t *testing.T) {
 		aliases []string
 		want    string
 	}{
-		{"canonical", nil, `tool "preview" has no default target; launch its beta with relops run -b preview`},
-		{"alias", []string{"pv", "preview-tool"}, `tool "preview" has no default target; launch its beta with relops run -b preview (or relops r -b pv)`},
+		{"canonical", nil, "preview is only available in beta.\n\n  Try: relops r -b preview"},
+		{"alias", []string{"preview-tool", "pv"}, "preview is only available in beta.\n\n  Try: relops r -b pv"},
+		{"long alias", []string{"preview-tool"}, "preview is only available in beta.\n\n  Try: relops r -b preview"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			tool := Tool{ID: "preview", Aliases: tc.aliases, Beta: &Target{Kind: "source"}}

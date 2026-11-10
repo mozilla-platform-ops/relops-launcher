@@ -96,6 +96,19 @@ func TestPaletteAndPlainErrors(t *testing.T) {
 	}
 }
 
+func TestBetaOnlyLaunchGuidance(t *testing.T) {
+	var out bytes.Buffer
+	_, done, err := parse([]string{"r", "tcwl"}, &out, "test")
+	if err == nil || done {
+		t.Fatalf("parse: done=%v err=%v", done, err)
+	}
+	writeError(&out, err)
+	want := "relops: taskcluster-web-launcher is only available in beta.\n\n  Try: relops r -b tcwl\n"
+	if out.String() != want {
+		t.Fatalf("output = %q; want %q", out.String(), want)
+	}
+}
+
 func TestRedirectedFilesArePlain(t *testing.T) {
 	r, w, err := os.Pipe()
 	if err != nil {

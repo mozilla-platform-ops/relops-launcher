@@ -1,10 +1,13 @@
 package launcher
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"syscall"
+
+	"github.com/mozilla-platform-ops/relops-launcher/internal/catalog"
 )
 
 const (
@@ -46,5 +49,11 @@ func (p palette) text(style, text string) string {
 }
 
 func writeError(out io.Writer, err error) {
+	p := terminalPalette(out)
+	var betaOnly *catalog.BetaOnlyError
+	if errors.As(err, &betaOnly) {
+		fmt.Fprintf(out, "relops: %s\n\n  Try: %s\n", p.text(styleMetadata, betaOnly.ToolID+" is only available in beta."), p.text("1;36", betaOnly.Command))
+		return
+	}
 	fmt.Fprintf(out, "relops: %s %s\n", terminalPalette(out).text(styleError, "error:"), err)
 }
