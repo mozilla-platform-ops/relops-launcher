@@ -31,11 +31,10 @@
   setTheme(["dark", "light", "auto"].includes(savedTheme) ? savedTheme : "auto");
   $$("[data-set-accent]").forEach((b) => b.addEventListener("click", () => setAccent(b.dataset.setAccent, true)));
   $$("[data-set-theme]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.setTheme, true)));
-  // Easter egg: poke the brand or blob to cycle accents.
+  // Easter egg: poke the blob to cycle accents.
   const cycleAccent = () => {
     setAccent(ACCENTS[(ACCENTS.indexOf(root.dataset.accent) + 1) % ACCENTS.length]); // easter egg: not persisted
   };
-  $("[data-brand]")?.addEventListener("click", cycleAccent);
   $("[data-cycle-accent]")?.addEventListener("click", cycleAccent);
 
   /* ---- Terminal demo -------------------------------------------------- */
