@@ -41,13 +41,13 @@ func TestToolPagesForEntireCatalog(t *testing.T) {
 			t.Errorf("homepage does not link %s", entry.Shortcut)
 		}
 	}
-	for _, id := range []string{"pool-classifier", "create-tc-task", "replay-tc-pool"} {
+	for _, id := range []string{"hangar", "pool-classifier", "create-tc-task", "replay-tc-pool"} {
 		page, _ := os.ReadFile(filepath.Join(output, "tools", id, "index.html"))
 		if !bytes.Contains(page, []byte(`class="tool-guide"`)) || !bytes.Contains(page, []byte("<pre><code")) || bytes.Contains(page, []byte("{{launch}}")) {
 			t.Errorf("missing rendered walkthrough/example for %s", id)
 		}
 	}
-	fallback, _ := os.ReadFile(filepath.Join(output, "tools", "hangar", "index.html"))
+	fallback, _ := os.ReadFile(filepath.Join(output, "tools", "replay-tc-task", "index.html"))
 	if bytes.Contains(fallback, []byte(`id="tool-guide"`)) || !bytes.Contains(fallback, []byte(`id="tool-requirements"`)) {
 		t.Fatal("metadata-only page should show reference without an empty guide")
 	}

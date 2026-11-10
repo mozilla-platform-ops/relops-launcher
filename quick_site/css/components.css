@@ -214,7 +214,14 @@ details > summary { cursor: pointer; }
 .tool-guide pre button { flex-shrink: 0; }
 .tool-guide pre + p:has(> em:only-child), .tool-guide p:has(> img:only-child) + p:has(> em:only-child) { font-size: var(--text-xs); }
 .tool-guide blockquote { border-left: var(--border-w) solid var(--accent); margin-left: 0; padding-left: var(--space-4); }
-.tool-guide img { display: block; height: auto; border: var(--border-w) solid var(--line); }
+.tool-guide img {
+  display: block; height: auto;
+  border: var(--border-w) solid var(--line-strong);
+  border-radius: var(--radius-screenshot);
+  box-shadow:
+    0 var(--space-4) var(--space-6) color-mix(in srgb, var(--bg-sunk) 65%, transparent),
+    0 0 var(--space-6) color-mix(in srgb, var(--accent-fill) 12%, transparent);
+}
 .tool-guide table { display: block; overflow-x: auto; }
 @media (max-width: 40rem) {
   .tool-facts { grid-template-columns: minmax(0, 1fr); }

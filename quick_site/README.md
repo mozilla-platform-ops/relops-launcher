@@ -80,6 +80,10 @@ paragraph for a caption. PNG, JPEG, GIF, WebP, AVIF, and SVG files are supported
 Images are packaged under `tool-guide-images/<id>/`; the build rewrites their
 URLs. Markdown source stays out of the published bundle.
 
+Use screenshots of the application content without browser tabs, toolbars, or
+address bars. The page adds a rounded frame and soft backlight consistently;
+keep that presentation out of the image itself.
+
 Other local links are relative to the generated page: `../fleetroll/` links to
 another tool, `#tool-requirements` links to the generated requirements, and normal
 Markdown headings get anchor IDs. Builds reject unknown guide IDs, missing local

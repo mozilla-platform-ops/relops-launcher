@@ -35,6 +35,7 @@
   /* --- Shape ------------------------------------------------------------ */
   --radius-0: 0;        /* default. We are square. */
   --radius-1: 3px;      /* chips, kbd */
+  --radius-screenshot: 12px; /* screenshot window frame */
   --border-w: 1px;
   --measure: 68ch;
   --page-w: 72rem;
