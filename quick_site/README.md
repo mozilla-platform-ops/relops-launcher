@@ -191,17 +191,23 @@ just publish-site
 
 This rebuilds the site from current web sources and retained `dist/releases/vVERSION/` downloads, verifies checksums and the notarization receipt, runs the download/install tests, and deploys `dist/releases/vVERSION/site`. It does not rebuild, sign, notarize, or fetch binaries. `just site-from-release` performs the same preparation and checks without deploying. If the retained release is missing, preparation fails with instructions to run `just signed-site`. To retain already-prepared signed binaries from the top-level `dist/` directory, run `just retain-release`. Site assembly checks the version marker in each binary; retained releases before 0.2.1 lack this marker and cannot be assembled by the current builder.
 
-For a new binary release, update `VERSION`, commit source, then sign, notarize, test, retain, and publish with:
+For a new binary release, follow the [release guide](../docs/github-releases.md):
+update `VERSION`, commit source, then build, sign, notarize, test, and retain with:
 
 ```sh
-just publish
+just signed-site
 ```
 
-That recipe uses `aerickson@mozilla.com` for Quick; other publishers can override `RELOPS_QUICK_ACCOUNT`. To deploy an already-prepared signed bundle directly, publish the generated folder, not this source folder or the whole project:
+Publish and verify the GitHub release as latest before running `just publish-site`.
+Use the same retained binaries for both channels; do not rebuild them after
+GitHub publication. Avoid `just publish` for this sequence because it rebuilds
+and deploys Quick without publishing GitHub first.
+
+The deploy recipes use `aerickson@mozilla.com` for Quick; other publishers can override `RELOPS_QUICK_ACCOUNT`. To deploy an already-prepared signed bundle directly, publish the generated folder, not this source folder or the whole project:
 
 ```sh
 CLOUDSDK_CORE_ACCOUNT=aerickson@mozilla.com \
-  quick deploy dist/site relops-launcher
+  quick deploy dist/releases/vVERSION/site relops-launcher
 ```
 
 This invocation was used successfully to publish the site. `CLOUDSDK_CORE_ACCOUNT` selects the publishing account for this command without changing the default gcloud account. Other publishers should substitute their own authenticated Mozilla account. Only `just publish` and `just publish-site` deploy automatically; build and signing recipes do not. Browser downloads use the staff member's Mozilla SSO session. Unauthenticated terminal downloads redirect to Google IAP sign-in HTML, even when the download command reports success. The site therefore requires a browser download, then supplies a command that verifies the checksum from `~/Downloads`, installs into `~/.local/bin`, sets PATH for the current terminal, and checks the version. Individual steps and persistent shell PATH setup remain in a disclosure. Custom download folders require editing the Downloads path. Updater-enabled launcher releases support `relops update` using public GitHub Releases; see [the release guide](../docs/github-releases.md). Quick publishers need its CLI/credentials; people downloading `relops` do not.

@@ -45,6 +45,9 @@
 
 ## Website review and publishing
 
+- For a new binary version, publish and verify the GitHub release as latest
+  before deploying Quick. Use `just publish-site` with the same retained,
+  verified binaries; do not rebuild them between GitHub and Quick publication.
 - Before building production release binaries or site downloads, commit the
   version bump and reviewed source with explicit user permission, then confirm
   `git status --short` is empty. Build, sign, and notarize from that clean commit;

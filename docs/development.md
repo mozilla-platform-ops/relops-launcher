@@ -26,14 +26,14 @@ just site                  # unsigned preview site under dist/site
 just site-check            # also test the site's download/copy behavior (Node)
 just notary-setup          # one-time, interactive Apple credentials → Keychain
 just signed-site           # sign, notarize, verify, and assemble the sharing bundle
-just publish               # signed-site, then Quick deploy with the Mozilla account
+just publish               # rebuild + Quick deploy; bypasses GitHub release ordering
 just site-from-release     # rebuild/test website using retained signed downloads
 just publish-site          # publish website changes without rebuilding binaries
 ```
 
 Build recipes read the version from `VERSION` and embed it in the executable; `relops --version` prints it. Override with `just version=... signed-site` when needed. Direct `go build`/`go run` without the justfile report `dev`. Only `just publish` and `just publish-site` deploy; other recipes prepare artifacts locally. Cross-compilation does not validate runtime behavior on the target OS. `SHA256SUMS` detects file corruption; it is not a signed release manifest.
 
-For shared macOS downloads, use `just signed-site` or `just publish`, on a Mac with Xcode tools and a Developer ID Application identity. `just site` is for unsigned previews and rebuilds ordinary binaries; do not run it after signing and then publish that preview. See the [macOS release workflow](../quick_site/README.md#macos-signing-and-notarization) for credential setup, retries, and publisher overrides.
+For shared macOS downloads, use `just signed-site` on a Mac with Xcode tools and a Developer ID Application identity. Publish and verify the GitHub release first, then deploy Quick with `just publish-site` using the same retained binaries. Follow the [release guide](github-releases.md) for the full sequence. `just site` is for unsigned previews and rebuilds ordinary binaries; do not run it after signing and then publish that preview. See the [macOS release workflow](../quick_site/README.md#macos-signing-and-notarization) for credential setup, retries, and publisher overrides.
 
 All build outputs stay in ignored `bin/` and `dist/` directories; no binaries need committing. The [site README](../quick_site/README.md) describes the bundle, source/toolchain metadata, local preview, and later Quick publication. CI tests the launcher on Linux and macOS and uploads a generated site artifact without deploying it.
 

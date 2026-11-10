@@ -28,7 +28,7 @@ asset while the release is a draft, then publish after verification.
 1. Bump `VERSION`, run `just check`, and commit the reviewed source and public key.
    This commit must happen before building production binaries, including for a
    site-only deployment. Confirm `git status --short` is empty before running
-   `just signed-site` or `just publish`: Go embeds the source commit and dirty
+   `just signed-site`: Go embeds the source commit and dirty
    status in each binary. Committing afterward does not fix existing binaries;
    rebuild, sign, and notarize them from the clean commit. Keep preview builds
    separate from retained production releases.
@@ -44,6 +44,12 @@ asset while the release is a draft, then publish after verification.
 5. Review the draft, download the assets, compare their checksums with the retained
    files, and verify the macOS signature/notarization. Publish the draft only
    after approval, marking the stable release as latest.
+6. Confirm the published GitHub release is latest and `relops update --check`
+   sees the new version. Then run `just publish-site` to deploy Quick using the
+   same retained binaries in `dist/releases/vVERSION/`. Do not rebuild between
+   GitHub publication and Quick deployment. Quick must not offer a new version
+   before GitHub and the updater do. Website-only updates can use the already
+   published release without repeating the binary release steps.
 
 The uploaded assets are `relops-darwin-arm64`, `relops-linux-amd64`, `SHA256SUMS`,
 `update.json`, `update.json.sig`, and `LICENSE`. Public downloads use
