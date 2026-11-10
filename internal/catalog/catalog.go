@@ -169,7 +169,11 @@ func (t Tool) Select(beta bool) (*Target, string, error) {
 	}
 	if target == nil {
 		if !beta && t.Beta != nil {
-			return nil, channel, fmt.Errorf("tool %q has no default target; launch its beta with relops run -b %s", t.ID, t.ID)
+			hint := fmt.Sprintf("relops run -b %s", t.ID)
+			if len(t.Aliases) > 0 {
+				hint += fmt.Sprintf(" (or relops r -b %s)", t.Aliases[0])
+			}
+			return nil, channel, fmt.Errorf("tool %q has no default target; launch its beta with %s", t.ID, hint)
 		}
 		return nil, channel, fmt.Errorf("tool %q has no %s target", t.ID, channel)
 	}

@@ -38,6 +38,25 @@ func TestBundledLookupAndChannels(t *testing.T) {
 	}
 }
 
+func TestMissingDefaultBetaHint(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		aliases []string
+		want    string
+	}{
+		{"canonical", nil, `tool "preview" has no default target; launch its beta with relops run -b preview`},
+		{"alias", []string{"pv", "preview-tool"}, `tool "preview" has no default target; launch its beta with relops run -b preview (or relops r -b pv)`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tool := Tool{ID: "preview", Aliases: tc.aliases, Beta: &Target{Kind: "source"}}
+			target, channel, err := tool.Select(false)
+			if target != nil || channel != "default" || err == nil || err.Error() != tc.want {
+				t.Fatalf("Select(false) = %v, %q, %v; want %q", target, channel, err, tc.want)
+			}
+		})
+	}
+}
+
 func TestValidation(t *testing.T) {
 	for _, tc := range []struct {
 		name string
