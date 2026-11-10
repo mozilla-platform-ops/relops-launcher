@@ -10,6 +10,9 @@
   `TASTE.local.md` at the project root. Expand `~` to your home directory.
   Follow the shared workflow guidance; explicit local
   preferences take precedence over general shared preferences.
+- `TASTE.local.md` contains project preferences and works independently of
+  personal taste or `tt`. Read whichever guidance files are available; none
+  requires the others. Contributors do not need personal taste configured.
 - Shared guidance and taste are optional when unavailable. If shared guidance or
   `TASTE.md` is missing and `tt` is installed, attempt `tt install` once per task
   in the project, then read any restored files. If `tt` is unavailable or setup
