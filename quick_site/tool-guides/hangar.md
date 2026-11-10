@@ -6,7 +6,7 @@ busy pools, and machine activity.
 
 [![Hangar overview showing the Firefox release schedule, fleet load, busiest pools, and machine activity by platform.](images/hangar/overview.png)](../../tool-guide-images/hangar/overview.png)
 
-*The overview dashboard. [Open full size](../../tool-guide-images/hangar/overview.png).*
+*The overview dashboard.*
 
 ```sh
 {{launch}}
