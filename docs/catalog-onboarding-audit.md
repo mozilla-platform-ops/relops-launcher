@@ -55,10 +55,11 @@ that a particular user has sufficient permissions or can install successfully.
 
 Tracking: `rlau-p66.3`. **Prepared; not yet performed.**
 
-The published v0.3.0 launcher predates this catalog update. Use a newly approved
-release containing the updated tool guidance, or explicitly identify a
-reviewed development build as a preview. Catalog changes require a launcher
-rebuild; do not replace published v0.3.0 binaries with different bytes.
+Published v0.3.1 includes the updated catalog and shared setup guidance;
+`rlau-h23` records the verified release and matching Quick site deployment.
+Use v0.3.1 for this trial. The release prerequisite is satisfied; coworker
+participation, trial results, and a recommendation for broader sharing remain
+outstanding.
 
 1. Install on a supported platform using the README instructions for the chosen
    build. Record OS/architecture, launcher version, and catalog revision. Check
