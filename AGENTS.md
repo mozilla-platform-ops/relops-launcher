@@ -5,11 +5,16 @@
 
 > Managed by `tt agents`; rerun it to refresh this block.
 
-- Before starting work, read `~/.config/tt/shared/scripts/tt/guidance.md`,
-  `TASTE.md`, and optional `TASTE.local.md` at the project root. Expand `~` to
-  your home directory. Follow the shared workflow guidance; explicit local
+- Before starting work, read these files when available:
+  `~/.config/tt/shared/scripts/tt/guidance.md`, `TASTE.md`, and optional
+  `TASTE.local.md` at the project root. Expand `~` to your home directory.
+  Follow the shared workflow guidance; explicit local
   preferences take precedence over general shared preferences.
-- If shared guidance or `TASTE.md` is missing, run `tt install` in the project.
+- Shared guidance and taste are optional when unavailable. If shared guidance or
+  `TASTE.md` is missing and `tt` is installed, attempt `tt install` once per task
+  in the project, then read any restored files. If `tt` is unavailable or setup
+  fails, continue using repository instructions and any available local taste.
+  Do not install `tt`, repeatedly retry, or block the task on setup.
 <!-- end-tt-agent-instructions -->
 
 ## Git operations
