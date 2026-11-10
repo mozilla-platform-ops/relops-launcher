@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/mozilla-platform-ops/relops-launcher/internal/catalog"
@@ -158,6 +159,11 @@ func renderTools(path string) (string, error) {
 		} else {
 			groups.Standard = append(groups.Standard, entry)
 		}
+	}
+	for _, group := range [][]tool{groups.Standard, groups.Preview} {
+		sort.SliceStable(group, func(i, j int) bool {
+			return strings.ToLower(group[i].Name) < strings.ToLower(group[j].Name)
+		})
 	}
 	tmpl, err := template.New("tools").Parse(`{{define "list"}}
       <ul class="tool-list">{{range .}}

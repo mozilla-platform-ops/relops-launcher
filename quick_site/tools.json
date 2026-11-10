@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "revision": "2026-11-09.4",
+  "revision": "2026-11-09.5",
   "tools": [
     {
       "id": "hangar",
@@ -84,6 +84,25 @@
         "example_args": [
           "-h"
         ]
+      }
+    },
+    {
+      "id": "tc-task",
+      "name": "Taskcluster task inspector",
+      "description": "Inspect Taskcluster task status, workers, and run timing; fetch text logs, filter lines, or output JSON.",
+      "when_to_use": "Use this when investigating one or more Firefox CI tasks from their IDs or Taskcluster URLs. Check the selected run's state and worker, read its text log, or filter for errors without replaying or submitting work.",
+      "beta": {
+        "kind": "source",
+        "owner": "aerickson",
+        "repo": "android-tools",
+        "path": "worker_health/tc_task.py",
+        "ref": "20261105-more_tool_development",
+        "prerequisites": "Python 3.11+, GitHub SSH access, and Pipenv for initial setup; relops installs the locked runtime dependencies. Public task summaries and public logs need no Taskcluster token. Only --auth reads clientId and accessToken from ~/.tc_token; private text artifacts require queue:get-artifact:ARTIFACT_PATH for the requested path. Help needs no credentials.",
+        "data_files": ["~/.tc_token"],
+        "setup_guides": ["taskcluster-credentials"],
+        "documentation": "https://github.com/aerickson/android-tools/blob/20261105-more_tool_development/worker_health/README.md#tc_taskpy",
+        "note": "Accepts task IDs or Firefox CI task/run URLs. --logs fetches public/logs/live_backing.log; --grep filters log lines and --artifact selects another text artifact. --run overrides the URL run; otherwise uses the URL's run or the latest. --json outputs an array. Add --auth only when credentials are needed.",
+        "example_args": ["--help"]
       }
     },
     {
