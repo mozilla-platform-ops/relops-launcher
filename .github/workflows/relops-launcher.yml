@@ -1,4 +1,4 @@
-name: RelOps launcher
+name: Tests and build
 
 on:
   push:
@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   verify:
+    name: Go tests and build (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -24,10 +25,12 @@ jobs:
       - uses: extractions/setup-just@v4
         with:
           just-version: '1.59.0'
-      - run: just check build
+      - name: Check formatting, vet, run race tests, and build
+        run: just check build
       - run: bin/relops --version
 
   bundle:
+    name: Site tests and preview bundle
     needs: verify
     runs-on: ubuntu-latest
     steps:
@@ -39,7 +42,8 @@ jobs:
       - uses: extractions/setup-just@v4
         with:
           just-version: '1.59.0'
-      - run: just site-check
+      - name: Build site and test download behavior
+        run: just site-check
       - name: Verify packaged Linux binary
         run: |
           release_version=$(cat VERSION)
