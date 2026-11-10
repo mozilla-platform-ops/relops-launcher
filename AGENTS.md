@@ -31,6 +31,9 @@
 
 - During development, run focused tests and checks appropriate to the change.
   Documentation-only changes generally need only `git diff --check`.
+- After changing CLI behavior or terminal output, run `just build` so the user
+  can preview it with `./bin/relops` before committing. Include a relevant
+  preview command in the handoff.
 - Run `just check` before release and when broader validation is warranted;
   it is not required after every edit or session.
 - `just check` runs formatting checks, `go vet`, and the full race-enabled test
