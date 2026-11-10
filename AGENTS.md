@@ -5,24 +5,11 @@
 
 > Managed by `tt agents`; rerun it to refresh this block.
 
-- Read `TASTE.md` and optional `TASTE.local.md` at the project root. Explicit
-  local guidance takes precedence over general shared preferences.
-- Make routine decisions independently. Prefer small, complete changes; verify
-  them and report concrete evidence. Consult only when existing guidance cannot
-  settle a consequential choice or taste conflict; bring a recommendation.
-  Respect existing authorization and commit permissions.
-- Agents may record durable cross-project preferences in shared `TASTE.md`.
-  Use explicit human feedback; do not infer general preferences from single
-  implementation choices.
-- Capture underlying judgment; avoid turning one-off fixes
-  into blanket rules. Put project-specific lessons in repo-owned `TASTE.local.md`
-  (create if needed), and operational instructions in `AGENTS.md`. Do not invent
-  exceptions to shared taste.
-- Update existing preferences before adding duplicates; preserve qualifications.
-  Change established meaning or remove preferences only with explicit human
-  direction. For shared edits, report the resolved source path, change summary,
-  and uncommitted status.
-- If `TASTE.md` is missing, run `tt install`.
+- Before starting work, read `~/.config/tt/shared/scripts/tt/guidance.md`,
+  `TASTE.md`, and optional `TASTE.local.md` at the project root. Expand `~` to
+  your home directory. Follow the shared workflow guidance; explicit local
+  preferences take precedence over general shared preferences.
+- If shared guidance or `TASTE.md` is missing, run `tt install` in the project.
 <!-- end-tt-agent-instructions -->
 
 ## Git operations
