@@ -37,6 +37,13 @@ func runTool(ctx context.Context, cmd *exec.Cmd) (int, error) {
 			terminal, parentGroup = input, foreground
 		}
 	}
+	if output, ok := cmd.Stdout.(*os.File); terminal != nil && ok {
+		// A downstream process in the shell's foreground pipeline may need
+		// to read from the terminal, as less does.
+		if info, err := output.Stat(); err == nil && info.Mode()&os.ModeNamedPipe != 0 {
+			terminal = nil
+		}
+	}
 	if terminal != nil {
 		// Restoring the foreground group happens while the launcher is backgrounded.
 		signal.Ignore(syscall.SIGTTOU)
